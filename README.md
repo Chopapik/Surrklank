@@ -6,10 +6,25 @@ HTTP and WebSocket; the application communicates with the ESP32 using BLE.
 
 ## Run the application
 
-Install the .NET 10 SDK and PlatformIO Core. Run `python3 run.py` (Windows:
-`py run.py`) and open <http://127.0.0.1:5173>. The Python script is only a
-launcher for `dotnet run`; the backend itself is entirely C#. You can also run
-`dotnet run --project backend/ElectromechanicalMidi.csproj` directly.
+Install the .NET 10 SDK, Node.js 24 or newer, npm and PlatformIO Core. Build
+the frontend once after cloning or updating its dependencies:
+
+```sh
+npm --prefix frontend ci
+npm --prefix frontend run build
+```
+
+Run `python3 run.py` (Windows: `py run.py`) and open <http://127.0.0.1:5173>.
+The Python script only launches `dotnet run`; the backend is entirely C#. You
+can also run `dotnet run --project backend/ElectromechanicalMidi.csproj` or
+the Rider run configuration directly. ASP.NET serves the React build from
+`frontend/dist`, so production use needs one application process.
+
+For frontend development, keep ASP.NET running and run
+`npm --prefix frontend run dev` in a second terminal. Open <http://127.0.0.1:5174> for live updates;
+Vite forwards `/api` and `/ws` to ASP.NET. Rebuild the frontend after changes
+when serving it directly from ASP.NET. The generated `dist/` and `node_modules/`
+are not committed.
 
 The application uses [SimpleSharpBLE 1.2.0](https://www.nuget.org/packages/SimpleSharpBLE/1.2.0)
 for native BLE. It packages desktop libraries for Apple Silicon macOS, Windows
@@ -42,7 +57,7 @@ the browser does not cancel a firmware operation. Do not restore Arduino.
 
 | Interface | Purpose |
 | --- | --- |
-| `GET /` | Single HTML interface |
+| `GET /` | React interface served by ASP.NET |
 | `GET /api/connection` | On-demand snapshot / diagnostics |
 | `GET /api/firmware/ports` | CP2102 USB port selection via PlatformIO |
 | `POST /api/firmware/usb` | Build current source and provision over USB |
@@ -66,14 +81,20 @@ retried automatically.
 | `backend/Services/FirmwareService.cs` | Exclusive build, USB and OTA maintenance |
 | `backend/Services/BleOtaService.cs` | Sender for Espressif's official BLE OTA profile |
 | `backend/Services/StateService.cs` | Notify connected WebSocket clients when state changes |
-| `backend/wwwroot/index.html` | Entire browser UI |
+| `frontend/src/App.tsx` | Single React component containing the entire browser UI |
+| `frontend/src/features/connection/` | WebSocket, connection state, and TypeScript types |
+| `frontend/src/features/firmware/` | Firmware API, React Query hooks, and TypeScript types |
+| `frontend/src/styles.css` | Tailwind imports and page-level styles |
+| `frontend/vite.config.ts` | React/Tailwind build and local development proxy |
 | `firmware/` | ESP-IDF application and pinned PlatformIO configuration |
 | `docs/FIRMWARE.md` | Protocol, dependencies, verification and historical hardware results |
 | `docs/WIRING.md` | Preserved physical wiring map |
 
 The previous Python-specific tests are preserved under `tests_legacy_python/`
 as historical reference; they require the removed Python backend and do not
-test the ASP.NET application. No C# test files have been added yet.
+test the ASP.NET application. No C# test files have been added yet. Run the
+frontend's offline UI tests with `npm --prefix frontend test`; they use simulated
+WebSocket and HTTP responses and do not connect to physical hardware.
 
 ## Validation baseline
 

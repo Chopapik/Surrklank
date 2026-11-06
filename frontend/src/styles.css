@@ -1,0 +1,13 @@
+/* Preserve browser defaults used by the original Web 1.0 page. */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+body {
+  font: 16px Arial, sans-serif;
+  max-width: 760px;
+  margin: 35px auto;
+  padding: 0 20px;
+  color: #fff;
+  background: #000;
+}

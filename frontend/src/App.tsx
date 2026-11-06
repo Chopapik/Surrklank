@@ -1,0 +1,73 @@
+import { useConnection } from './features/connection/useConnection';
+import { useDeviceSocket } from './features/connection/useDeviceSocket';
+import { useFirmware } from './features/firmware/useFirmware';
+
+const controlStyle =
+  '[font:inherit] p-[8px] [margin:6px_8px_6px_0] text-black bg-white ' +
+  '[border:2px_outset_#fff] rounded-none disabled:text-[#666] disabled:bg-[#ddd]';
+const sectionStyle = 'py-[18px] [border-top:1px_solid_#fff] mt-[20px]';
+const preStyle = 'whitespace-pre-wrap [overflow-wrap:anywhere]';
+
+export function App() {
+  const sendAction = useDeviceSocket();
+  const { connection, ready, connected, statusLabel, socketLabel } = useConnection();
+  const {
+    firmware,
+    ports,
+    selectedPort,
+    setSelectedPort,
+    requestUpload,
+    uploadPending,
+    error,
+  } = useFirmware();
+  const busy = firmware.busy || uploadPending;
+  const ping = connection?.last_ping;
+  const pingText = ping
+    ? ping.ok
+      ? `Ostatni ping: ${ping.reply} · ${ping.rtt_ms} ms`
+      : ping.error
+    : 'Ping uruchamia się tylko po kliknięciu.';
+
+  return (
+    <>
+      <h1>ESP32 · BLE / ESP-IDF</h1>
+      <small className="block min-h-[1.2em]">{socketLabel}</small>
+
+      <section className={sectionStyle}>
+        <h2 className="text-[20px] min-h-[1.2em]">{statusLabel}</h2>
+        <button className={controlStyle} disabled={!ready || busy} onClick={() => sendAction('connect')}>
+          Połącz
+        </button>
+        <button className={controlStyle} disabled={!ready || busy} onClick={() => sendAction('disconnect')}>
+          Rozłącz
+        </button>
+        <button className={controlStyle} disabled={!ready || busy || !connected} onClick={() => sendAction('ping')}>
+          Ping
+        </button>
+        <p>{pingText}</p>
+        <p className="text-white">{error || firmware.error || connection?.error || ''}</p>
+        <small>Ostatni odczyt firmware</small>
+        <pre className={preStyle}>{connection?.device ? JSON.stringify(connection.device, null, 2) : ''}</pre>
+      </section>
+
+      <section className={sectionStyle}>
+        <h2 className="text-[20px] min-h-[1.2em]">Firmware</h2>
+        <select className={controlStyle} value={selectedPort} onChange={(event) => setSelectedPort(event.target.value)}>
+          {ports.map((port) => <option key={port.port} value={port.port}>{port.port}</option>)}
+        </select>
+        <button className={controlStyle} disabled={!ready || busy} onClick={() => requestUpload('usb')}>
+          Kompiluj i wgraj przez USB
+        </button>
+        <button className={controlStyle} disabled={!ready || busy} onClick={() => requestUpload('ota')}>
+          Kompiluj i wgraj przez BLE OTA
+        </button>
+        <button className={controlStyle} disabled={!ready || !firmware.busy} onClick={() => sendAction('cancel')}>
+          Anuluj
+        </button>
+        <p>{firmware.stage}</p>
+        <progress className="w-full accent-white" max="100" value={firmware.progress ?? 0} />
+        <pre className={preStyle}>{firmware.result ? JSON.stringify(firmware.result, null, 2) : ''}</pre>
+      </section>
+    </>
+  );
+}
