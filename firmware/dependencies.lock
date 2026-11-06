@@ -1,0 +1,53 @@
+dependencies:
+  ble_conn_mgr:
+    component_hash: f6b4e1f12952d1ab02bd3cf283786adaf71fd986e9d940d70503f84b376efe96
+    dependencies:
+    - name: idf
+      version: '>=4.3'
+    - name: espressif/cmake_utilities
+      version: 0.*
+    source:
+      git: https://github.com/espressif/esp-iot-solution.git
+      path: components/bluetooth/ble_conn_mgr
+      type: git
+    version: 5fbb2597b88f21ec41e952f81292ccd6ae569761
+  ble_ota_raw:
+    component_hash: d17d62a30e37f7bfcd7d29d8f5f0c85cd6ade6eb24b8a0d97486e53c0fdc47b9
+    dependencies:
+    - name: idf
+      version: '>=4.4'
+    source:
+      git: https://github.com/espressif/esp-iot-solution.git
+      path: components/bluetooth/ble_profiles/esp/ble_ota_raw
+      type: git
+    version: 5fbb2597b88f21ec41e952f81292ccd6ae569761
+  ble_services:
+    component_hash: 70b7fcfad374e69bef6d561f78b99ffd295dbe426945a1349167580be83b50fa
+    dependencies: []
+    source:
+      git: https://github.com/espressif/esp-iot-solution.git
+      path: components/bluetooth/ble_services
+      type: git
+    version: 5fbb2597b88f21ec41e952f81292ccd6ae569761
+  espressif/cmake_utilities:
+    component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.1'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 0.5.3
+  idf:
+    source:
+      type: idf
+    version: 5.5.0
+direct_dependencies:
+- ble_conn_mgr
+- ble_ota_raw
+- ble_services
+- idf
+manifest_hash: c7bed95004c08999f71b99945a2ac915681c97b4804a4c97fdf1b2a781a4f857
+target: esp32
+version: 2.0.0

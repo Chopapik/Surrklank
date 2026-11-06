@@ -1,0 +1,14 @@
+dependencies:
+  idf: ">=5.5,<6.0"
+  ble_conn_mgr:
+    git: https://github.com/espressif/esp-iot-solution.git
+    version: "5fbb2597b88f21ec41e952f81292ccd6ae569761"
+    path: components/bluetooth/ble_conn_mgr
+  ble_services:
+    git: https://github.com/espressif/esp-iot-solution.git
+    version: "5fbb2597b88f21ec41e952f81292ccd6ae569761"
+    path: components/bluetooth/ble_services
+  ble_ota_raw:
+    git: https://github.com/espressif/esp-iot-solution.git
+    version: "5fbb2597b88f21ec41e952f81292ccd6ae569761"
+    path: components/bluetooth/ble_profiles/esp/ble_ota_raw
