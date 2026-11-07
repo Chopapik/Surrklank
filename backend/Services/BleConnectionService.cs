@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 using Surrklank.DTOs;
 using SimpleSharpBLE;
 
@@ -33,9 +34,12 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
     private string discoveryState = "searching";
     private bool autoConnect = true;
 
-    // Every operation touching the device, including firmware maintenance, holds this gate.
-    public SemaphoreSlim Gate { get; } = new(1, 1);
-    public Peripheral Current => peripheral ?? throw new InvalidOperationException("ESP32 is not connected");
+    private readonly SemaphoreSlim gate = new(1, 1);
+    private DeviceOperation? activeOperation;
+    private readonly Channel<byte> refreshRequests = Channel.CreateBounded<byte>(
+        new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true });
+    private Task? reconciliation;
+    private Peripheral Current => peripheral ?? throw new InvalidOperationException("ESP32 is not connected");
 
     public ConnectionDto Snapshot()
     {
@@ -43,7 +47,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         {
             return new ConnectionDto(state, error, session, lastPing, device, events.ToArray(), mtu, discoveryState,
                 state == "connected" ? deviceState.AtxOn : null,
-                state == "connected" ? deviceState.Firmware : null, subscribed);
+                state == "connected" ? deviceState.Firmware : null, subscribed, activeOperation?.Reason);
         }
     }
 
@@ -65,32 +69,80 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         updates.Publish();
     }
 
-    public async Task ExecuteActionAsync(string? action)
+    public async Task<DeviceOperation> ReserveAsync(string reason, CancellationToken cancellation = default)
     {
-        // A short discovery scan may be running; let it finish before a manual action.
-        if (!await Gate.WaitAsync(TimeSpan.FromSeconds(2))) throw new InvalidOperationException("Device is busy");
-        try
-        {
-            switch (action)
-            {
-                case "connect":
-                    autoConnect = true;
-                    await ConnectAsync();
-                    break;
-                case "disconnect":
-                    autoConnect = false;
-                    await DisconnectAsync();
-                    SetDiscovery("paused");
-                    break;
-                case "ping": await PingAsync(); break;
-                default: throw new ArgumentException("Unknown action");
-            }
-        }
-        finally { Gate.Release(); }
+        var operation = await TryReserveAsync(reason, TimeSpan.FromSeconds(2), cancellation);
+        if (operation != null) return operation;
+        lock (sync) throw new DeviceBusyException(activeOperation?.Reason);
     }
 
-    // Caller holds Gate. Native operations cannot be interrupted after they begin.
-    public async Task ConnectAsync(CancellationToken cancellation = default)
+    private async Task<DeviceOperation?> TryReserveAsync(string reason, TimeSpan timeout, CancellationToken cancellation)
+    {
+        if (!await gate.WaitAsync(timeout, cancellation)) return null;
+        DeviceOperation operation;
+        lock (sync) { operation = new DeviceOperation(this, reason); activeOperation = operation; }
+        updates.Publish();
+        return operation;
+    }
+
+    public async Task ExecuteActionAsync(string? action)
+    {
+        if (action is not ("connect" or "disconnect" or "ping")) throw new ArgumentException("Unknown action");
+        using var operation = await ReserveAsync(action);
+        switch (action)
+        {
+            case "connect": autoConnect = true; await operation.ConnectAsync(); break;
+            case "disconnect":
+                autoConnect = false;
+                await operation.DisconnectAsync();
+                SetDiscovery("paused");
+                break;
+            case "ping": await operation.PingAsync(); break;
+        }
+    }
+
+    // A reservation is transferred to the firmware job, so HTTP 202 never releases maintenance.
+    // It exposes serialized device operations without exposing the native peripheral or semaphore.
+    public sealed class DeviceOperation : IDisposable
+    {
+        private BleConnectionService? owner;
+        public string Reason { get; }
+        internal DeviceOperation(BleConnectionService owner, string reason) { this.owner = owner; Reason = reason; }
+        private BleConnectionService Owner
+        {
+            get
+            {
+                var service = owner ?? throw new ObjectDisposedException(nameof(DeviceOperation));
+                lock (service.sync)
+                    if (service.activeOperation != this) throw new InvalidOperationException("Inactive device reservation");
+                return service;
+            }
+        }
+        public Task ConnectAsync(CancellationToken token = default) => Owner.ConnectAsync(token);
+        public Task DisconnectAsync() => Owner.DisconnectAsync();
+        public Task PingAsync(CancellationToken token = default) => Owner.PingAsync(token);
+        public Task<string> SendCommandAsync(string command, CancellationToken token = default) => Owner.SendCommandAsync(command, token);
+        public Task<JsonElement> ReadInfoAsync(CancellationToken token = default) => Owner.ReadInfoAsync(token);
+        public Task WaitForFlashReadyAsync(CancellationToken token) => Owner.WaitForFlashReadyAsync(token);
+        public Task TransferAsync(BleOtaService ota, byte[] image, Action<double, object> progress, CancellationToken token) =>
+            ota.TransferAsync(Owner.Current, image, progress, token);
+        public void Dispose()
+        {
+            var service = Interlocked.Exchange(ref owner, null);
+            if (service == null) return;
+            service.ReleaseReservation();
+        }
+    }
+
+    private void ReleaseReservation()
+    {
+        lock (sync) activeOperation = null;
+        gate.Release();
+        updates.Publish();
+    }
+
+    // Called by the reservation owner. Native operations cannot be interrupted after they begin.
+    private async Task ConnectAsync(CancellationToken cancellation = default)
     {
         if (peripheral is { IsConnected: true }) return;
         if (peripheral != null) await DisconnectAsync();
@@ -192,7 +244,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         }
     }
 
-    public async Task DisconnectAsync()
+    private async Task DisconnectAsync()
     {
         Peripheral? old;
         lock (sync) { old = peripheral; peripheral = null; mtu = null; subscribed = false; deviceState = new(); SignalState(); }
@@ -205,7 +257,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         Change("disconnected");
     }
 
-    public async Task<JsonElement> ReadInfoAsync(CancellationToken cancellation = default)
+    private async Task<JsonElement> ReadInfoAsync(CancellationToken cancellation = default)
     {
         bool notifications; lock (sync) notifications = subscribed;
         // SimpleBLE/macOS Read on a notifying characteristic waits for its next event.
@@ -215,14 +267,14 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         return JsonSerializer.Deserialize<JsonElement>(await Current.ReadAsync(Service, Info, cancellation));
     }
 
-    public async Task<string> SendCommandAsync(string text, CancellationToken cancellation = default)
+    private async Task<string> SendCommandAsync(string text, CancellationToken cancellation = default)
     {
         var client = Current;
         await client.WriteRequestAsync(Service, Command, Encoding.ASCII.GetBytes(text), cancellation);
         return Encoding.ASCII.GetString(await client.ReadAsync(Service, Command, cancellation));
     }
 
-    public async Task PingAsync(CancellationToken cancellation = default)
+    private async Task PingAsync(CancellationToken cancellation = default)
     {
         var token = RandomNumberGenerator.GetInt32(1_000_000_000).ToString();
         var watch = Stopwatch.StartNew();
@@ -254,11 +306,12 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
             if (peripheral != client || session != clientSession || state is not ("connecting" or "connected")) return;
             if (!deviceState.Receive(bytes)) return;
             SignalState();
+            if (deviceState.NeedsRefresh) refreshRequests.Writer.TryWrite(0);
         }
         updates.Publish();
     }
 
-    public async Task WaitForFlashReadyAsync(CancellationToken cancellation)
+    private async Task WaitForFlashReadyAsync(CancellationToken cancellation)
     {
         while (true)
         {
@@ -279,6 +332,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
     public Task StartAsync(CancellationToken cancellationToken)
     {
         observer = ObserveAsync(stopping.Token);
+        reconciliation = ReconcileAsync(stopping.Token);
         if (Environment.GetEnvironmentVariable("BLE_AUTO_SCAN") != "false")
             discovery = DiscoverAsync(stopping.Token);
         return Task.CompletedTask;
@@ -298,22 +352,45 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         updates.Publish();
     }
 
-    // Search in short scans so manual commands and firmware maintenance can take the gate.
+    // Gap reconciliation is event-triggered. It waits for maintenance ownership to end.
+    private async Task ReconcileAsync(CancellationToken cancellation)
+    {
+        try
+        {
+            await foreach (var _ in refreshRequests.Reader.ReadAllAsync(cancellation))
+            {
+                using var operation = await TryReserveAsync("state_refresh", Timeout.InfiniteTimeSpan, cancellation);
+                lock (sync) { if (state != "connected" || !deviceState.NeedsRefresh) continue; }
+                try { SetDevice(await operation!.ReadInfoAsync(cancellation)); }
+                catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { throw; }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Could not reconcile a device-state sequence gap");
+                    await operation!.DisconnectAsync();
+                }
+            }
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+    }
+
+    // Keep existing short scans and retry timing; all native work uses a reservation.
     private async Task DiscoverAsync(CancellationToken cancellation)
     {
         try
         {
             while (!cancellation.IsCancellationRequested)
             {
-                if (await Gate.WaitAsync(0, cancellation))
+                bool connected;
+                lock (sync) connected = state == "connected";
+                if (connected) SetDiscovery("connected");
+                else if (!autoConnect) SetDiscovery("paused");
+                else
                 {
-                    try
+                    using var operation = await TryReserveAsync("discovery", TimeSpan.Zero, cancellation);
+                    if (operation == null) SetDiscovery("paused");
+                    else
                     {
-                        bool connected;
-                        lock (sync) connected = state == "connected";
-                        if (connected) SetDiscovery("connected");
-                        else if (!autoConnect) SetDiscovery("paused");
-                        else
+                        try
                         {
                             var adapters = Adapter.GetAdapters();
                             try
@@ -333,7 +410,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                                     if (found)
                                     {
                                         SetDiscovery("connecting");
-                                        await ConnectAsync(cancellation);
+                                        await operation.ConnectAsync(cancellation);
                                         SetDiscovery("connected");
                                     }
                                     else SetDiscovery("not_found");
@@ -341,16 +418,10 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                             }
                             finally { foreach (var adapter in adapters) adapter.Dispose(); }
                         }
+                        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { throw; }
+                        catch (Exception ex) { logger.LogWarning(ex, "BLE discovery failed"); SetDiscovery("unavailable"); }
                     }
-                    catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { throw; }
-                    catch (Exception ex)
-                    {
-                        logger.LogWarning(ex, "BLE discovery failed");
-                        SetDiscovery("unavailable");
-                    }
-                    finally { Gate.Release(); }
                 }
-                else SetDiscovery("paused");
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellation);
             }
         }
@@ -382,8 +453,8 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         stopping.Cancel();
         if (observer != null) await observer;
         if (discovery != null) await discovery;
-        await Gate.WaitAsync(cancellationToken);
-        try { await DisconnectAsync(); }
-        finally { Gate.Release(); }
+        if (reconciliation != null) await reconciliation;
+        using var operation = await ReserveAsync("disconnect", cancellationToken);
+        await operation.DisconnectAsync();
     }
 }

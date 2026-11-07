@@ -31,9 +31,14 @@ uint8_t flashBlock[64*1024];
 size_t buffered=0;
 ota::State published = {};
 void (*listener)(ota::State) = nullptr;
-// Called with the flash mutex held; BLE callbacks run after releasing it.
+// INFO and notifications use the same stage mapping while the flash mutex is held.
+uint8_t current_stage() { return failure != ESP_OK ? 3 : ready ? 2 : writing ? 1 : 0; }
+const char* stage_name(uint8_t stage) {
+    switch(stage) { case 1: return "writing"; case 2: return "ready"; case 3: return "failed"; default: return "idle"; }
+}
+// BLE callbacks run after releasing the mutex.
 ota::State state_update() {
-    uint8_t stage = failure != ESP_OK ? 3 : ready ? 2 : writing ? 1 : 0;
+    uint8_t stage = current_stage();
     // Report bytes after each flash block has actually been written.
     if (published.stage != stage || published.received != committed || published.error != failure)
         published = {stage, committed, failure, published.sequence + 1};
@@ -124,7 +129,7 @@ void ota::describe(char* output,size_t capacity){
     const auto* partition=esp_ota_get_running_partition();const auto* desc=esp_app_get_description();
     char sha[65];for(int i=0;i<32;++i)snprintf(sha+2*i,3,"%02x",desc->app_elf_sha256[i]);
     xSemaphoreTake(mutex,portMAX_DELAY);
-    snprintf(output,capacity,"{\"identity\":\"%s\",\"version\":\"%s\",\"slot\":%lu,\"trial\":%s,\"ota\":\"%s\",\"received\":%lu,\"error\":%d,\"reset_reason\":%d}",sha,desc->version,(unsigned long)partition->address,trial()?"true":"false",ready?"ready":writing?"writing":"idle",(unsigned long)committed,(int)failure,(int)esp_reset_reason());
+    snprintf(output,capacity,"{\"identity\":\"%s\",\"version\":\"%s\",\"slot\":%lu,\"trial\":%s,\"ota\":\"%s\",\"received\":%lu,\"error\":%d,\"reset_reason\":%d}",sha,desc->version,(unsigned long)partition->address,trial()?"true":"false",stage_name(current_stage()),(unsigned long)committed,(int)failure,(int)esp_reset_reason());
     size_t end=strlen(output)-1;
     snprintf(output+end,capacity-end,",\"firmware_sequence\":%lu}",(unsigned long)published.sequence);
     xSemaphoreGive(mutex);

@@ -57,5 +57,6 @@ export interface ConnectionSnapshot {
   discovery: DiscoveryStatus;
   atx_on?: boolean | null;
   subscribed?: boolean;
+  operation?: string | null;
   device_firmware?: { stage: string; received: number; error: number } | null;
 }

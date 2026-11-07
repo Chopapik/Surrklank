@@ -91,8 +91,7 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
             throw new ArgumentException("Confirm isolated ESP32: USB only, ATX and register/instrument wiring disconnected");
         if (transport is not ("usb" or "ble")) throw new ArgumentException("Unknown transport");
         // Wait for a short discovery scan to finish before starting maintenance.
-        if (!await connection.Gate.WaitAsync(TimeSpan.FromSeconds(2), requestCancellation))
-            throw new InvalidOperationException("Device is busy");
+        var operation = await connection.ReserveAsync("firmware_update", requestCancellation);
         try
         {
             if (transport == "usb")
@@ -107,11 +106,11 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
                 stage = "starting"; progress = null; error = null; result = null; busy = true;
                 cancellation = new CancellationTokenSource();
                 // Task.Run prevents completion before the task reference is stored.
-                task = Task.Run(() => RunAsync(transport, request.Port, cancellation.Token));
+                task = Task.Run(() => RunAsync(operation, transport, request.Port, cancellation.Token));
             }
             updates.Publish();
         }
-        catch { connection.Gate.Release(); throw; }
+        catch { operation.Dispose(); throw; }
     }
 
     private async Task ProcessAsync(string[] args, CancellationToken cancellationToken)
@@ -160,31 +159,81 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
         }
     }
 
-    private async Task<JsonElement> VerifyAsync(string identity, CancellationToken token)
+    private async Task<JsonElement> VerifyAsync(BleConnectionService.DeviceOperation operation, string identity, CancellationToken token)
     {
-        var info = await connection.ReadInfoAsync(token);
+        var info = await operation.ReadInfoAsync(token);
         if (info.GetProperty("identity").GetString() != identity)
             throw new InvalidOperationException("Running firmware identity does not match the built image");
-        await connection.PingAsync(token);
+        await operation.PingAsync(token);
         if (info.GetProperty("trial").GetBoolean())
         {
-            if (await connection.SendCommandAsync("CONFIRM", token) != "VALID")
+            if (await operation.SendCommandAsync("CONFIRM", token) != "VALID")
                 throw new InvalidOperationException("Trial confirmation failed");
-            info = await connection.ReadInfoAsync(token);
+            info = await operation.ReadInfoAsync(token);
             if (info.GetProperty("trial").GetBoolean()) throw new InvalidOperationException("Trial still pending after confirmation");
         }
         connection.SetDevice(info);
         return info;
     }
 
-    private async Task RunAsync(string transport, string? port, CancellationToken token)
+    private sealed class FirmwareOutcomeUnknownException(string message, Exception? inner = null)
+        : Exception(message, inner);
+
+    private async Task<JsonElement> ConfirmFlashAsync(BleConnectionService.DeviceOperation operation, CancellationToken token)
+    {
+        bool timedOut = false;
+        using (var readyTimeout = CancellationTokenSource.CreateLinkedTokenSource(token))
+        {
+            readyTimeout.CancelAfter(TimeSpan.FromSeconds(15));
+            if (connection.Snapshot().Subscribed)
+            {
+                try { await operation.WaitForFlashReadyAsync(readyTimeout.Token); }
+                catch (OperationCanceledException) when (!token.IsCancellationRequested && readyTimeout.IsCancellationRequested)
+                {
+                    timedOut = true;
+                    Event("reconciling_flash");
+                }
+                catch (InvalidOperationException ex) when (!connection.Snapshot().Connected)
+                { throw new FirmwareOutcomeUnknownException("Firmware outcome is unknown: BLE disconnected before ready confirmation", ex); }
+            }
+            else
+            {
+                // One-time migration from an image that cannot notify.
+                while (true)
+                {
+                    var legacy = await operation.ReadInfoAsync(readyTimeout.Token);
+                    if (legacy.GetProperty("error").GetInt32() != 0) throw new InvalidOperationException("ESP flash write failed");
+                    if (legacy.GetProperty("ota").GetString() == "ready") break;
+                    await Task.Delay(100, readyTimeout.Token);
+                }
+            }
+        }
+        if (!connection.Snapshot().Connected)
+            throw new FirmwareOutcomeUnknownException("Firmware outcome is unknown: BLE disconnected; reconnect and inspect device before retrying");
+        // A new budget permits one INFO after the ready deadline, without releasing ownership.
+        using var infoTimeout = CancellationTokenSource.CreateLinkedTokenSource(token);
+        infoTimeout.CancelAfter(TimeSpan.FromSeconds(10));
+        JsonElement info;
+        try { info = await operation.ReadInfoAsync(infoTimeout.Token); }
+        catch (Exception ex) when (!token.IsCancellationRequested)
+        { throw new FirmwareOutcomeUnknownException("Firmware outcome is unknown: INFO reconciliation failed; inspect device before retrying", ex); }
+        connection.SetDevice(info);
+        if (info.GetProperty("error").GetInt32() != 0)
+            throw new InvalidOperationException($"ESP flash write failed: {info.GetProperty("error")}");
+        if (info.GetProperty("ota").GetString() != "ready")
+            throw new FirmwareOutcomeUnknownException("Firmware outcome is unknown: ESP32 did not confirm ready; no transfer replay was attempted");
+        if (timedOut) Event("flash_reconciled", details: new() { ["confirmed_by_info"] = true });
+        return info;
+    }
+
+    private async Task RunAsync(BleConnectionService.DeviceOperation operation, string transport, string? port, CancellationToken token)
     {
         try
         {
-            // Preserve the working OTA path; the shared gate excludes ATX polling here.
-            if (transport == "ble") await connection.ConnectAsync(token);
-            await atx.PrepareWhileLockedAsync(token);
-            if (transport == "usb") await connection.DisconnectAsync();
+            // The reservation remains owned by this job through build, transfer and verification.
+            if (transport == "ble") await operation.ConnectAsync(token);
+            await atx.PrepareWhileLockedAsync(operation, token);
+            if (transport == "usb") await operation.DisconnectAsync();
             Event("building");
             var buildWatch = Stopwatch.StartNew();
             await ProcessAsync(["run", "-d", "firmware", "-e", "esp32"], token);
@@ -205,41 +254,23 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
             }
             else
             {
-                await connection.ConnectAsync(token);
+                await operation.ConnectAsync(token);
                 Event("ble_upload", 0);
                 var transfer = Stopwatch.StartNew();
-                await ota.TransferAsync(connection.Current, image, (value, link) =>
+                await operation.TransferAsync(ota, image, (value, link) =>
                     Event("ble_upload", value, details: new() { ["link"] = link }), token);
-                using var readyTimeout = CancellationTokenSource.CreateLinkedTokenSource(token);
-                readyTimeout.CancelAfter(TimeSpan.FromSeconds(15));
-                if (connection.Snapshot().Subscribed)
-                    await connection.WaitForFlashReadyAsync(readyTimeout.Token);
-                else
-                {
-                    // Compatibility only: the old image cannot notify during its first upgrade.
-                    while (true)
-                    {
-                        var legacy = await connection.ReadInfoAsync(readyTimeout.Token);
-                        if (legacy.GetProperty("error").GetInt32() != 0)
-                            throw new InvalidOperationException("ESP flash write failed");
-                        if (legacy.GetProperty("ota").GetString() == "ready") break;
-                        await Task.Delay(100, readyTimeout.Token);
-                    }
-                }
-                var info = await connection.ReadInfoAsync(readyTimeout.Token);
-                if (info.GetProperty("ota").GetString() != "ready" || info.GetProperty("error").GetInt32() != 0)
-                    throw new InvalidOperationException("ESP flash verification failed");
+                var info = await ConfirmFlashAsync(operation, token);
                 transferSeconds = Math.Round(transfer.Elapsed.TotalSeconds, 3);
                 if (info.TryGetProperty("interval_us", out var interval)) intervalUs = interval.GetInt32();
                 Event("verified_flash", details: new() { ["transfer_seconds"] = transferSeconds, ["transfer_interval_us"] = intervalUs });
-                if (await connection.SendCommandAsync("REBOOT", token) != "REBOOTING")
+                if (await operation.SendCommandAsync("REBOOT", token) != "REBOOTING")
                     throw new InvalidOperationException("Restart was not accepted");
             }
             Event("reconnecting");
-            await connection.DisconnectAsync();
+            await operation.DisconnectAsync();
             await Task.Delay(1000, token);
-            await connection.ConnectAsync(token);
-            var verified = await VerifyAsync(identity, token);
+            await operation.ConnectAsync(token);
+            var verified = await VerifyAsync(operation, identity, token);
             var data = JsonSerializer.Deserialize<Dictionary<string, object?>>(verified.GetRawText())!;
             data["transfer_seconds"] = transferSeconds; data["transfer_interval_us"] = intervalUs;
             data["build_seconds"] = buildSeconds; data["total_seconds"] = Math.Round(overall.Elapsed.TotalSeconds, 3);
@@ -249,18 +280,24 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             Event("cancelled", newError: "Operation cancelled; inspect device state before retrying (boot selection may already be committed)");
-            await connection.DisconnectAsync();
+            await operation.DisconnectAsync();
+        }
+        catch (FirmwareOutcomeUnknownException ex)
+        {
+            logger.LogWarning(ex, "Firmware outcome is uncertain");
+            Event("uncertain", newError: ex.Message);
+            await operation.DisconnectAsync();
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Firmware maintenance failed");
             Event("failed", newError: ex.Message);
-            await connection.DisconnectAsync();
+            await operation.DisconnectAsync();
         }
         finally
         {
             lock (sync) { busy = false; cancellation?.Dispose(); cancellation = null; }
-            connection.Gate.Release();
+            operation.Dispose();
             updates.Publish();
         }
     }

@@ -13,7 +13,8 @@ public sealed record ConnectionDto(
     string Discovery,
     bool? AtxOn = null,
     DeviceFirmwareDto? DeviceFirmware = null,
-    bool Subscribed = false)
+    bool Subscribed = false,
+    string? Operation = null)
 {
     public bool Connected => State == "connected";
 }

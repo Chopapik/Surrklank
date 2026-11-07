@@ -31,6 +31,7 @@ public sealed class FirmwareController(FirmwareService firmware) : ControllerBas
             await firmware.StartAsync(transport, request, cancellation);
             return StatusCode(202, firmware.Snapshot());
         }
+        catch (DeviceBusyException ex) { return Conflict(new { detail = ex.Message, operation = ex.Operation }); }
         catch (ArgumentException ex) { return BadRequest(new { detail = ex.Message }); }
         catch (InvalidOperationException ex) { return BadRequest(new { detail = ex.Message }); }
     }

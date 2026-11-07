@@ -9,6 +9,7 @@ public sealed class DeviceState
 {
     public bool? AtxOn { get; private set; }
     public DeviceFirmwareDto? Firmware { get; private set; }
+    public bool NeedsRefresh { get; private set; }
     private uint? atxSequence;
     private uint? firmwareSequence;
 
@@ -17,6 +18,7 @@ public sealed class DeviceState
 
     public void Read(JsonElement information)
     {
+        NeedsRefresh = false;
         if (information.TryGetProperty("atx_on", out var on))
         {
             uint? sequence = information.TryGetProperty("atx_sequence", out var seq) ? seq.GetUInt32() : null;
@@ -26,7 +28,7 @@ public sealed class DeviceState
         uint? next = information.TryGetProperty("firmware_sequence", out var fwSeq) ? fwSeq.GetUInt32() : null;
         if (!firmwareSequence.HasValue || next.HasValue && Accept(next.Value, firmwareSequence))
         {
-            Firmware = new DeviceFirmwareDto(information.GetProperty("ota").GetString()!,
+            Firmware = new DeviceFirmwareDto(information.GetProperty("error").GetInt32() != 0 ? "failed" : information.GetProperty("ota").GetString()!,
                 information.GetProperty("received").GetUInt32(), information.GetProperty("error").GetInt32());
             firmwareSequence = next;
         }
@@ -39,9 +41,11 @@ public sealed class DeviceState
         switch (bytes[1])
         {
             case 1 when bytes.Length == 7 && bytes[6] <= 1 && Accept(sequence, atxSequence):
+                if (atxSequence.HasValue && unchecked(sequence - atxSequence.Value) > 1) NeedsRefresh = true;
                 AtxOn = bytes[6] == 1; atxSequence = sequence;
                 return true;
             case 2 when bytes.Length == 15 && bytes[6] <= 3 && Accept(sequence, firmwareSequence):
+                if (firmwareSequence.HasValue && unchecked(sequence - firmwareSequence.Value) > 1) NeedsRefresh = true;
                 string stage = bytes[6] switch { 0 => "idle", 1 => "writing", 2 => "ready", _ => "failed" };
                 Firmware = new DeviceFirmwareDto(stage,
                     BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(7)),

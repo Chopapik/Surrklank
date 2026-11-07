@@ -1,5 +1,10 @@
 # Wiring map
 
+This is the wiring reference for the planned instrument assembly. Current
+firmware controls only ATX power, BLE communication and updates; it does not
+drive the registers or instruments listed below. Keep the assembly isolated
+from the ESP32 during firmware maintenance.
+
 ## Two output branches
 
 ```text
@@ -42,7 +47,7 @@ to SER (pin 14) of the next 595 in the same branch.
 
 ## FDD — addresses and 595 outputs
 
-Address means the device number in the previous protocol, not a bus address.
+Address denotes the device number in this wiring map, not a bus address.
 
 | Address | Register | STEP → FDD pin 20 | DIR → FDD pin 18 | /SELECT → FDD pin 12 |
 | --- | --- | --- | --- | --- |
@@ -170,8 +175,8 @@ Do not connect the positive ATX 3.3 V rail to ESP32 3V3/5V/VIN.
 
 ## ATX power switch and button
 
-The previous wiring map uses **GPIO19 for ATX control** and **GPIO13 for the
-button**. GPIO18 is the shared 595 clock, not the button input.
+The ATX circuit uses **GPIO19 for ATX control** and **GPIO13 for the button**.
+GPIO18 is the shared 595 clock, not the button input.
 The firmware implements both functions. ATX starts OFF, and a maintenance lock
 forces OFF and rejects ON until the next ESP32 restart.
 
@@ -208,7 +213,7 @@ not assumed here. No PWR_OK or voltage-measurement input is connected.
 ESP32 GPIO13 ── normally-open momentary button ── ESP32 GND
 ```
 
-The intended firmware configures GPIO13 as `INPUT_PULLUP`: released = HIGH,
+The firmware configures GPIO13 with an internal pull-up: released = HIGH,
 pressed = LOW. No external pull-up or connection to 3.3 V is needed with that
 configuration. Each debounced press toggles the ATX request; releasing the
 button does not toggle it. A button held during startup must first be released

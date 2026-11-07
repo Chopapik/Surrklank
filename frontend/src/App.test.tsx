@@ -119,9 +119,13 @@ describe('Surrklank interface', () => {
     await establishConnection(socket);
     act(() => socket.receive(connected, { ...idleFirmware, stage: 'ble_upload', busy: true, progress: 50 }));
     expect(screen.getByText('ble_upload')).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toContain('Trwa aktualizacja firmware');
     expect((screen.getByRole('progressbar') as HTMLProgressElement).value).toBe(50);
     expect((screen.getByRole('button', { name: 'Ping' }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.queryByRole('button', { name: 'Anuluj' })).toBeNull();
+    act(() => socket.receive({ ...connected, operation: 'ping' }));
+    expect((screen.getByRole('switch') as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole('status').textContent).toContain('inną operację');
     expect(socket.send).not.toHaveBeenCalled();
   });
 

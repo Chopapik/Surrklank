@@ -22,6 +22,7 @@ public sealed class AtxController(AtxService atx) : ControllerBase
             await atx.SetAsync(request.State == "on", cancellation);
             return Ok(new { requested_state = request.State });
         }
+        catch (DeviceBusyException ex) { return Conflict(new { detail = ex.Message, operation = ex.Operation }); }
         catch (InvalidOperationException ex) { return Conflict(new { detail = ex.Message }); }
     }
 }

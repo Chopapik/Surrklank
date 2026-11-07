@@ -22,7 +22,12 @@ export function App() {
     uploadPending,
     error,
   } = useFirmware();
-  const busy = firmware.busy || uploadPending;
+  const busy = firmware.busy || uploadPending || !!connection?.operation;
+  const busyReason = firmware.busy || uploadPending || connection?.operation === 'firmware_update'
+    ? 'Trwa aktualizacja firmware. Sterowanie ATX i inne operacje są teraz niedostępne.'
+    : connection?.operation
+      ? 'ESP32 wykonuje inną operację. Poczekaj na jej zakończenie.'
+      : null;
   const ping = connection?.last_ping;
   const pingText = ping
     ? ping.ok
@@ -55,10 +60,11 @@ export function App() {
       <section className={sectionStyle}>
         <h2 className="text-[20px]">Zasilanie ATX</h2>
         <button className={controlStyle} role="switch" aria-label="Zasilanie ATX"
-          aria-checked={atx.on === true} disabled={atx.on === null || busy || atx.pending}
+          aria-checked={atx.on === true} aria-describedby={busyReason ? "device-busy-reason" : undefined} disabled={atx.on === null || busy || atx.pending}
           onClick={() => atx.setState(atx.on ? 'off' : 'on')}>
           {atx.on === null ? 'Stan nieznany' : atx.on ? 'ATX włączony' : 'ATX wyłączony'}
         </button>
+        {busyReason && <p id="device-busy-reason" role="status">{busyReason}</p>}
         <small>Stan wyjścia ESP32 sterującego tranzystorem, bez pomiaru napięcia.</small>
         {atx.error && <p role="alert">{atx.error}</p>}
       </section>

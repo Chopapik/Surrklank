@@ -1,133 +1,99 @@
-# Surrklank ESP-IDF firmware: BLE and OTA
+# Surrklank firmware and maintenance
 
-## Dependencies and ownership
+## Build and dependencies
 
-PlatformIO `espressif32@6.12.0`, ESP-IDF package `3.50500.0` (IDF 5.5).
-Arduino and NimBLE-Arduino are not dependencies.
-Espressif `ble_conn_mgr`, `ble_services` and `ble_ota_raw` are Git dependencies
-pinned to `5fbb2597b88f21ec41e952f81292ccd6ae569761`; see `src/idf_component.yml`.
-The component manager downloads them as generated dependencies, not application code.
+Firmware uses PlatformIO `espressif32@6.12.0` with ESP-IDF 5.5. It does not use
+Arduino. Espressif's `ble_conn_mgr`, `ble_services` and `ble_ota_raw` components
+are pinned to commit `5fbb2597b88f21ec41e952f81292ccd6ae569761` in
+`firmware/src/idf_component.yml`. Component-manager downloads are generated
+dependencies, not application source.
 
-`atx_power.cpp` initializes GPIO19 LOW, debounces GPIO13 and owns the ATX maintenance lock.
-`main.cpp` initializes ATX before NVS, the event loop, connection and OTA modules.
-`ble_connection.cpp` uses the official connection manager and advertises the
-legacy identifier `EM-MIDI-IDF` so existing Surrklank clients can discover it. It
-registers the small command/info service and observes native connection events.
-It requests standard 251-byte Data Length Extension and a 15 ms interval; actual
-MTU and connection interval are observed, not assumed.
-`ota_update.cpp` connects the official OTA profile to the SDK flash/boot APIs.
-It copies completed sectors to a bounded FreeRTOS queue and writes outside the
-BLE callback. A static 64 KiB buffer batches `esp_ota_write()` calls at hardware
-erase-block boundaries; this trades 64 KiB of RAM for fewer erase operations. Session epochs discard queued data from an aborted transfer.
-The ESP-IDF project name is `surrklank`; it appears in the firmware image's
-application metadata. The BLE name, UUIDs, existing commands and OTA wire protocol are
-unchanged. FFF2 gains the Notify property and its CCCD. ATX commands extend the existing command characteristic. The queue/window sizes bound memory use. `OTA_WITH_SEQUENTIAL_WRITES` keeps
-bulk erase out of the NimBLE START callback; erasure happens in the flash task. Disconnect/timeout aborts an incomplete
-flash session without selecting it for boot. The official STOP command resets
-the profile after disconnect. A completed boot selection is retained.
+```sh
+pio run -d firmware -e esp32
+python3 firmware/tests/test_atx_power.py
+```
 
-## Connection service
+These commands build/check locally and do not connect to a physical ESP32.
+Physical USB or BLE OTA upload is a separate, explicitly authorized action.
 
-Vendor service `0xFFF0`: command characteristic `0xFFF1` (Write / Read) and
-information/event characteristic `0xFFF2` (Read / Notify). Write `PING <digits>` and read the
-matching `PONG <digits>`. The backend never schedules heartbeat pings.
-Information is JSON with the application ELF SHA-256 identity, version, slot,
-trial state, flash progress, reset reason and last SDK error. Native NimBLE
-connection interval and latency are also reported. `CONFIRM` accepts a trial image
-and `REBOOT` is allowed only after a completed OTA image has been validated.
-`ATX ON` and `ATX OFF` set an explicit output state. `ATX PREPARE` forces OFF
-and locks out ON until restart. The information JSON adds `atx_on`; it describes
-GPIO19 output state, not measured power. `INFO` returns the same JSON through
-FFF1. FFF2 publishes typed, sequenced ATX and flash-state notifications; ATX is
-not polled. The backend uses FFF1 INFO after subscribing to avoid SimpleBLE's
-macOS read-on-notifying behavior. See [BLE protocol](BLE-PROTOCOL.md).
-These application commands do not replace the official OTA transfer protocol.
+`main.cpp` initializes ATX output before NVS, BLE and OTA. `atx_power.cpp`
+initializes GPIO19 LOW, samples/debounces the GPIO13 button and owns the
+maintenance lock. `ble_connection.cpp` advertises `EM-MIDI-IDF` through the
+official connection manager and implements FFF1 commands and FFF2 state
+notifications. See [BLE application protocol](BLE-PROTOCOL.md). The application
+requests 251-byte BLE Data Length Extension and a 15 ms connection interval;
+actual link parameters are observed, not assumed.
 
-## Official OTA protocol
+`ota_update.cpp` connects the official OTA profile to ESP-IDF flash and boot
+APIs. Completed sectors enter a bounded FreeRTOS queue; flash writes happen
+outside the BLE callback. A static 64 KiB buffer batches sequential writes at
+erase-block boundaries. Session epochs discard queued data from an aborted
+transfer. Queue/window sizes bound memory use. An incomplete transfer is
+aborted on disconnect or timeout without selecting it for boot.
 
-Service `0x8018`, receive firmware `0x8020`, command `0x8022`.
-Subscribe to receive/command notifications before START. Commands are 20 bytes:
-uint16 LE opcode (START=1, STOP=2), firmware size uint32 LE for START, reserved
-bytes, CRC16-XMODEM at bytes 18..19. Command ACK is opcode 3, echoed command and
-status 0 on acceptance. Byte 6 advertises the sector send window.
-Firmware packets contain uint16 LE sector index, uint8 packet sequence and data.
-Final sequence 0xFF includes CRC16-XMODEM of that sector. Sectors contain at most
-4096 firmware bytes. ACKs include sector index, status and packet CRC16.
-The ASP.NET sender follows this published framing; it does not create another
-DATA/BLOCK/CREDIT protocol. The sender respects the receiver-advertised window, limited to three sectors at
-495-byte ATT payloads, or one sector for smaller payloads. SimpleBLE 1.2.0 reports
-the write-without-response payload length on macOS. Until other platforms are verified,
-the sender uses the minimum 20-byte payload there; their OTA performance is unknown. It drains official
-sector receipts after each window; no extra credit protocol is introduced.
+## Official BLE OTA transport
 
-Sector ACK means accepted into the application queue, not committed flash.
-The backend waits for the flash state `ready`, then requests restart, reconnects,
-compares the running ELF identity with the built image, verifies ping and confirms
-a pending trial. Progress reaching 100% alone is not reported as success.
-No lost command or uncertain transfer is replayed automatically.
+Service `0x8018` uses receive-firmware characteristic `0x8020` and command
+characteristic `0x8022`. The backend subscribes to both notification streams
+before START. The 20-byte command includes a little-endian opcode (START `1`,
+STOP `2`), firmware size for START and CRC16-XMODEM at bytes 18–19. The command
+ACK reports acceptance and the receiver's sector window. Firmware packets carry
+sector index, packet sequence and data; the final packet of a sector contains
+its CRC16-XMODEM. Sectors contain at most 4096 firmware bytes, with official
+sector receipts. The sender introduces no separate data or credit protocol.
 
-## Boot and update limits
+The sender respects the advertised window, capped at three sectors with
+495-byte ATT payloads or one sector with smaller payloads. SimpleBLE 1.2.0
+reports the write-without-response payload length on macOS. Other platforms
+use a 20-byte payload until their native behavior is verified; their OTA
+throughput is unknown. An ACK means a sector was accepted into the application
+queue, not written to flash. FFF2 and FFF1 INFO report committed flash bytes
+and the same `idle`/`writing`/`ready`/`failed` stage mapping.
 
-Partition table has `ota_0`, `ota_1` and `otadata`; rollback is enabled in the
-compiled bootloader. An unconfirmed trial requests rollback after 60 seconds.
-Ordinary BLE OTA writes only the inactive application; first USB provisioning
-also writes the ESP-IDF bootloader and partition table. ATX control is limited to GPIO19 and the GPIO13 button; there is no instrument
-or playback control. Maintenance is only for the isolated board. ATX is forced
-OFF before OTA flash writes and remains locked OFF until restart, even after a
-cancelled/failed transfer. See [ATX validation](ATX-VALIDATION.md).
+## Maintenance and verification
 
-The official CRC and ESP image checks detect damaged transfers. This revision
-does not claim signed image authorization, encrypted OTA or anti-replay protection.
-The old private signing key remains outside the repository and is not overwritten.
-The firmware does not enable Secure Boot, flash encryption or write any eFuse.
-Physical recovery still requires USB if both application slots are unusable.
+Before either upload, the client must confirm physical isolation: USB power
+only, with ATX and register/instrument wiring disconnected. The backend
+reserves the BLE device for the entire job, including work after HTTP 202.
+On a connected ATX-capable image it sends `ATX PREPARE`, reads INFO and requires
+OFF. The firmware also forces OFF at OTA START; ON commands and button presses
+remain blocked until ESP32 restart, including after a failed transfer. An
+unreachable device or older image cannot be switched off over BLE; physical
+isolation is essential. See [wiring](WIRING.md) and [ownership](ARCHITECTURE.md).
 
-## Validation in this repository
+USB provisioning selects a CP2102 port, releases the BLE connection and runs
+PlatformIO's upload target, writing bootloader, partition table and application.
+BLE OTA builds the current application and transfers it to the inactive slot.
+The sender waits for ESP32 flash `ready` (15 s deadline on subscribed FFF2),
+then reads one FFF1 INFO snapshot to verify `ready` and zero error. If the event
+is missing but the link remains usable, it attempts one INFO reconciliation
+with a fresh 10 s cancellation budget. A known flash error fails the job; an
+unresolved result is `uncertain` and the image is never resent automatically.
+An older image without FFF2 notifications uses bounded legacy ready reads for
+its first update.
 
-On 2026-11-06, the former Python application was installed and built independently in
-`electromechanical-midi-core`, using a new venv and generated build directories.
-The isolated ESP32-D0WD-V3 / CP2102 remained USB-only, with no ATX or actuator power.
+After BLE flash validation, the backend requests REBOOT. Both upload modes
+reconnect and compare the running image identity with the built image, verify
+a PING/PONG exchange, and confirm any trial image before reporting
+`complete`. Progress reaching 100% alone is not success. The ESP-IDF partition
+table has `ota_0`, `ota_1` and `otadata` with rollback enabled; an unconfirmed
+trial rolls back after 60 seconds. If both application slots are unusable,
+physical USB recovery is required. The accepted BLE transfer target is at most
+60 seconds, not a guarantee on every host or radio link.
 
-| Check | Observed result |
-| --- | --- |
-| Offline tests | 19 passed; fake BLE only |
-| ESP-IDF build | Passed from the new directory; pinned IDF 5.5.0, rollback enabled |
-| USB upload | 36.294 s upload command; reconnect, identity and ping verified |
-| Manual BLE ping | 116.1 ms; disconnect/reconnect also verified |
-| Official BLE OTA, 550160 bytes | 22.631 s transfer/flash validation |
-| Complete OTA operation | 2.560 s build + 25.092 s subsequent operation = 27.652 s |
-| Final boot | Version 0.1.7, slot 0x1f0000, trial false, matching ELF identity |
-| Final ping | 72.7 ms after OTA |
-| HTTP / WebSocket | Page and API respond; firmware progress and connection transitions received over /ws |
+The browser has no manual upload-cancel action. Closing it does not cancel the
+server job. Shutdown cancels owned work; a cancelled or failed operation must
+be inspected before retry because boot selection may already be committed.
+Native SimpleBLE calls may not stop immediately when a cancellation token
+expires. The reservation stays owned until an in-flight call returns; it is
+never released by a wrapper timeout while native work continues.
 
-Image SHA-256: `3854a82c49b1688f8227883c6d04e448408ad00861d3c1477c2d69137621bc8f`.
-ELF identity: `1df5d5e45169284e40b37f9edfb8077243ba3ca7f37e86e4a0b007d306d25b41`.
-Link during OTA: MTU 498, 495-byte packets, window 3, interval 15 ms.
-Current ASP.NET maintenance logs are stored outside Git in the system temp
-directory's `surrklank-idf/`. For the historical Python run, detailed jobs were
-stored outside Git under the system temp directory's
-`electromechanical-midi-idf/validation.jsonl` and job-specific build/upload logs.
+Maintenance events and PlatformIO output are written outside Git under the
+system temporary directory's `surrklank-idf/`. Firmware does not enable Secure
+Boot, flash encryption, signed-image authorization or anti-replay protection,
+and does not change eFuses. Private legacy signing keys remain outside Git.
+Only GPIO19 ATX control and the GPIO13 button are implemented; instrument and
+register control are outside the current firmware.
 
-These measurements predate the ASP.NET migration and do not verify the C# sender.
-
-Cancelled-transfer recovery and physical trial rollback were tested in the
-source project before extraction. They were not repeated during this migration.
-Physical Windows support, abrupt power-cut detection latency and long-duration
-endurance remain untested. The accepted transfer target is <=60 s; these observed
-measurements are not a guarantee for every host/radio environment.
-
-## Connection loss reporting
-
-The application observes native disconnect callbacks and, every 100 ms, the BLE library's
-cached connection state as a fallback. The observer performs no BLE reads,
-writes or pings. State changes from native callbacks are synchronized before publishing WebSocket snapshots. A disconnect during
-initial device-info reading cannot restore a stale connected state. If WebSocket
-itself closes, the page shows BLE state as unknown and disables device actions.
-
-The historical Python offline suite covered native callbacks, cached-state loss without a callback,
-cross-thread publication and disconnect during setup. It does not validate the ASP.NET migration.
-No physical power-cut test was performed. The OS/controller must detect abrupt link loss before it can be
-reported; this still depends on the BLE supervision timeout.
-
-References: [official example](https://github.com/espressif/esp-iot-solution/tree/5fbb2597b88f21ec41e952f81292ccd6ae569761/examples/bluetooth/ble_profiles/ble_ota),
+References: [Espressif BLE OTA example](https://github.com/espressif/esp-iot-solution/tree/5fbb2597b88f21ec41e952f81292ccd6ae569761/examples/bluetooth/ble_profiles/ble_ota),
 [ESP-IDF OTA](https://docs.espressif.com/projects/esp-idf/en/v5.5/esp32/api-reference/system/ota.html).

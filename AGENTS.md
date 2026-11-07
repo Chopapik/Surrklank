@@ -1,65 +1,62 @@
-# Commit descriptions
+# Working conventions
 
-Every commit must have a concise, descriptive subject and a short body explaining
-what changed, why, and which components or behavior are affected. Include relevant
-validation results and material limitations, especially whether hardware changes
-were tested only offline or in VIRTUAL rather than on physical devices.
-Keep the description specific and self-contained so a person or AI can understand
-the commit without reading its diff. Avoid vague summaries and exhaustive file lists.
+- Conversation is Polish. Documentation, filenames and commits are English.
+- Surrklank is the whole system; use `surrklank` for new technical names.
+- Keep the simple black-and-white Web 1.0 interface and `docs/WIRING.md`.
+- Preserve API routes, WebSocket messages, BLE UUIDs, `EM-MIDI-IDF` and other
+  persistent identifiers unless a compatible migration is explicitly planned.
+- After material behavior, architecture, protocol, firmware or integration
+  changes, update the relevant shared docs in the same task. Describe current
+  behavior; keep history in commits, not audit follow-ups or validation dumps.
 
-Treat commit history as a potential source for the master's thesis documenting
-the project's evolution. Preserve the motivation for changes, relevant design
-decisions and tradeoffs, and observed before/after behavior when supported by
-evidence. Reference relevant tests or measurement artifacts when available.
-Clearly distinguish measured results from informal observations, hypotheses,
-and intended improvements; never invent findings or imply unperformed validation.
-Keep this context proportional to the change so the history remains useful
-for reconstructing the development process without relying on chat history.
+# Read before changing
 
-# Language and application
+- [README.md](README.md): setup and user workflow.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): ownership, state flow and API.
+- [docs/BLE-PROTOCOL.md](docs/BLE-PROTOCOL.md): FFF1/FFF2 contract and macOS read rule.
+- [docs/FIRMWARE.md](docs/FIRMWARE.md): ESP-IDF, OTA, verification and safety.
+- [docs/WIRING.md](docs/WIRING.md): physical connections and proposed wiring.
 
-The official name of the complete system is Surrklank; use `surrklank` for
-new technical names. Preserve existing API routes, WebSocket messages, BLE
-UUIDs, the `EM-MIDI-IDF` BLE discovery name and other persistent identifiers
-unless a compatible migration is explicitly planned. Historical measurements
-and paths must remain identifiable as historical evidence.
+# Build and runtime checks
 
-Conversation is Polish. Documentation, filenames and commits are English.
-Run the ASP.NET application with `python3 run.py` (Windows: `py run.py`); the script launches the C# backend.
-It serves http://127.0.0.1:5173. Do not run Docker or the archived TCP gateway.
-After backend changes build ASP.NET; after frontend changes build frontend and ASP.NET.
-After firmware changes build ESP-IDF and run its offline tests. Upload only with
-explicit hardware authorization; distinguish build-only validation from physical tests.
-After changes restart this process and verify GET / and GET /api/connection.
-BLE connection and firmware progress are published through /ws; ping is manual.
+- Launch ASP.NET with `python3 run.py` (Windows: `py run.py`). It serves
+  <http://127.0.0.1:5173>. Do not use Docker or the archived TCP gateway.
+- After backend changes run `dotnet build backend/Surrklank.csproj`.
+- After frontend changes run `npm --prefix frontend run build` and the ASP.NET
+  build. Run `npm --prefix frontend test` for affected UI behavior.
+- After firmware changes run `pio run -d firmware -e esp32` and applicable
+  offline checks. Builds and mocks are not physical-device validation.
+- After runtime changes restart the application and check `GET /` and
+  `GET /api/connection`. Use `BLE_AUTO_SCAN=false` for an offline smoke check.
+- Run existing checks. The user wants to learn C# testing in Rider; do not
+  generate a C# orchestration test suite without a request. State which new
+  failure paths remain untested.
 
-# Firmware and hardware
+# Device and maintenance rules
 
-Firmware uses PlatformIO with ESP-IDF, never Arduino. Use pinned official Espressif
-BLE connection-manager and BLE OTA components; do not invent another OTA protocol.
-USB upload is permitted when requested by the user, including PlatformIO's upload
-target. The application serializes USB/BLE maintenance and releases BLE before USB.
-Physical USB and BLE OTA tests are explicitly authorized in this chat. The board
-was confirmed isolated from registers/instruments, with ATX disconnected; never
-power instruments or ATX during maintenance. ATX GPIO19 control and the GPIO13 button are supported; instrument/register
-control remains out of scope. ATX state means the driven transistor output,
-not PWR_OK or measured supply voltage. Preserve the GATT UUIDs and official OTA protocol. FFF1 carries commands and INFO
-snapshots; FFF2 publishes typed state events and remains readable before subscribing.
-Never read a subscribed FFF2 through SimpleBLE on macOS; use FFF1 INFO instead. Do not change eFuses or flash security settings.
-Never connect/flash physical hardware as an implicit offline software test.
-Private legacy signing keys remain outside Git; never print or publish them.
-This clean repository contains only the native application, ESP-IDF firmware,
-tests and documentation. Do not restore experiments or archived upload scripts.
-Keep the simple black-and-white Web 1.0 HTML interface and preserve docs/WIRING.md.
+- Use `BleConnectionService.ReserveAsync` for native BLE work. Keep its
+  `DeviceOperation` alive through every awaited call; firmware owns it beyond
+  HTTP 202 until verification and cleanup. Do not expose the native peripheral
+  or semaphore or issue parallel native calls through a reservation. Return
+  HTTP 409 with the active operation when busy.
+- Preserve the pinned official Espressif BLE connection manager and BLE OTA
+  components. Firmware uses PlatformIO with ESP-IDF, never Arduino. Do not
+  invent another OTA transport or change eFuses/flash security settings.
+- Never connect to or flash physical hardware as an implicit offline check.
+  Upload only with explicit authorization for the current task. Before any
+  maintenance, confirm the board is isolated from ATX, registers and instruments;
+  never power them during maintenance.
+- ATX state is the GPIO19 transistor output request, not PWR_OK or measured
+  voltage. GPIO13 is the physical button. Read the protocol and wiring docs
+  before changing these contracts. Do not read subscribed FFF2 through
+  SimpleBLE on macOS; request `INFO` over FFF1 instead.
+- Keep private legacy signing keys outside Git; never print or publish them.
 
-# Verified hardware baseline
+# Commits
 
-On 2026-11-06, this clean repository independently passed 19 offline tests and
-ESP-IDF compilation. The isolated ESP32 was provisioned through USB, verified
-with manual WebSocket ping and disconnect/reconnect, then updated through the
-official BLE OTA profile. Version 0.1.7 is installed and confirmed.
-USB upload took 36.294 s. The 550160-byte OTA took
-22.631 s (27.652 s including build/restart/verification).
-The accepted transfer target is <=60 s. See docs/FIRMWARE.md for evidence and limits.
-Cancelled-transfer recovery and physical trial rollback were tested in the source
-project before extraction; do not report them as repeated in this migration.
+Use a concise subject and short body explaining the change, motivation,
+affected behavior, validation and material limits. Keep the history useful for
+reconstructing project decisions and thesis evidence. Distinguish measurements
+from observations and hypotheses; reference measurement artifacts when available
+and never imply unperformed hardware testing. Each commit body must be understandable
+without reading its diff.
