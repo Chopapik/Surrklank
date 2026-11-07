@@ -46,11 +46,27 @@ public sealed class FirmwareUpdateUseCase(IDeviceConnection connection, BleOtaSe
             await operation.ConnectAsync(token);
             job.Record("ble_upload", 0);
             var transfer = Stopwatch.StartNew();
-            await operation.TransferAsync(ota, image, (value, link) =>
-                job.Record("ble_upload", value, details: new()
-                {
-                    ["link"] = link
-                }), token);
+            try
+            {
+                await operation.TransferAsync(ota, image, (value, link) =>
+                    job.Record("ble_upload", value, details: new()
+                    {
+                        ["link"] = link
+                    }), token);
+            }
+            catch (TimeoutException)
+            {
+                // A lost final sector receipt can coexist with a complete, validated flash.
+                // Reconcile once; never resend the image on an uncertain outcome.
+                using var reconciliation = CancellationTokenSource.CreateLinkedTokenSource(token);
+                reconciliation.CancelAfter(TimeSpan.FromSeconds(10));
+                var flash = await operation.ReadInfoAsync(reconciliation.Token);
+                if (flash.GetProperty("ota").GetString() != "ready" ||
+                    flash.GetProperty("error").GetInt32() != 0 ||
+                    flash.GetProperty("received").GetInt32() != image.Length)
+                    throw new FirmwareOutcomeUnknownException("OTA receipt timed out; complete flash was not confirmed");
+                job.Record("reconciled_transfer", details: new() { ["received"] = image.Length });
+            }
             var info = await ConfirmFlashAsync(operation, token);
             transferSeconds = Math.Round(transfer.Elapsed.TotalSeconds, 3);
             if (info.TryGetProperty("interval_us", out var interval))

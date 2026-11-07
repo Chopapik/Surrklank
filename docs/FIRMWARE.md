@@ -70,6 +70,10 @@ then reads one FFF1 INFO snapshot to verify `ready` and zero error. If the event
 is missing but the link remains usable, it attempts one INFO reconciliation
 with a fresh 10 s cancellation budget. A known flash error fails the job; an
 unresolved result is `uncertain` and the image is never resent automatically.
+If a sector-receipt timeout occurs after the device has finished flashing,
+one INFO reconciliation checks `ready`, zero error and the complete image byte
+count before proceeding to reboot. A missing receipt alone does not prove that
+flash failed; incomplete or unconfirmed results do not trigger image replay.
 An older image without FFF2 notifications uses bounded legacy ready reads for
 its first update.
 
