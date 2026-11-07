@@ -34,6 +34,7 @@ class FakeWebSocket {
 const connected: ConnectionSnapshot = {
   state: 'connected', connected: true, error: null, session: 1,
   last_ping: null, device: null, events: [], mtu: 498, discovery: 'connected',
+  atx_on: null, subscribed: false, operation: null, device_firmware: null,
 };
 const idleFirmware: FirmwareSnapshot = {
   stage: 'idle', progress: null, error: null, result: null, busy: false, events: [],
@@ -75,6 +76,20 @@ describe('Surrklank interface', () => {
     expect(screen.getByText('Połączenie z aplikacją aktywne')).toBeTruthy();
     expect((screen.getByRole('button', { name: 'Kompiluj i wgraj przez USB' }) as HTMLButtonElement).disabled).toBe(false);
     expect((screen.getByRole('button', { name: 'Ping' }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('ignores invalid WebSocket state without losing the last valid snapshot', async () => {
+    const { socket } = renderApp();
+    act(() => socket.onmessage?.(new MessageEvent('message', {
+      data: JSON.stringify({ type: 'state', connection: {}, firmware: {} }),
+    })));
+    expect(useConnectionStore.getState().socketState).toBe('waiting');
+    await establishConnection(socket);
+    act(() => socket.onmessage?.(new MessageEvent('message', {
+      data: JSON.stringify({ type: 'state', connection: { ...connected, connected: 'false' }, firmware: idleFirmware }),
+    })));
+    expect(useConnectionStore.getState().connection?.connected).toBe(true);
+    expect((screen.getByRole('button', { name: 'Ping' }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('updates ATX only from ESP32 snapshots and sends explicit state', async () => {

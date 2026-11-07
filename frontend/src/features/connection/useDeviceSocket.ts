@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { firmwareStatusKey } from '../firmware/firmware.types';
 import { useConnectionStore } from './connection.store';
 import type { ConnectionAction, ConnectionSnapshot } from './connection.types';
-import type { DeviceStateMessage } from './deviceSocket.types';
+import { parseDeviceStateMessage } from './deviceSocket.types';
 
 // A single WebSocket carries both connection state and firmware progress.
 export function useDeviceSocket() {
@@ -53,13 +53,8 @@ export function useDeviceSocket() {
 
       socket.onmessage = (event: MessageEvent<string>) => {
         if (disposed || socketRef.current !== socket) return;
-        let message: DeviceStateMessage;
-        try {
-          message = JSON.parse(event.data) as DeviceStateMessage;
-        } catch {
-          return;
-        }
-        if (message?.type !== 'state' || !message.connection || !message.firmware) return;
+        const message = parseDeviceStateMessage(event.data);
+        if (!message) return;
         queryClient.setQueryData(firmwareStatusKey, message.firmware);
         receiveConnection(message.connection);
       };

@@ -1,16 +1,17 @@
-import type { FirmwareSnapshot, FirmwareTransport, SerialPort } from './firmware.types';
-
-async function readResponse<T>(response: Response): Promise<T> {
-  const data: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    const detail = data && typeof data === 'object' && 'detail' in data ? data.detail : null;
-    throw new Error(typeof detail === 'string' ? detail : 'Upload failed');
-  }
-  return data as T;
-}
+import { readResponse } from '../../shared/http/readResponse';
+import {
+  firmwareSnapshotSchema,
+  serialPortsSchema,
+  type FirmwareSnapshot,
+  type FirmwareTransport,
+  type SerialPort,
+} from './firmware.types';
 
 export async function listFirmwarePorts(): Promise<SerialPort[]> {
-  return readResponse<SerialPort[]>(await fetch('/api/firmware/ports'));
+  const response = await fetch('/api/firmware/ports');
+  const ports = serialPortsSchema.safeParse(await readResponse(response, 'Could not list USB ports'));
+  if (!ports.success) throw new Error('Invalid USB port list received');
+  return ports.data;
 }
 
 export async function startFirmwareUpload(
@@ -22,5 +23,9 @@ export async function startFirmwareUpload(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ isolatedHardwareConfirmed: true, port }),
   });
-  return readResponse<FirmwareSnapshot>(response);
+  const firmware = firmwareSnapshotSchema.safeParse(await readResponse(response, 'Upload failed'));
+  if (!firmware.success) {
+    throw new Error('Invalid firmware response; check the live status before retrying');
+  }
+  return firmware.data;
 }

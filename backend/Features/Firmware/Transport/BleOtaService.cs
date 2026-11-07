@@ -2,20 +2,7 @@ using System.Buffers.Binary;
 using System.Threading.Channels;
 using SimpleSharpBLE;
 
-namespace Surrklank.Services;
-
-// The OTA sender only needs these BLE operations; this also allows it to be
-// checked offline without connecting to a physical ESP32.
-public interface IOtaConnection
-{
-    bool IsConnected { get; }
-    int ReportedMtu { get; }
-    bool HasOtaFirmware { get; }
-    Task SubscribeAsync(string service, string characteristic, Action<byte[]> callback, CancellationToken cancellation);
-    Task UnsubscribeAsync(string service, string characteristic);
-    Task WriteRequestAsync(string service, string characteristic, byte[] data, CancellationToken cancellation);
-    Task WriteCommandAsync(string service, string characteristic, byte[] data, CancellationToken cancellation);
-}
+namespace Surrklank.Features.Firmware.Transport;
 
 // Sender for Espressif's ble_ota_raw profile. This does not define a new protocol.
 public sealed class BleOtaService
@@ -61,7 +48,8 @@ public sealed class BleOtaService
             block.AsSpan(position, length).CopyTo(packet.AsSpan(3));
             packets.Add(packet);
             position += length;
-            if (++sequence >= 255) throw new ArgumentException("Too many packets in sector");
+            if (++sequence >= 255)
+                throw new ArgumentException("Too many packets in sector");
         }
         byte[] last = new byte[block.Length - position + 5];
         BinaryPrimitives.WriteUInt16LittleEndian(last, index);
@@ -87,7 +75,8 @@ public sealed class BleOtaService
         int reported = client.ReportedMtu;
         int capacity = OperatingSystem.IsMacOS() ? Math.Min(495, reported) : 20;
         int mtu = OperatingSystem.IsMacOS() ? reported + 3 : reported;
-        if (reported < 20 || capacity < 20) throw new InvalidOperationException("Invalid ATT payload capacity");
+        if (reported < 20 || capacity < 20)
+            throw new InvalidOperationException("Invalid ATT payload capacity");
         var commands = Channel.CreateBounded<byte[]>(8);
         var receipts = Channel.CreateBounded<byte[]>(64);
         var streamError = new TaskCompletionSource<Exception>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -102,18 +91,26 @@ public sealed class BleOtaService
         {
             using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
             timeoutSource.CancelAfter(timeout);
-            if (streamError.Task.IsCompleted) throw await streamError.Task;
+            if (streamError.Task.IsCompleted)
+                throw await streamError.Task;
             var read = queue.Reader.ReadAsync(timeoutSource.Token).AsTask();
             var completed = await Task.WhenAny(read, streamError.Task);
-            if (completed == streamError.Task) { timeoutSource.Cancel(); throw await streamError.Task; }
+            if (completed == streamError.Task)
+            {
+                timeoutSource.Cancel();
+                throw await streamError.Task;
+            }
             try
             {
                 var frame = await read;
-                if (streamError.Task.IsCompleted) throw await streamError.Task;
+                if (streamError.Task.IsCompleted)
+                    throw await streamError.Task;
                 return frame;
             }
             catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
-            { throw new TimeoutException("Timed out waiting for an OTA acknowledgement"); }
+            {
+                throw new TimeoutException("Timed out waiting for an OTA acknowledgement");
+            }
         }
         async Task<byte[]> Control(ushort code, uint size = 0)
         {
@@ -137,7 +134,8 @@ public sealed class BleOtaService
             var ack = await Control(1, checked((uint)image.Length));
             int window = Math.Max(1, Math.Min(capacity >= 495 ? 3 : 1, (int)ack[6]));
             int sectors = (image.Length + 4095) / 4096;
-            if (sectors > ushort.MaxValue + 1) throw new InvalidOperationException("Firmware image exceeds OTA sector limit");
+            if (sectors > ushort.MaxValue + 1)
+                throw new InvalidOperationException("Firmware image exceeds OTA sector limit");
             int acknowledged = 0, duplicates = 0;
             for (int first = 0; first < sectors; first += window)
             {
@@ -148,7 +146,8 @@ public sealed class BleOtaService
                     foreach (var packet in SectorPackets((ushort)index, block, capacity))
                     {
                         cancellation.ThrowIfCancellationRequested();
-                        if (streamError.Task.IsCompleted) throw await streamError.Task;
+                        if (streamError.Task.IsCompleted)
+                            throw await streamError.Task;
                         await client.WriteCommandAsync(Service, Firmware, packet, cancellation);
                     }
                 }
@@ -157,23 +156,41 @@ public sealed class BleOtaService
                 while (pending.Count > 0)
                 {
                     // A single deadline covers the whole window, including duplicate receipts.
-                    if (streamError.Task.IsCompleted) throw await streamError.Task;
+                    if (streamError.Task.IsCompleted)
+                        throw await streamError.Task;
                     var readTask = receipts.Reader.ReadAsync(groupTimeout.Token).AsTask();
                     var completed = await Task.WhenAny(readTask, streamError.Task);
-                    if (completed == streamError.Task) throw await streamError.Task;
+                    if (completed == streamError.Task)
+                        throw await streamError.Task;
                     byte[] frame;
-                    try { frame = await readTask; }
+                    try
+                    {
+                        frame = await readTask;
+                    }
                     catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
-                    { throw new TimeoutException("Timed out waiting for OTA sector receipts"); }
-                    if (streamError.Task.IsCompleted) throw await streamError.Task;
+                    {
+                        throw new TimeoutException("Timed out waiting for OTA sector receipts");
+                    }
+                    if (streamError.Task.IsCompleted)
+                        throw await streamError.Task;
                     int sector = BinaryPrimitives.ReadUInt16LittleEndian(frame);
                     int status = BinaryPrimitives.ReadUInt16LittleEndian(frame.AsSpan(2));
                     if (status != 0 || sector >= first + window || sector >= sectors)
                         throw new InvalidOperationException($"ESP OTA receipt {sector}/{status}; no replay");
-                    if (!pending.Remove(sector)) { duplicates++; continue; }
+                    if (!pending.Remove(sector))
+                    {
+                        duplicates++;
+                        continue;
+                    }
                     acknowledged += Math.Min(4096, image.Length - sector * 4096);
                     progress(Math.Round(100.0 * acknowledged / image.Length, 1),
-                        new { mtu, packet_bytes = capacity, sector_window = window, duplicate_receipts = duplicates });
+                        new
+                        {
+                            mtu,
+                            packet_bytes = capacity,
+                            sector_window = window,
+                            duplicate_receipts = duplicates
+                        });
                 }
             }
             await Control(2);
@@ -183,8 +200,22 @@ public sealed class BleOtaService
             // Never replay an uncertain transfer. The caller disconnects after failure.
             if (client.IsConnected)
             {
-                if (firmwareSubscribed) { try { await client.UnsubscribeAsync(Service, Firmware); } catch { } }
-                if (commandSubscribed) { try { await client.UnsubscribeAsync(Service, Command); } catch { } }
+                if (firmwareSubscribed)
+                {
+                    try
+                    {
+                        await client.UnsubscribeAsync(Service, Firmware);
+                    }
+                    catch { }
+                }
+                if (commandSubscribed)
+                {
+                    try
+                    {
+                        await client.UnsubscribeAsync(Service, Command);
+                    }
+                    catch { }
+                }
             }
         }
     }

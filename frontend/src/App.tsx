@@ -1,7 +1,4 @@
-import { useAtx } from './features/atx/useAtx';
-import { useConnection } from './features/connection/useConnection';
-import { useDeviceSocket } from './features/connection/useDeviceSocket';
-import { useFirmware } from './features/firmware/useFirmware';
+import { useDeviceControls } from './features/application/useDeviceControls';
 
 const controlStyle =
   '[font:inherit] p-[8px] [margin:6px_8px_6px_0] text-black bg-white ' +
@@ -10,30 +7,9 @@ const sectionStyle = 'py-[18px] [border-top:1px_solid_#fff] mt-[20px]';
 const preStyle = 'whitespace-pre-wrap [overflow-wrap:anywhere]';
 
 export function App() {
-  const sendAction = useDeviceSocket();
-  const atx = useAtx();
-  const { connection, ready, connected, statusLabel, socketLabel } = useConnection();
-  const {
-    firmware,
-    ports,
-    selectedPort,
-    setSelectedPort,
-    requestUpload,
-    uploadPending,
-    error,
-  } = useFirmware();
-  const busy = firmware.busy || uploadPending || !!connection?.operation;
-  const busyReason = firmware.busy || uploadPending || connection?.operation === 'firmware_update'
-    ? 'Trwa aktualizacja firmware. Sterowanie ATX i inne operacje są teraz niedostępne.'
-    : connection?.operation
-      ? 'ESP32 wykonuje inną operację. Poczekaj na jej zakończenie.'
-      : null;
-  const ping = connection?.last_ping;
-  const pingText = ping
-    ? ping.ok
-      ? `Ostatni ping: ${ping.reply} · ${ping.rtt_ms} ms`
-      : ping.error
-    : 'Ping uruchamia się tylko po kliknięciu.';
+  const { sendAction, atx, connectionState, firmwareState, busy, busyReason, pingText } = useDeviceControls();
+  const { connection, ready, connected, statusLabel, socketLabel } = connectionState;
+  const { firmware, ports, selectedPort, setSelectedPort, requestUpload, error } = firmwareState;
 
   return (
     <>
@@ -60,7 +36,8 @@ export function App() {
       <section className={sectionStyle}>
         <h2 className="text-[20px]">Zasilanie ATX</h2>
         <button className={controlStyle} role="switch" aria-label="Zasilanie ATX"
-          aria-checked={atx.on === true} aria-describedby={busyReason ? "device-busy-reason" : undefined} disabled={atx.on === null || busy || atx.pending}
+          aria-checked={atx.on === true} aria-describedby={busyReason ? 'device-busy-reason' : undefined}
+          disabled={atx.on === null || busy || atx.pending}
           onClick={() => atx.setState(atx.on ? 'off' : 'on')}>
           {atx.on === null ? 'Stan nieznany' : atx.on ? 'ATX włączony' : 'ATX wyłączony'}
         </button>

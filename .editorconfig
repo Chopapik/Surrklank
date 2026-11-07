@@ -1,0 +1,15 @@
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+dotnet_sort_system_directives_first = true
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+csharp_style_namespace_declarations = file_scoped:suggestion
+
+[*.{ts,tsx}]
+indent_style = space
+indent_size = 2
+insert_final_newline = true

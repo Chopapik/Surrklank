@@ -14,11 +14,11 @@ class DeviceStateTest(unittest.TestCase):
             (root / "Check.csproj").write_text(f'''<Project Sdk="Microsoft.NET.Sdk">
 <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
 <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
-<ItemGroup><Compile Include="{BACKEND / 'Services/DeviceState.cs'}" />
-<Compile Include="{BACKEND / 'DTOs/ConnectionDto.cs'}" /></ItemGroup></Project>''')
+<ItemGroup><Compile Include="{BACKEND / 'Features/Connection/DeviceState.cs'}" />
+<Compile Include="{BACKEND / 'Features/Connection/DTOs/*.cs'}" /><Compile Include="{BACKEND / 'Features/Firmware/DTOs/DeviceFirmwareDto.cs'}" /></ItemGroup></Project>''')
             (root / "Program.cs").write_text('''using System.Buffers.Binary;
 using System.Text.Json;
-using Surrklank.Services;
+using Surrklank.Features.Connection;
 static void Check(bool ok) { if (!ok) throw new Exception("State check failed"); }
 static byte[] Atx(uint sequence, bool on) {
     byte[] bytes=[1,1,0,0,0,0,(byte)(on?1:0)];
@@ -47,7 +47,7 @@ Check(state.Firmware?.Stage=="ready");
 firmware[6]=3;
 BinaryPrimitives.WriteUInt32LittleEndian(firmware.AsSpan(2),11);
 BinaryPrimitives.WriteInt32LittleEndian(firmware.AsSpan(11),-1);
-Check(state.Receive(firmware) && state.Firmware.Error==-1);
+Check(state.Receive(firmware) && state.Firmware?.Error==-1);
 var wrap=new DeviceState();wrap.Read(Info(uint.MaxValue,false));
 Check(wrap.Receive(Atx(0,true)) && wrap.AtxOn==true);
 var reconnect=new DeviceState();reconnect.Read(Info(0,false));

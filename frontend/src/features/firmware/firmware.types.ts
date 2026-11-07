@@ -1,37 +1,41 @@
-import type { DeviceInfo } from '../connection/connection.types';
+import { z } from 'zod';
+import { deviceInfoSchema } from '../connection/connection.types';
 
 export type FirmwareTransport = 'usb' | 'ota';
 
-export interface SerialPort {
-  port: string;
-  name: string;
-}
+export const serialPortsSchema = z.array(z.object({
+  port: z.string(),
+  name: z.string(),
+}));
+export type SerialPort = z.infer<typeof serialPortsSchema>[number];
 
-export interface FirmwareResult extends DeviceInfo {
-  transfer_seconds: number;
-  transfer_interval_us: number | null;
-  build_seconds: number;
-  total_seconds: number;
-  transport: 'usb' | 'ble';
-}
+const firmwareResultSchema = deviceInfoSchema.extend({
+  transfer_seconds: z.number(),
+  transfer_interval_us: z.number().nullable(),
+  build_seconds: z.number(),
+  total_seconds: z.number(),
+  transport: z.enum(['usb', 'ble']),
+});
+export type FirmwareResult = z.infer<typeof firmwareResultSchema>;
 
-export interface FirmwareEvent {
-  at: string;
-  job: string | null;
-  stage: string;
-  progress?: number;
-  error?: string;
-  [key: string]: unknown;
-}
+const firmwareEventSchema = z.object({
+  at: z.string(),
+  job: z.string().nullable(),
+  stage: z.string(),
+  progress: z.number().optional(),
+  error: z.string().optional(),
+}).passthrough();
+export type FirmwareEvent = z.infer<typeof firmwareEventSchema>;
 
-export interface FirmwareSnapshot {
-  stage: string;
-  progress: number | null;
-  error: string | null;
-  result: FirmwareResult | null;
-  busy: boolean;
-  events: FirmwareEvent[];
-}
+export const firmwareSnapshotSchema = z.object({
+  stage: z.string(),
+  progress: z.number().nullable(),
+  error: z.string().nullable(),
+  result: firmwareResultSchema.nullable(),
+  busy: z.boolean(),
+  events: z.array(firmwareEventSchema),
+});
+export type FirmwareSnapshot = z.infer<typeof firmwareSnapshotSchema>;
 
 export const initialFirmware: FirmwareSnapshot = {
   stage: '—',

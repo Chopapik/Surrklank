@@ -1,22 +1,30 @@
 using System.Net.WebSockets;
 using System.Text.Json;
-using Surrklank.DTOs;
-using Surrklank.Services;
 using Microsoft.AspNetCore.Mvc;
+using Surrklank.Features.Application.DTOs;
+using Surrklank.Features.Connection;
+using Surrklank.Features.Firmware;
+using Surrklank.Shared.Http;
 
-namespace Surrklank.Controllers;
+namespace Surrklank.Features.Application;
 
 [ApiController]
 public sealed class WebSocketController(StateService updates, BleConnectionService connection,
-    FirmwareService firmware, ILogger<WebSocketController> logger) : ControllerBase
+    ApplicationStateService application, ILogger<WebSocketController> logger) : ControllerBase
 {
     [HttpGet("/ws")]
-    public async Task Connect()
+    public async Task ConnectAsync()
     {
-        if (!HttpContext.WebSockets.IsWebSocketRequest) { Response.StatusCode = 400; return; }
-        if (Request.Headers.TryGetValue("Origin", out var origin) &&
-            (origin.Count != 1 || origin[0] != $"{Request.Scheme}://{Request.Host}"))
-        { Response.StatusCode = 403; return; }
+        if (!HttpContext.WebSockets.IsWebSocketRequest)
+        {
+            Response.StatusCode = 400;
+            return;
+        }
+        if (!LocalOrigin.IsAllowed(Request))
+        {
+            Response.StatusCode = 403;
+            return;
+        }
         using var socket = await HttpContext.WebSockets.AcceptWebSocketAsync();
         var listener = updates.Subscribe();
         using var stop = CancellationTokenSource.CreateLinkedTokenSource(HttpContext.RequestAborted);
@@ -26,7 +34,7 @@ public sealed class WebSocketController(StateService updates, BleConnectionServi
             {
                 await foreach (var _ in listener.Reader.ReadAllAsync(stop.Token))
                 {
-                    var bytes = JsonSerializer.SerializeToUtf8Bytes(new StateMessage(connection.Snapshot(), firmware.Snapshot()), StateService.JsonOptions);
+                    var bytes = JsonSerializer.SerializeToUtf8Bytes(application.Message(), StateService.JsonOptions);
                     await socket.SendAsync(bytes, WebSocketMessageType.Text, true, stop.Token);
                 }
             }
@@ -44,7 +52,8 @@ public sealed class WebSocketController(StateService updates, BleConnectionServi
                 do
                 {
                     result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), stop.Token);
-                    if (result.MessageType == WebSocketMessageType.Close) return;
+                    if (result.MessageType == WebSocketMessageType.Close)
+                        return;
                     if (result.MessageType != WebSocketMessageType.Text || message.Length + result.Count > 16384)
                         throw new InvalidOperationException("Invalid WebSocket message");
                     message.Write(buffer, 0, result.Count);
@@ -56,7 +65,9 @@ public sealed class WebSocketController(StateService updates, BleConnectionServi
                     await connection.ExecuteActionAsync(action);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
-                { connection.ReportError(ex); }
+                {
+                    connection.ReportError(ex);
+                }
             }
         }
         catch (OperationCanceledException) { }

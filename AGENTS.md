@@ -5,6 +5,9 @@
 - Keep the simple black-and-white Web 1.0 interface and `docs/WIRING.md`.
 - Preserve API routes, WebSocket messages, BLE UUIDs, `EM-MIDI-IDF` and other
   persistent identifiers unless a compatible migration is explicitly planned.
+- Keep backend code grouped under `Features/<feature>` with thin controllers,
+  feature services and focused use cases for substantive workflows. Inject
+  external ports where offline substitutes are useful; do not add empty layers.
 - After material behavior, architecture, protocol, firmware or integration
   changes, update the relevant shared docs in the same task. Describe current
   behavior; keep history in commits, not audit follow-ups or validation dumps.
@@ -34,8 +37,9 @@
 
 # Device and maintenance rules
 
-- Use `BleConnectionService.ReserveAsync` for native BLE work. Keep its
-  `DeviceOperation` alive through every awaited call; firmware owns it beyond
+- Use `BleConnectionService.ReserveAsync` (or its `IDeviceConnection` contract)
+  for native BLE work. Keep the returned `IDeviceOperation` alive through every
+  awaited call; firmware owns it beyond
   HTTP 202 until verification and cleanup. Do not expose the native peripheral
   or semaphore or issue parallel native calls through a reservation. Return
   HTTP 409 with the active operation when busy.

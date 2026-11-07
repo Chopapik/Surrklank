@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { setAtxState } from './atx.api';
 import { useConnectionStore } from '../connection/connection.store';
 
 export function useAtx() {
@@ -7,17 +8,7 @@ export function useAtx() {
   const on = socketState === 'ready' && connection?.connected
     ? connection.atx_on ?? null : null;
   const mutation = useMutation({
-    mutationFn: async (state: 'on' | 'off') => {
-      const response = await fetch('/api/atx', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state }),
-      });
-      if (!response.ok) {
-        const body = await response.json();
-        throw new Error(body.detail ?? 'ATX request failed');
-      }
-    },
+    mutationFn: setAtxState,
     retry: false,
   });
 

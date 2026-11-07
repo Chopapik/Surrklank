@@ -1,4 +1,4 @@
-namespace Surrklank.DTOs;
+namespace Surrklank.Features.Firmware.DTOs;
 
 public sealed record FirmwareDto(
     string Stage,

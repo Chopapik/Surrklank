@@ -1,4 +1,4 @@
-namespace Surrklank.Services;
+namespace Surrklank.Features.Connection;
 
 public sealed class DeviceBusyException(string? operation)
     : InvalidOperationException(operation == "firmware_update"

@@ -1,9 +1,10 @@
 using System.Text.Json;
+using Surrklank.Features.Connection;
 
-namespace Surrklank.Services;
+namespace Surrklank.Features.Atx;
 
 // ATX commands share the BLE gate with firmware maintenance; state arrives through FFF2.
-public sealed class AtxService(BleConnectionService connection)
+public sealed class AtxService(IDeviceConnection connection)
 {
     public async Task SetAsync(bool on, CancellationToken cancellation)
     {
@@ -14,15 +15,17 @@ public sealed class AtxService(BleConnectionService connection)
         var reply = await operation.SendCommandAsync(command, cancellation);
         // A one-shot read reconciles a missed command-result event without periodic polling.
         connection.SetDevice(await operation.ReadInfoAsync(cancellation));
-        if (reply != command) throw new InvalidOperationException(reply);
+        if (reply != command)
+            throw new InvalidOperationException(reply);
     }
 
     // Caller holds the BLE gate. Older firmware has no ATX control; isolation confirmation
     // remains mandatory for its first update. Never send an unsupported command to it.
-    public async Task PrepareWhileLockedAsync(BleConnectionService.DeviceOperation operation, CancellationToken cancellation)
+    public async Task PrepareWhileLockedAsync(IDeviceOperation operation, CancellationToken cancellation)
     {
         var snapshot = connection.Snapshot();
-        if (!snapshot.Connected || snapshot.AtxOn is null) return;
+        if (!snapshot.Connected || snapshot.AtxOn is null)
+            return;
         if (await operation.SendCommandAsync("ATX PREPARE", cancellation) != "ATX OFF")
             throw new InvalidOperationException("ESP32 did not accept ATX maintenance lock");
         var info = await operation.ReadInfoAsync(cancellation);

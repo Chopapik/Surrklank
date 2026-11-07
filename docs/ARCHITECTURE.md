@@ -5,6 +5,11 @@ build from `frontend/dist`, maps controllers and starts the BLE and firmware
 hosted services. Vite is a separate development server only; it proxies `/api`
 and `/ws` to ASP.NET. The ESP32 is the BLE GATT server; ASP.NET is its client.
 
+Backend code is grouped under `backend/Features/`: `Connection`, `Atx`,
+`Firmware` and `Application`. Each feature owns its controller, service and
+DTOs. `Shared/Http/LocalOrigin.cs` holds the origin check reused by HTTP and
+WebSocket boundaries. The composition root remains `backend/Program.cs`.
+
 ## Request and state flow
 
 | Boundary | Responsibility |
@@ -13,7 +18,11 @@ and `/ws` to ASP.NET. The ESP32 is the BLE GATT server; ASP.NET is its client.
 | `WebSocketController` | Accept `/ws`, send `state` snapshots and receive `connect`, `disconnect`, `ping` |
 | `BleConnectionService` | Discover, own one BLE session, serialize native operations, decode device state |
 | `AtxService` | Send explicit ATX commands and prepare maintenance |
-| `FirmwareService` | Own build/upload jobs and verify the running image |
+| `ApplicationStateService` | Combine feature snapshots for HTTP and WebSocket responses |
+| `FirmwareService` | Start/stop the background job and retain the device reservation |
+| `FirmwareUpdateUseCase` | Coordinate preparation, build, transfer, reboot and image verification |
+| `FirmwareJobState` | Own job snapshots, progress events and maintenance logs |
+| `PlatformIoToolchain` | Enumerate CP2102 ports and execute PlatformIO builds/USB uploads |
 | `BleOtaService` | Transfer the image using Espressif's official BLE OTA profile |
 | `StateService` | Wake browser WebSocket senders when snapshots change |
 
@@ -25,6 +34,15 @@ Zustand; the firmware hook receives job snapshots through React Query's cache.
 Browser storage contains only a last-known connection label for startup display,
 not an authoritative ATX state. A closed browser socket makes device actions
 unavailable until it reconnects.
+
+The frontend keeps one presentation component, `App.tsx`, with behavior in
+feature hooks and HTTP operations in each feature's `.api.ts` module.
+`useDeviceControls` coordinates availability and labels across connection, ATX
+and firmware features. Shared
+HTTP error decoding lives in `shared/http/readResponse.ts`. Zod schemas at the
+HTTP/WebSocket boundaries validate incoming data and supply TypeScript types;
+invalid socket messages do not update caches or stores. Optional fields from
+older connection snapshots are normalized before entering application state.
 
 The firmware reports ATX output and flash state through FFF2 notifications.
 On connection the backend reads an initial device snapshot, subscribes and
@@ -45,9 +63,16 @@ one reservation are unsupported. The reason is visible as
 with `detail` and `operation`. The UI disables conflicting controls and shows
 the maintenance reason. WebSocket publication does not need a reservation.
 
-`FirmwareService` retains the reservation after returning HTTP 202. It builds,
-uploads, reconnects and verifies inside the background job, then releases the
-reservation during cleanup. For USB it releases BLE before PlatformIO upload;
+ATX and firmware workflows depend on `IDeviceConnection` and `IDeviceOperation`,
+which expose owned operations without a native peripheral or semaphore. The
+production implementation is the same singleton `BleConnectionService` used by
+the hosted service. `IFirmwareToolchain` separates build/USB process execution
+from the update policy. These contracts allow offline substitutes for future
+workflow tests; there is no persistence repository in this application.
+
+`FirmwareService` retains the reservation after returning HTTP 202. It runs
+`FirmwareUpdateUseCase` inside the background job and releases the reservation
+during cleanup. For USB the use case releases BLE before PlatformIO upload;
 for BLE OTA it uses the existing session and the official OTA profile. Both
 require physical-isolation confirmation. See [firmware operation](FIRMWARE.md)
 for the update sequence and uncertain outcomes.

@@ -3,118 +3,148 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
-using Surrklank.DTOs;
 using SimpleSharpBLE;
+using Surrklank.Features.Application;
+using Surrklank.Features.Connection.DTOs;
+using Surrklank.Features.Firmware.Transport;
 
-namespace Surrklank.Services;
+namespace Surrklank.Features.Connection;
 
-// One device connection shared by WebSocket commands and firmware maintenance.
-public sealed class BleConnectionService(StateService updates, ILogger<BleConnectionService> logger) : IHostedService
+public sealed class BleConnectionService(StateService updates, ILogger<BleConnectionService> logger) : IHostedService, IDeviceConnection
 {
     public const string Service = "0000fff0-0000-1000-8000-00805f9b34fb";
     public const string Command = "0000fff1-0000-1000-8000-00805f9b34fb";
     public const string Info = "0000fff2-0000-1000-8000-00805f9b34fb";
-    private readonly object sync = new();
-    private Peripheral? peripheral;
-    private string state = "unknown";
-    private string? error;
-    private int session;
-    private PingResult? lastPing;
-    private JsonElement? device;
-    private int? mtu;
-    private DeviceState deviceState = new();
-    private bool subscribed;
-    private TaskCompletionSource stateChanged = NewSignal();
+    private readonly object _sync = new();
+    private Peripheral? _peripheral;
+    private string _state = "unknown";
+    private string? _error;
+    private int _session;
+    private PingResultDto? _lastPing;
+    private JsonElement? _device;
+    private int? _mtu;
+    private DeviceState _deviceState = new();
+    private bool _subscribed;
+    private TaskCompletionSource _stateChanged = NewSignal();
     private static TaskCompletionSource NewSignal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private void SignalState() { var previous = stateChanged; stateChanged = NewSignal(); previous.TrySetResult(); }
-    private readonly List<ConnectionEvent> events = [];
-    private readonly CancellationTokenSource stopping = new();
-    private Task? observer;
-    private Task? discovery;
-    private string discoveryState = "searching";
-    private bool autoConnect = true;
+    private void SignalState()
+    {
+        var previous = _stateChanged;
+        _stateChanged = NewSignal();
+        previous.TrySetResult();
+    }
+    private readonly List<ConnectionEventDto> _events = [];
+    private readonly CancellationTokenSource _stopping = new();
+    private Task? _observer;
+    private Task? _discovery;
+    private string _discoveryState = "searching";
+    private bool _autoConnect = true;
 
-    private readonly SemaphoreSlim gate = new(1, 1);
-    private DeviceOperation? activeOperation;
-    private readonly Channel<byte> refreshRequests = Channel.CreateBounded<byte>(
+    private readonly SemaphoreSlim _gate = new(1, 1);
+    private DeviceOperation? _activeOperation;
+    private readonly Channel<byte> _refreshRequests = Channel.CreateBounded<byte>(
         new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true });
-    private Task? reconciliation;
-    private Peripheral Current => peripheral ?? throw new InvalidOperationException("ESP32 is not connected");
+    private Task? _reconciliation;
+    private Peripheral Current => _peripheral ?? throw new InvalidOperationException("ESP32 is not connected");
 
     public ConnectionDto Snapshot()
     {
-        lock (sync)
+        lock (_sync)
         {
-            return new ConnectionDto(state, error, session, lastPing, device, events.ToArray(), mtu, discoveryState,
-                state == "connected" ? deviceState.AtxOn : null,
-                state == "connected" ? deviceState.Firmware : null, subscribed, activeOperation?.Reason);
+            return new ConnectionDto(_state, _error, _session, _lastPing, _device, _events.ToArray(), _mtu, _discoveryState,
+                _state == "connected" ? _deviceState.AtxOn : null,
+                _state == "connected" ? _deviceState.Firmware : null, _subscribed, _activeOperation?.Reason);
         }
     }
 
+    public IReadOnlyList<ConnectionEventDto>? GetEvents(int? limit) =>
+        limit.HasValue ? Snapshot().Events.TakeLast(limit.Value).ToArray() : null;
+
     private void Change(string next, string? reason = null)
     {
-        lock (sync)
+        lock (_sync)
         {
-            state = next;
-            error = reason;
-            events.Add(new ConnectionEvent(DateTimeOffset.UtcNow, state, error, session));
-            if (events.Count > 30) events.RemoveAt(0);
+            _state = next;
+            _error = reason;
+            _events.Add(new ConnectionEventDto(DateTimeOffset.UtcNow, _state, _error, _session));
+            if (_events.Count > 30)
+                _events.RemoveAt(0);
         }
         updates.Publish();
     }
 
     public void ReportError(Exception exception)
     {
-        lock (sync) error = exception.Message;
+        lock (_sync)
+            _error = exception.Message;
         updates.Publish();
     }
 
     public async Task<DeviceOperation> ReserveAsync(string reason, CancellationToken cancellation = default)
     {
         var operation = await TryReserveAsync(reason, TimeSpan.FromSeconds(2), cancellation);
-        if (operation != null) return operation;
-        lock (sync) throw new DeviceBusyException(activeOperation?.Reason);
+        if (operation != null)
+            return operation;
+        lock (_sync)
+            throw new DeviceBusyException(_activeOperation?.Reason);
     }
+
+    async Task<IDeviceOperation> IDeviceConnection.ReserveAsync(string reason, CancellationToken cancellation) =>
+        await ReserveAsync(reason, cancellation);
 
     private async Task<DeviceOperation?> TryReserveAsync(string reason, TimeSpan timeout, CancellationToken cancellation)
     {
-        if (!await gate.WaitAsync(timeout, cancellation)) return null;
+        if (!await _gate.WaitAsync(timeout, cancellation))
+            return null;
         DeviceOperation operation;
-        lock (sync) { operation = new DeviceOperation(this, reason); activeOperation = operation; }
+        lock (_sync)
+        {
+            operation = new DeviceOperation(this, reason);
+            _activeOperation = operation;
+        }
         updates.Publish();
         return operation;
     }
 
     public async Task ExecuteActionAsync(string? action)
     {
-        if (action is not ("connect" or "disconnect" or "ping")) throw new ArgumentException("Unknown action");
+        if (action is not ("connect" or "disconnect" or "ping"))
+            throw new ArgumentException("Unknown action");
         using var operation = await ReserveAsync(action);
         switch (action)
         {
-            case "connect": autoConnect = true; await operation.ConnectAsync(); break;
+            case "connect":
+                _autoConnect = true;
+                await operation.ConnectAsync();
+                break;
             case "disconnect":
-                autoConnect = false;
+                _autoConnect = false;
                 await operation.DisconnectAsync();
                 SetDiscovery("paused");
                 break;
-            case "ping": await operation.PingAsync(); break;
+            case "ping":
+                await operation.PingAsync();
+                break;
         }
     }
 
-    // A reservation is transferred to the firmware job, so HTTP 202 never releases maintenance.
-    // It exposes serialized device operations without exposing the native peripheral or semaphore.
-    public sealed class DeviceOperation : IDisposable
+    public sealed class DeviceOperation : IDisposable, IDeviceOperation
     {
-        private BleConnectionService? owner;
+        private BleConnectionService? _owner;
         public string Reason { get; }
-        internal DeviceOperation(BleConnectionService owner, string reason) { this.owner = owner; Reason = reason; }
+        internal DeviceOperation(BleConnectionService owner, string reason)
+        {
+            this._owner = owner;
+            Reason = reason;
+        }
         private BleConnectionService Owner
         {
             get
             {
-                var service = owner ?? throw new ObjectDisposedException(nameof(DeviceOperation));
-                lock (service.sync)
-                    if (service.activeOperation != this) throw new InvalidOperationException("Inactive device reservation");
+                var service = _owner ?? throw new ObjectDisposedException(nameof(DeviceOperation));
+                lock (service._sync)
+                    if (service._activeOperation != this)
+                        throw new InvalidOperationException("Inactive device reservation");
                 return service;
             }
         }
@@ -128,33 +158,44 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
             ota.TransferAsync(Owner.Current, image, progress, token);
         public void Dispose()
         {
-            var service = Interlocked.Exchange(ref owner, null);
-            if (service == null) return;
+            var service = Interlocked.Exchange(ref _owner, null);
+            if (service == null)
+                return;
             service.ReleaseReservation();
         }
     }
 
     private void ReleaseReservation()
     {
-        lock (sync) activeOperation = null;
-        gate.Release();
+        lock (_sync)
+            _activeOperation = null;
+        _gate.Release();
         updates.Publish();
     }
 
     // Called by the reservation owner. Native operations cannot be interrupted after they begin.
     private async Task ConnectAsync(CancellationToken cancellation = default)
     {
-        if (peripheral is { IsConnected: true }) return;
-        if (peripheral != null) await DisconnectAsync();
+        if (_peripheral is { IsConnected: true })
+            return;
+        if (_peripheral != null)
+            await DisconnectAsync();
         int thisSession;
-        lock (sync) { thisSession = ++session; deviceState = new(); subscribed = false; SignalState(); }
+        lock (_sync)
+        {
+            thisSession = ++_session;
+            _deviceState = new();
+            _subscribed = false;
+            SignalState();
+        }
         Change("scanning");
         Peripheral? selected = null;
         IReadOnlyList<Adapter> adapters = [];
         try
         {
             adapters = Adapter.GetAdapters();
-            if (adapters.Count == 0) throw new InvalidOperationException("No Bluetooth adapter is available");
+            if (adapters.Count == 0)
+                throw new InvalidOperationException("No Bluetooth adapter is available");
             foreach (var adapter in adapters)
             {
                 cancellation.ThrowIfCancellationRequested();
@@ -166,7 +207,8 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                 {
                     try
                     {
-                        if (e.Peripheral.Identifier == "EM-MIDI-IDF" && found.TrySetResult(e.Peripheral)) return;
+                        if (e.Peripheral.Identifier == "EM-MIDI-IDF" && found.TrySetResult(e.Peripheral))
+                            return;
                     }
                     catch (Exception ex) { logger.LogDebug(ex, "Could not read BLE advertisement"); }
                     e.Peripheral.Dispose();
@@ -183,40 +225,46 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                 catch (OperationCanceledException) when (!cancellation.IsCancellationRequested) { }
                 finally
                 {
-                    if (scanning) adapter.ScanStop();
+                    if (scanning)
+                        adapter.ScanStop();
                     adapter.ScanFound -= OnFound;
                     adapter.ScanUpdated -= OnFound;
                 }
-                if (selected != null) break;
+                if (selected != null)
+                    break;
             }
-            if (selected == null) throw new InvalidOperationException("Surrklank ESP32 was not found");
+            if (selected == null)
+                throw new InvalidOperationException("Surrklank ESP32 was not found");
             cancellation.ThrowIfCancellationRequested();
             Change("connecting");
             var current = selected;
             current.Disconnected += (_, _) => LinkLost(current, thisSession);
-            lock (sync) peripheral = current;
+            lock (_sync)
+                _peripheral = current;
             selected = null; // Ownership moves to this service, including setup-failure cleanup.
             await current.ConnectAsync(cancellation);
             cancellation.ThrowIfCancellationRequested();
-            if (!current.IsConnected) throw new InvalidOperationException("BLE connection was not established");
+            if (!current.IsConnected)
+                throw new InvalidOperationException("BLE connection was not established");
             var information = await ReadInfoAsync(cancellation);
             // Old images remain readable for the first OTA migration. New images must subscribe.
             if (information.TryGetProperty("events_version", out var version) && version.GetInt32() == 1)
             {
                 await current.NotifyAsync(Service, Info, bytes => ReceiveState(current, thisSession, bytes), cancellation);
-                lock (sync) subscribed = true;
+                lock (_sync)
+                    _subscribed = true;
                 // Close the read/subscribe gap; sequence numbers prevent stale reads overwriting events.
                 information = await ReadInfoAsync(cancellation);
             }
-            lock (sync)
+            lock (_sync)
             {
-                if (peripheral != current || session != thisSession || !current.IsConnected)
+                if (_peripheral != current || _session != thisSession || !current.IsConnected)
                     throw new InvalidOperationException("BLE disconnected while reading device information");
-                device = information;
-                deviceState.Read(information);
+                _device = information;
+                _deviceState.Read(information);
                 SignalState();
                 // SimpleBLE's macOS implementation reports payload length, not ATT MTU.
-                mtu = current.Mtu + (OperatingSystem.IsMacOS() ? 3 : 0);
+                _mtu = current.Mtu + (OperatingSystem.IsMacOS() ? 3 : 0);
                 Change("connected");
             }
         }
@@ -233,11 +281,11 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
 
     private void LinkLost(Peripheral client, int clientSession)
     {
-        lock (sync)
+        lock (_sync)
         {
-            if (peripheral == client && session == clientSession && state is "connected" or "connecting")
+            if (_peripheral == client && _session == clientSession && _state is "connected" or "connecting")
             {
-                subscribed = false;
+                _subscribed = false;
                 Change("disconnected", "BLE connection lost");
                 SignalState();
             }
@@ -247,10 +295,22 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
     private async Task DisconnectAsync()
     {
         Peripheral? old;
-        lock (sync) { old = peripheral; peripheral = null; mtu = null; subscribed = false; deviceState = new(); SignalState(); }
+        lock (_sync)
+        {
+            old = _peripheral;
+            _peripheral = null;
+            _mtu = null;
+            _subscribed = false;
+            _deviceState = new();
+            SignalState();
+        }
         if (old != null)
         {
-            try { if (old.IsConnected) await old.DisconnectAsync(); }
+            try
+            {
+                if (old.IsConnected)
+                    await old.DisconnectAsync();
+            }
             catch (Exception ex) { logger.LogWarning(ex, "BLE disconnect failed"); }
             finally { old.Dispose(); }
         }
@@ -259,7 +319,9 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
 
     private async Task<JsonElement> ReadInfoAsync(CancellationToken cancellation = default)
     {
-        bool notifications; lock (sync) notifications = subscribed;
+        bool notifications;
+        lock (_sync)
+            notifications = _subscribed;
         // SimpleBLE/macOS Read on a notifying characteristic waits for its next event.
         // FFF1 INFO is a request/response snapshot while FFF2 remains subscribed.
         if (notifications)
@@ -281,12 +343,18 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         try
         {
             var reply = await SendCommandAsync("PING " + token, cancellation);
-            if (reply != "PONG " + token) throw new InvalidOperationException("Mismatched PONG");
-            lock (sync) { error = null; lastPing = new PingResult(true, Math.Round(watch.Elapsed.TotalMilliseconds, 1), DateTimeOffset.UtcNow, reply); }
+            if (reply != "PONG " + token)
+                throw new InvalidOperationException("Mismatched PONG");
+            lock (_sync)
+            {
+                _error = null;
+                _lastPing = new PingResultDto(true, Math.Round(watch.Elapsed.TotalMilliseconds, 1), DateTimeOffset.UtcNow, reply);
+            }
         }
         catch (Exception ex)
         {
-            lock (sync) lastPing = new PingResult(false, Error: ex.Message);
+            lock (_sync)
+                _lastPing = new PingResultDto(false, Error: ex.Message);
             updates.Publish();
             throw;
         }
@@ -295,18 +363,26 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
 
     public void SetDevice(JsonElement information)
     {
-        lock (sync) { device = information; deviceState.Read(information); SignalState(); }
+        lock (_sync)
+        {
+            _device = information;
+            _deviceState.Read(information);
+            SignalState();
+        }
         updates.Publish();
     }
 
     private void ReceiveState(Peripheral client, int clientSession, byte[] bytes)
     {
-        lock (sync)
+        lock (_sync)
         {
-            if (peripheral != client || session != clientSession || state is not ("connecting" or "connected")) return;
-            if (!deviceState.Receive(bytes)) return;
+            if (_peripheral != client || _session != clientSession || _state is not ("connecting" or "connected"))
+                return;
+            if (!_deviceState.Receive(bytes))
+                return;
             SignalState();
-            if (deviceState.NeedsRefresh) refreshRequests.Writer.TryWrite(0);
+            if (_deviceState.NeedsRefresh)
+                _refreshRequests.Writer.TryWrite(0);
         }
         updates.Publish();
     }
@@ -316,14 +392,16 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         while (true)
         {
             Task changed;
-            lock (sync)
+            lock (_sync)
             {
-                if (state != "connected") throw new InvalidOperationException("BLE disconnected while waiting for flash");
-                var firmware = deviceState.Firmware;
+                if (_state != "connected")
+                    throw new InvalidOperationException("BLE disconnected while waiting for flash");
+                var firmware = _deviceState.Firmware;
                 if (firmware?.Error is not (null or 0))
                     throw new InvalidOperationException($"ESP flash write failed: {firmware.Error}");
-                if (firmware?.Stage == "ready") return;
-                changed = stateChanged.Task;
+                if (firmware?.Stage == "ready")
+                    return;
+                changed = _stateChanged.Task;
             }
             await changed.WaitAsync(cancellation);
         }
@@ -331,22 +409,23 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        observer = ObserveAsync(stopping.Token);
-        reconciliation = ReconcileAsync(stopping.Token);
+        _observer = ObserveAsync(_stopping.Token);
+        _reconciliation = ReconcileAsync(_stopping.Token);
         if (Environment.GetEnvironmentVariable("BLE_AUTO_SCAN") != "false")
-            discovery = DiscoverAsync(stopping.Token);
+            _discovery = DiscoverAsync(_stopping.Token);
         return Task.CompletedTask;
     }
 
     private void SetDiscovery(string value)
     {
-        lock (sync)
+        lock (_sync)
         {
-            if (discoveryState == value) return;
-            discoveryState = value;
+            if (_discoveryState == value)
+                return;
+            _discoveryState = value;
             // Discovery establishes that this service has no active connection.
             // Finding an advertisement does not mean the ESP32 is connected.
-            if (state == "unknown" && value is "found" or "not_found")
+            if (_state == "unknown" && value is "found" or "not_found")
                 Change("disconnected");
         }
         updates.Publish();
@@ -357,11 +436,18 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
     {
         try
         {
-            await foreach (var _ in refreshRequests.Reader.ReadAllAsync(cancellation))
+            await foreach (var _ in _refreshRequests.Reader.ReadAllAsync(cancellation))
             {
                 using var operation = await TryReserveAsync("state_refresh", Timeout.InfiniteTimeSpan, cancellation);
-                lock (sync) { if (state != "connected" || !deviceState.NeedsRefresh) continue; }
-                try { SetDevice(await operation!.ReadInfoAsync(cancellation)); }
+                lock (_sync)
+                {
+                    if (_state != "connected" || !_deviceState.NeedsRefresh)
+                        continue;
+                }
+                try
+                {
+                    SetDevice(await operation!.ReadInfoAsync(cancellation));
+                }
                 catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { throw; }
                 catch (Exception ex)
                 {
@@ -381,13 +467,17 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
             while (!cancellation.IsCancellationRequested)
             {
                 bool connected;
-                lock (sync) connected = state == "connected";
-                if (connected) SetDiscovery("connected");
-                else if (!autoConnect) SetDiscovery("paused");
+                lock (_sync)
+                    connected = _state == "connected";
+                if (connected)
+                    SetDiscovery("connected");
+                else if (!_autoConnect)
+                    SetDiscovery("paused");
                 else
                 {
                     using var operation = await TryReserveAsync("discovery", TimeSpan.Zero, cancellation);
-                    if (operation == null) SetDiscovery("paused");
+                    if (operation == null)
+                        SetDiscovery("paused");
                     else
                     {
                         try
@@ -395,7 +485,8 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                             var adapters = Adapter.GetAdapters();
                             try
                             {
-                                if (adapters.Count == 0) SetDiscovery("unavailable");
+                                if (adapters.Count == 0)
+                                    SetDiscovery("unavailable");
                                 else
                                 {
                                     bool found = false;
@@ -403,9 +494,13 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                                     {
                                         await adapter.ScanForAsync(TimeSpan.FromSeconds(1), cancellation);
                                         var devices = adapter.ScanGetResults();
-                                        try { found |= devices.Any(device => device.Identifier == "EM-MIDI-IDF"); }
+                                        try
+                                        {
+                                            found |= devices.Any(device => device.Identifier == "EM-MIDI-IDF");
+                                        }
                                         finally { foreach (var device in devices) device.Dispose(); }
-                                        if (found) break;
+                                        if (found)
+                                            break;
                                     }
                                     if (found)
                                     {
@@ -413,7 +508,8 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                                         await operation.ConnectAsync(cancellation);
                                         SetDiscovery("connected");
                                     }
-                                    else SetDiscovery("not_found");
+                                    else
+                                        SetDiscovery("not_found");
                                 }
                             }
                             finally { foreach (var adapter in adapters) adapter.Dispose(); }
@@ -435,11 +531,22 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
             using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
             while (await timer.WaitForNextTickAsync(cancellation))
             {
-                Peripheral? client; int currentSession; string currentState;
-                lock (sync) { client = peripheral; currentSession = session; currentState = state; }
+                Peripheral? client;
+                int currentSession;
+                string currentState;
+                lock (_sync)
+                {
+                    client = _peripheral;
+                    currentSession = _session;
+                    currentState = _state;
+                }
                 if (client != null && currentState == "connected")
                 {
-                    try { if (!client.IsConnected) LinkLost(client, currentSession); }
+                    try
+                    {
+                        if (!client.IsConnected)
+                            LinkLost(client, currentSession);
+                    }
                     catch (ObjectDisposedException) { }
                     catch (Exception ex) { logger.LogDebug(ex, "Could not inspect BLE link state"); }
                 }
@@ -450,10 +557,13 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        stopping.Cancel();
-        if (observer != null) await observer;
-        if (discovery != null) await discovery;
-        if (reconciliation != null) await reconciliation;
+        _stopping.Cancel();
+        if (_observer != null)
+            await _observer;
+        if (_discovery != null)
+            await _discovery;
+        if (_reconciliation != null)
+            await _reconciliation;
         using var operation = await ReserveAsync("disconnect", cancellationToken);
         await operation.DisconnectAsync();
     }
