@@ -8,7 +8,8 @@ Espressif `ble_conn_mgr`, `ble_services` and `ble_ota_raw` are Git dependencies
 pinned to `5fbb2597b88f21ec41e952f81292ccd6ae569761`; see `src/idf_component.yml`.
 The component manager downloads them as generated dependencies, not application code.
 
-`main.cpp` initializes NVS, the event loop, connection and OTA modules.
+`atx_power.cpp` initializes GPIO19 LOW, debounces GPIO13 and owns the ATX maintenance lock.
+`main.cpp` initializes ATX before NVS, the event loop, connection and OTA modules.
 `ble_connection.cpp` uses the official connection manager and advertises the
 legacy identifier `EM-MIDI-IDF` so existing Surrklank clients can discover it. It
 registers the small command/info service and observes native connection events.
@@ -19,8 +20,8 @@ It copies completed sectors to a bounded FreeRTOS queue and writes outside the
 BLE callback. A static 64 KiB buffer batches `esp_ota_write()` calls at hardware
 erase-block boundaries; this trades 64 KiB of RAM for fewer erase operations. Session epochs discard queued data from an aborted transfer.
 The ESP-IDF project name is `surrklank`; it appears in the firmware image's
-application metadata. The BLE name, UUIDs, commands and OTA wire protocol are
-unchanged. The queue/window sizes bound memory use. `OTA_WITH_SEQUENTIAL_WRITES` keeps
+application metadata. The BLE name, UUIDs, existing commands and OTA wire protocol are
+unchanged. ATX commands extend the existing command characteristic. The queue/window sizes bound memory use. `OTA_WITH_SEQUENTIAL_WRITES` keeps
 bulk erase out of the NimBLE START callback; erasure happens in the flash task. Disconnect/timeout aborts an incomplete
 flash session without selecting it for boot. The official STOP command resets
 the profile after disconnect. A completed boot selection is retained.
@@ -34,6 +35,10 @@ Information is JSON with the application ELF SHA-256 identity, version, slot,
 trial state, flash progress, reset reason and last SDK error. Native NimBLE
 connection interval and latency are also reported. `CONFIRM` accepts a trial image
 and `REBOOT` is allowed only after a completed OTA image has been validated.
+`ATX ON` and `ATX OFF` set an explicit output state. `ATX PREPARE` forces OFF
+and locks out ON until restart. The information JSON adds `atx_on`; it describes
+GPIO19 output state, not measured power. The backend polls this information
+every 500 ms outside maintenance; no new GATT characteristic is registered.
 These application commands do not replace the official OTA transfer protocol.
 
 ## Official OTA protocol
@@ -64,8 +69,10 @@ No lost command or uncertain transfer is replayed automatically.
 Partition table has `ota_0`, `ota_1` and `otadata`; rollback is enabled in the
 compiled bootloader. An unconfirmed trial requests rollback after 60 seconds.
 Ordinary BLE OTA writes only the inactive application; first USB provisioning
-also writes the ESP-IDF bootloader and partition table. There is no GPIO,
-ATX, instrument or playback control. Maintenance is only for the isolated board.
+also writes the ESP-IDF bootloader and partition table. ATX control is limited to GPIO19 and the GPIO13 button; there is no instrument
+or playback control. Maintenance is only for the isolated board. ATX is forced
+OFF before OTA flash writes and remains locked OFF until restart, even after a
+cancelled/failed transfer. See [ATX validation](ATX-VALIDATION.md).
 
 The official CRC and ESP image checks detect damaged transfers. This revision
 does not claim signed image authorization, encrypted OTA or anti-replay protection.

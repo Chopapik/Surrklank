@@ -69,6 +69,28 @@ describe('Surrklank interface', () => {
     vi.restoreAllMocks();
   });
 
+  it('updates ATX only from ESP32 snapshots and sends explicit state', async () => {
+    const { socket } = renderApp();
+    await establishConnection(socket);
+    const toggle = screen.getByRole('switch', { name: 'Zasilanie ATX' }) as HTMLButtonElement;
+    expect(toggle.disabled).toBe(true);
+    act(() => socket.receive({ ...connected, atx_on: false }));
+    fireEvent.click(toggle);
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/atx', expect.objectContaining({
+      method: 'PUT', body: JSON.stringify({ state: 'on' }),
+    })));
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    act(() => socket.receive({ ...connected, atx_on: true }));
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    act(() => socket.receive({ ...connected, atx_on: false }));
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    act(() => socket.receive({ ...connected, atx_on: true }, { ...idleFirmware, busy: true }));
+    expect(toggle.disabled).toBe(true);
+    act(() => socket.receive({ ...connected, connected: false, state: 'disconnected', atx_on: null }));
+    expect(toggle.disabled).toBe(true);
+    expect(FakeWebSocket.instances).toHaveLength(1);
+  });
+
   it('keeps the last confirmed status during startup and sends ping only when clicked', async () => {
     useConnectionStore.setState({ lastKnownState: 'connected' });
     const { socket } = renderApp();

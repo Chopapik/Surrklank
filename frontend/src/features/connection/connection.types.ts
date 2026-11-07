@@ -27,6 +27,7 @@ export interface DeviceInfo {
   reset_reason: number;
   interval_us?: number;
   latency?: number;
+  atx_on?: boolean;
 }
 
 export interface PingResult {
@@ -54,4 +55,5 @@ export interface ConnectionSnapshot {
   events: ConnectionEvent[];
   mtu: number | null;
   discovery: DiscoveryStatus;
+  atx_on?: boolean | null;
 }

@@ -1,3 +1,4 @@
+import { useAtx } from './features/atx/useAtx';
 import { useConnection } from './features/connection/useConnection';
 import { useDeviceSocket } from './features/connection/useDeviceSocket';
 import { useFirmware } from './features/firmware/useFirmware';
@@ -10,6 +11,7 @@ const preStyle = 'whitespace-pre-wrap [overflow-wrap:anywhere]';
 
 export function App() {
   const sendAction = useDeviceSocket();
+  const atx = useAtx();
   const { connection, ready, connected, statusLabel, socketLabel } = useConnection();
   const {
     firmware,
@@ -48,6 +50,17 @@ export function App() {
         <p className="text-white">{error || firmware.error || connection?.error || ''}</p>
         <small>Ostatni odczyt firmware</small>
         <pre className={preStyle}>{connection?.device ? JSON.stringify(connection.device, null, 2) : ''}</pre>
+      </section>
+
+      <section className={sectionStyle}>
+        <h2 className="text-[20px]">Zasilanie ATX</h2>
+        <button className={controlStyle} role="switch" aria-label="Zasilanie ATX"
+          aria-checked={atx.on === true} disabled={atx.on === null || busy || atx.pending}
+          onClick={() => atx.setState(atx.on ? 'off' : 'on')}>
+          {atx.on === null ? 'Stan nieznany' : atx.on ? 'ATX włączony' : 'ATX wyłączony'}
+        </button>
+        <small>Stan wyjścia ESP32 sterującego tranzystorem, bez pomiaru napięcia.</small>
+        {atx.error && <p role="alert">{atx.error}</p>}
       </section>
 
       <section className={sectionStyle}>

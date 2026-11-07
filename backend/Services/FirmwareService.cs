@@ -14,7 +14,7 @@ public sealed record FirmwareRequest(
     [property: JsonPropertyName("port")] string? Port);
 
 // Coordinates one exclusive firmware operation. The browser can disconnect while it runs.
-public sealed class FirmwareService(BleConnectionService connection, BleOtaService ota,
+public sealed class FirmwareService(BleConnectionService connection, BleOtaService ota, AtxService atx,
     StateService updates, IWebHostEnvironment environment, ILogger<FirmwareService> logger) : IHostedService
 {
     private readonly object sync = new();
@@ -188,6 +188,9 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
     {
         try
         {
+            // Preserve the working OTA path; the shared gate excludes ATX polling here.
+            if (transport == "ble") await connection.ConnectAsync(token);
+            await atx.PrepareWhileLockedAsync(token);
             if (transport == "usb") await connection.DisconnectAsync();
             Event("building");
             var buildWatch = Stopwatch.StartNew();

@@ -1,5 +1,6 @@
 // Application integration only. Packet ordering, CRC and receipts belong to Espressif ble_ota_raw.
 #include "ota_update.h"
+#include "atx_power.h"
 #include "ble_connection.h"
 #include "esp_ble_ota_raw.h"
 #include "esp_ble_ota_svc.h"
@@ -36,6 +37,7 @@ esp_err_t begin(uint32_t size){
     if(!writing&&!ready&&!trial()){
         target=esp_ota_get_next_update_partition(nullptr);
         if(target&&target->address!=esp_ota_get_running_partition()->address&&size<=target->size&&size){
+            atx::prepare();
             ble::request_fast_link();
             ESP_LOGI("ota","begin target=0x%lx bytes=%lu reset_reason=%d",(unsigned long)target->address,(unsigned long)size,(int)esp_reset_reason());
             error=esp_ota_begin(target,OTA_WITH_SEQUENTIAL_WRITES,&handle);

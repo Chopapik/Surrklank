@@ -172,7 +172,8 @@ Do not connect the positive ATX 3.3 V rail to ESP32 3V3/5V/VIN.
 
 The previous wiring map uses **GPIO19 for ATX control** and **GPIO13 for the
 button**. GPIO18 is the shared 595 clock, not the button input.
-The current minimal BLE firmware does not implement either function.
+The firmware implements both functions. ATX starts OFF, and a maintenance lock
+forces OFF and rejects ON until the next ESP32 restart.
 
 ### ESP32 → ATX PS_ON#
 

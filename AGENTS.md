@@ -27,6 +27,9 @@ and paths must remain identifiable as historical evidence.
 Conversation is Polish. Documentation, filenames and commits are English.
 Run the ASP.NET application with `python3 run.py` (Windows: `py run.py`); the script launches the C# backend.
 It serves http://127.0.0.1:5173. Do not run Docker or the archived TCP gateway.
+After backend changes build ASP.NET; after frontend changes build frontend and ASP.NET.
+After firmware changes build ESP-IDF and run its offline tests. Upload only with
+explicit hardware authorization; distinguish build-only validation from physical tests.
 After changes restart this process and verify GET / and GET /api/connection.
 BLE connection and firmware progress are published through /ws; ping is manual.
 
@@ -38,8 +41,9 @@ USB upload is permitted when requested by the user, including PlatformIO's uploa
 target. The application serializes USB/BLE maintenance and releases BLE before USB.
 Physical USB and BLE OTA tests are explicitly authorized in this chat. The board
 was confirmed isolated from registers/instruments, with ATX disconnected; never
-power instruments or ATX during maintenance. No GPIO/instrument control belongs
-in this minimal firmware. Do not change eFuses or flash security settings.
+power instruments or ATX during maintenance. ATX GPIO19 control and the GPIO13 button are supported; instrument/register
+control remains out of scope. ATX state means the driven transistor output,
+not PWR_OK or measured supply voltage. Keep the existing GATT layout and OTA protocol. Do not change eFuses or flash security settings.
 Never connect/flash physical hardware as an implicit offline software test.
 Private legacy signing keys remain outside Git; never print or publish them.
 This clean repository contains only the native application, ESP-IDF firmware,

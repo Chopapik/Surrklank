@@ -12,6 +12,8 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddSingleton<StateService>();
 builder.Services.AddSingleton<BleConnectionService>();
 builder.Services.AddSingleton<BleOtaService>();
+builder.Services.AddSingleton<AtxService>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<AtxService>());
 builder.Services.AddSingleton<FirmwareService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<BleConnectionService>());
 builder.Services.AddHostedService(provider => provider.GetRequiredService<FirmwareService>());

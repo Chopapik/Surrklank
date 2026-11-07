@@ -1,4 +1,5 @@
 #include "ble_connection.h"
+#include "atx_power.h"
 #include "ota_update.h"
 #include "esp_ble_conn_mgr.h"
 #include "esp_event.h"
@@ -23,6 +24,11 @@ esp_err_t command(const uint8_t* input,uint16_t size,uint8_t** data,uint16_t* le
     char line[64];memcpy(line,input,size);line[size]=0;
     if(!strncmp(line,"PING ",5) && strlen(line+5)>0 && strspn(line+5,"0123456789")==strlen(line+5)){
         snprintf(lastReply,sizeof(lastReply),"PONG %s",line+5);
+    }else if(!strcmp(line,"ATX ON") || !strcmp(line,"ATX OFF")){
+        bool accepted=atx::set(!strcmp(line,"ATX ON"));
+        snprintf(lastReply,sizeof(lastReply),"%s",accepted?(atx::is_on()?"ATX ON":"ATX OFF"):"ERR MAINTENANCE");
+    }else if(!strcmp(line,"ATX PREPARE")){
+        atx::prepare();strcpy(lastReply,"ATX OFF");
     }else if(!strcmp(line,"CONFIRM")){
         snprintf(lastReply,sizeof(lastReply),"%s",ota::confirm()==ESP_OK?"VALID":"ERR CONFIRM");
     }else if(!strcmp(line,"REBOOT")){
@@ -37,6 +43,8 @@ esp_err_t info(const uint8_t*,uint16_t,uint8_t** data,uint16_t* length,void*,uin
         size_t end=strlen(text)-1;
         snprintf(text+end,sizeof(text)-end,",\"interval_us\":%u,\"latency\":%u}",description.conn_itvl*1250,description.conn_latency);
     }
+    size_t end=strlen(text)-1;
+    snprintf(text+end,sizeof(text)-end,",\"atx_on\":%s}",atx::is_on()?"true":"false");
     return output(text,data,length,status);
 }
 void event(void*,esp_event_base_t,int32_t id,void* value){

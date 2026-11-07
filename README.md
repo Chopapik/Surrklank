@@ -43,6 +43,29 @@ There is no automatic heartbeat. Scanning pauses during device operations.
 Connection, ping results and firmware progress arrive over `/ws`; the page does
 not poll REST for progress. Reopening WebSocket receives the current snapshot.
 
+## ATX control
+
+The ATX switch sends `PUT /api/atx` with `{"state":"on"}` or `{"state":"off"}`.
+There is no toggle command. GPIO19 drives the transistor described in
+[WIRING.md](docs/WIRING.md); GPIO13 is the debounced physical button.
+The ESP32 starts OFF. `connection.atx_on` is `true`, `false`, or `null` when
+unknown/disconnected/unsupported. It represents the driven output, not voltage
+or PWR_OK. The UI uses WebSocket snapshots stored in Zustand, with no optimistic
+state update or persisted ATX value.
+
+`AtxService` reads the existing BLE information characteristic every 500 ms
+while connected to compatible firmware. Changes reach browsers through `/ws`;
+button response includes this polling interval plus BLE/network latency. The
+poller shares the device gate and stops reading during maintenance. The GATT
+layout, UUIDs and official OTA protocol are unchanged.
+
+Before maintenance, a connected compatible device receives `ATX PREPARE` and
+must confirm OFF. The firmware also forces OFF at OTA START. ON commands and
+button presses are blocked until ESP32 restarts, including after failed or
+cancelled uploads. An initial upgrade from pre-ATX firmware, or USB provisioning
+without BLE, still relies on the explicit physical-isolation confirmation;
+software cannot verify or switch off an unreachable device.
+
 ## Firmware upload
 
 Keep the ESP32 isolated: USB only, no register/instrument wiring and ATX
@@ -60,6 +83,7 @@ the browser does not cancel a firmware operation. Do not restore Arduino.
 | Interface | Purpose |
 | --- | --- |
 | `GET /` | React interface served by ASP.NET |
+| `PUT /api/atx` | Explicit ON/OFF request; ESP32 remains the state source |
 | `GET /api/connection` | On-demand snapshot / diagnostics |
 | `GET /api/firmware/ports` | CP2102 USB port selection via PlatformIO |
 | `POST /api/firmware/usb` | Build current source and provision over USB |
@@ -80,11 +104,14 @@ retried automatically.
 | `backend/Controllers/FirmwareController.cs` | USB port and firmware maintenance endpoints |
 | `backend/Controllers/WebSocketController.cs` | Browser WebSocket connections, commands and snapshots |
 | `backend/Services/BleConnectionService.cs` | Background discovery, single BLE session, explicit connect and manual ping |
+| `backend/Services/AtxService.cs` | ATX commands, periodic state reads and maintenance preparation |
+| `backend/Controllers/AtxController.cs` | Validated explicit ATX requests |
 | `backend/Services/FirmwareService.cs` | Exclusive build, USB and OTA maintenance |
 | `backend/Services/BleOtaService.cs` | Sender for Espressif's official BLE OTA profile |
 | `backend/Services/StateService.cs` | Notify connected WebSocket clients when state changes |
 | `frontend/src/App.tsx` | Single React component containing the entire browser UI |
 | `frontend/src/features/connection/` | WebSocket, connection state, and TypeScript types |
+| `frontend/src/features/atx/useAtx.ts` | ATX HTTP mutation and switch state from Zustand |
 | `frontend/src/features/firmware/` | Firmware API, React Query hooks, and TypeScript types |
 | `frontend/src/styles.css` | Tailwind imports and page-level styles |
 | `frontend/vite.config.ts` | React/Tailwind build and local development proxy |
@@ -105,3 +132,6 @@ USB upload, manual BLE ping, disconnect/reconnect and official BLE OTA. The
 550160-byte OTA took 22.631 seconds; the complete operation took 27.652 seconds.
 Those historical measurements do not establish the performance or hardware
 behavior of the ASP.NET migration. See `docs/FIRMWARE.md` for details and limits.
+
+ATX firmware offline test: `python3 firmware/tests/test_atx_power.py` (requires a C++ compiler).
+See [ATX validation](docs/ATX-VALIDATION.md) for the two physical OTA runs and test limits.

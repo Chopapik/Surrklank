@@ -36,7 +36,9 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
     {
         lock (sync)
         {
-            return new ConnectionDto(state, error, session, lastPing, device, events.ToArray(), mtu, discoveryState);
+            return new ConnectionDto(state, error, session, lastPing, device, events.ToArray(), mtu, discoveryState,
+                state == "connected" && device is { } info && info.TryGetProperty("atx_on", out var atx)
+                    && atx.ValueKind is JsonValueKind.True or JsonValueKind.False ? atx.GetBoolean() : null);
         }
     }
 

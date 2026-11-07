@@ -10,7 +10,8 @@ public sealed record ConnectionDto(
     JsonElement? Device,
     IReadOnlyList<ConnectionEvent> Events,
     int? Mtu,
-    string Discovery)
+    string Discovery,
+    bool? AtxOn = null)
 {
     public bool Connected => State == "connected";
 }
