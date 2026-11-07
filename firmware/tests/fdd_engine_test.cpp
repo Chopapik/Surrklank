@@ -1,0 +1,207 @@
+#include "fdd_engine.h"
+#include <cassert>
+#include <cstdio>
+
+struct Simulation {
+    fdd::Engine engine;
+    int position[8] = {};
+    bool absent[8] = {}, stuck[8] = {};
+    int skip_forward = 0, skip_return = 0;
+    int64_t now = 0;
+    unsigned played[8] = {};
+    void tick() {
+        uint8_t sensors = 0;
+        for (int i = 0; i < 8; ++i)
+            if (!absent[i] && (stuck[i] || position[i] <= 0))
+                sensors |= 1 << i;
+        auto before = engine.outputs();
+        engine.tick(now, sensors);
+        auto after = engine.outputs();
+        for (int i = 0; i < 8; ++i) {
+            int bit = (i / 2) * 8 + (i % 2 ? 1 : 4);
+            if (!(before & (1UL << bit)) && (after & (1UL << bit))) {
+                bool back = after & (1UL << (bit + 1));
+                auto &state = engine.drives[i].state;
+                if (state.phase == fdd::Phase::playing) {
+                    ++played[i];
+                    if (!back && skip_forward > 0 && position[i] > 0) {
+                        --skip_forward;
+                        continue;
+                    }
+                    if (back && skip_return > 0) {
+                        --skip_return;
+                        continue;
+                    }
+                }
+                position[i] += back ? -1 : 1;
+                if (position[i] < 0)
+                    position[i] = 0;
+            }
+        }
+        now += 100;
+    }
+    void run(int64_t us) {
+        auto end = now + us;
+        while (now < end)
+            tick();
+    }
+    bool ready(uint8_t mask) {
+        for (int i = 0; i < 8; ++i)
+            if ((mask & (1 << i)) && engine.drives[i].state.phase != fdd::Phase::ready)
+                return false;
+        return true;
+    }
+    void prepare(uint32_t batch, uint8_t mask) {
+        assert(engine.begin(batch, mask, now));
+        for (int i = 0; i < 8; ++i)
+            if (mask & (1 << i))
+                assert(engine.configure(batch, i + 1, 100000, 3000));
+        assert(engine.prepare(batch, now));
+        for (int i = 0; i < 30000 && !ready(mask); ++i)
+            tick();
+    }
+};
+int main() {
+    // SELECT is active LOW at the documented QG/QD outputs, independently of STEP/DIR.
+    {
+        Simulation s;
+        constexpr uint32_t select_mask = 0x48484848;
+        assert((s.engine.outputs() & select_mask) == select_mask);
+        s.prepare(1, 255);
+        assert(s.ready(255));
+        assert((s.engine.outputs() & select_mask) == 0);
+        assert(s.engine.commit(1, s.now));
+        s.engine.stop_all(s.now);
+        s.run(100000);
+        assert((s.engine.outputs() & select_mask) == select_mask);
+    }
+    // Preparation must confirm sensor transitions, not merely trust a LOW input.
+    {
+        Simulation s;
+        s.stuck[1] = true;
+        s.prepare(1, 3);
+        assert(!s.engine.commit(1, s.now));
+        assert(s.played[0] == 0 && s.played[1] == 0);
+        assert(s.engine.drives[1].state.error == fdd::Error::track0_stuck);
+    }
+    {
+        Simulation s;
+        s.absent[1] = true;
+        s.prepare(1, 3);
+        assert(!s.engine.commit(1, s.now));
+        assert(s.engine.drives[1].state.error == fdd::Error::track0_missing);
+        assert(s.played[0] == 0);
+    }
+    // Unknown initial positions may be beyond the playing leg's 70 pulses.
+    {
+        Simulation s;
+        s.position[0] = 79;
+        s.prepare(1, 1);
+        assert(s.ready(1));
+        assert(s.position[0] == 0);
+    }
+    // Fewer real forward movements -> return completes before 70 commands.
+    {
+        Simulation s;
+        s.prepare(1, 1);
+        assert(s.ready(1));
+        assert(s.engine.commit(1, s.now));
+        s.skip_forward = 7;
+        s.run(1450000);
+        assert(s.engine.drives[0].state.return_steps == 63);
+        assert(!s.engine.drives[0].state.toward_zero);
+    }
+    // Missed return movements -> the sensor, not a count of 70, ends the return.
+    {
+        Simulation s;
+        s.prepare(1, 1);
+        assert(s.engine.commit(1, s.now));
+        s.skip_return = 5;
+        s.run(1510000);
+        assert(s.engine.drives[0].state.return_steps == 75);
+        assert(!s.engine.drives[0].state.toward_zero);
+    }
+    // A second batch can start without stopping the first.
+    {
+        Simulation s;
+        s.prepare(1, 1);
+        assert(s.engine.commit(1, s.now));
+        s.prepare(2, 2);
+        assert(s.ready(2));
+        assert(s.engine.commit(2, s.now));
+        s.run(200000);
+        assert(s.played[0] > 0 && s.played[1] > 0);
+        s.engine.stop(1, s.now);
+        s.run(400000);
+        assert(s.engine.drives[0].state.phase == fdd::Phase::parked);
+        assert(s.engine.drives[1].state.phase == fdd::Phase::playing);
+        s.engine.stop_all(s.now);
+        s.run(1500000);
+        assert(!s.engine.busy());
+    }
+    // Stopping preparation cancels COMMIT and repeated STOP does not restart parking.
+    {
+        Simulation s;
+        s.prepare(1, 1);
+        assert(s.engine.commit(1, s.now));
+        while (!s.engine.drives[0].step_low)
+            s.tick();
+        s.engine.stop(1, s.now);
+        assert(!s.engine.drives[0].state.toward_zero);
+        while (s.engine.drives[0].step_low) {
+            assert(!s.engine.drives[0].state.toward_zero);
+            s.tick();
+        }
+        s.tick();
+        assert(s.engine.drives[0].state.toward_zero);
+        s.run(100000);
+        assert(!s.engine.busy());
+    }
+    {
+        Simulation s;
+        assert(s.engine.begin(1, 1, s.now));
+        assert(s.engine.configure(1, 1, 100000, 3000));
+        assert(s.engine.prepare(1, s.now));
+        s.engine.stop_all(s.now);
+        assert(!s.engine.commit(1, s.now));
+        s.run(100000);
+        assert(!s.engine.busy());
+    }
+    {
+        Simulation s;
+        s.prepare(1, 1);
+        assert(s.engine.commit(1, s.now));
+        s.run(800000);
+        s.absent[0] = true;
+        s.run(1300000);
+        assert(s.engine.drives[0].state.phase == fdd::Phase::error);
+        assert(s.engine.drives[0].state.position == -1);
+    }
+    // New preparation failures must not affect older active batches.
+    {
+        Simulation s;
+        s.prepare(1, 1);
+        assert(s.engine.commit(1, s.now));
+        s.absent[1] = true;
+        s.prepare(2, 2);
+        assert(s.engine.drives[0].state.phase == fdd::Phase::playing);
+    }
+    {
+        Simulation s;
+        s.prepare(1, 1);
+        assert(s.engine.commit(1, s.now));
+        s.run(3500000);
+        assert(s.engine.drives[0].state.phase == fdd::Phase::stopped);
+        assert(!s.engine.busy());
+        int position = s.position[0];
+        auto steps = s.engine.drives[0].state.steps;
+        assert(position > 0);
+        s.run(1000000);
+        assert(s.position[0] == position && s.engine.drives[0].state.steps == steps);
+        s.prepare(2, 1);
+        assert(s.ready(1) && s.position[0] == 0);
+        assert(s.engine.commit(2, s.now));
+    }
+    puts("FDD engine: sensor faults, atomic preparation, 63/75-step returns, concurrent batches, stop, duration and "
+         "bounded faults passed");
+}

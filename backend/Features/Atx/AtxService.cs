@@ -1,14 +1,17 @@
+using Surrklank.Features.Laboratory;
 using System.Text.Json;
 using Surrklank.Features.Connection;
 
 namespace Surrklank.Features.Atx;
 
 // ATX commands share the BLE gate with firmware maintenance; state arrives through FFF2.
-public sealed class AtxService(IDeviceConnection connection)
+public sealed class AtxService(IDeviceConnection connection, LaboratoryState laboratory)
 {
     public async Task SetAsync(bool on, CancellationToken cancellation)
     {
         using var operation = await connection.ReserveAsync("atx", cancellation);
+        if (!on && laboratory.HasActivity)
+            throw new DeviceBusyException("laboratory");
         if (connection.Snapshot().AtxOn is null)
             throw new InvalidOperationException("ATX state is unavailable; connect compatible firmware first");
         string command = on ? "ATX ON" : "ATX OFF";
@@ -23,6 +26,8 @@ public sealed class AtxService(IDeviceConnection connection)
     // remains mandatory for its first update. Never send an unsupported command to it.
     public async Task PrepareWhileLockedAsync(IDeviceOperation operation, CancellationToken cancellation)
     {
+        if (laboratory.HasActivity)
+            throw new DeviceBusyException("laboratory");
         var snapshot = connection.Snapshot();
         if (!snapshot.Connected || snapshot.AtxOn is null)
             return;

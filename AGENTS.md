@@ -18,6 +18,7 @@
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): ownership, state flow and API.
 - [docs/BLE-PROTOCOL.md](docs/BLE-PROTOCOL.md): FFF1/FFF2 contract and macOS read rule.
 - [docs/FIRMWARE.md](docs/FIRMWARE.md): ESP-IDF, OTA, verification and safety.
+  Read its FDD Laboratory section before changing motion, SELECT or timing.
 - [docs/WIRING.md](docs/WIRING.md): physical connections and proposed wiring.
 
 # Build and runtime checks
@@ -28,7 +29,8 @@
 - After frontend changes run `npm --prefix frontend run build` and the ASP.NET
   build. Run `npm --prefix frontend test` for affected UI behavior.
 - After firmware changes run `pio run -d firmware -e esp32` and applicable
-  offline checks. Builds and mocks are not physical-device validation.
+  offline checks (`firmware/tests/test_atx_power.py`, `firmware/tests/test_fdd.py`).
+  Builds and mocks are not physical-device validation.
 - After runtime changes restart the application and check `GET /` and
   `GET /api/connection`. Use `BLE_AUTO_SCAN=false` for an offline smoke check.
 - Run existing checks. The user wants to learn C# testing in Rider; do not
@@ -47,14 +49,19 @@
   components. Firmware uses PlatformIO with ESP-IDF, never Arduino. Do not
   invent another OTA transport or change eFuses/flash security settings.
 - Never connect to or flash physical hardware as an implicit offline check.
-  Upload only with explicit authorization for the current task. Before any
-  maintenance, confirm the board is isolated from ATX, registers and instruments;
-  never power them during maintenance.
+  Upload only with explicit authorization for the current task. Keep ATX OFF
+  during maintenance; never power instruments during an upload.
 - ATX state is the GPIO19 transistor output request, not PWR_OK or measured
   voltage. GPIO13 is the physical button. Read the protocol and wiring docs
   before changing these contracts. Do not read subscribed FFF2 through
   SimpleBLE on macOS; request `INFO` over FFF1 instead.
 - Keep private legacy signing keys outside Git; never print or publish them.
+- Laboratory owns the native reservation only during short exchanges, not
+  throughout playing/preparation. Preserve batch preparation/COMMIT semantics,
+  sensor-confirmed parking and independent STOP. Never automatically replay an
+  unconfirmed COMMIT. Preserve firmware ATX ownership through final parking.
+- New application-owned JSON errors use `message`; keep existing `detail` and
+  ASP.NET ProblemDetails contracts compatible.
 
 # Commits
 

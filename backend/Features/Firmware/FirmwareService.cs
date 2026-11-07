@@ -1,3 +1,4 @@
+using Surrklank.Features.Laboratory;
 using Surrklank.Features.Connection;
 using Surrklank.Features.Firmware.DTOs;
 using Surrklank.Features.Firmware.Toolchain;
@@ -6,7 +7,7 @@ namespace Surrklank.Features.Firmware;
 
 // Owns the background job and its reservation beyond the HTTP request lifetime.
 public sealed class FirmwareService(IDeviceConnection connection, FirmwareUpdateUseCase update,
-    IFirmwareToolchain toolchain, FirmwareJobState job, ILogger<FirmwareService> logger) : IHostedService
+    IFirmwareToolchain toolchain, FirmwareJobState job, ILogger<FirmwareService> logger, LaboratoryState laboratory) : IHostedService
 {
     private readonly object _sync = new();
     private CancellationTokenSource? _cancellation;
@@ -27,6 +28,8 @@ public sealed class FirmwareService(IDeviceConnection connection, FirmwareUpdate
         var operation = await connection.ReserveAsync("firmware_update", requestCancellation);
         try
         {
+            if (laboratory.HasActivity)
+                throw new DeviceBusyException("laboratory");
             if (transport == "usb")
             {
                 var ports = await PortsAsync(requestCancellation);

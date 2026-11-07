@@ -52,8 +52,7 @@ esp_err_t begin(uint32_t size){
     esp_err_t error=ESP_ERR_INVALID_STATE;
     if(!writing&&!ready&&!trial()){
         target=esp_ota_get_next_update_partition(nullptr);
-        if(target&&target->address!=esp_ota_get_running_partition()->address&&size<=target->size&&size){
-            atx::prepare();
+        if(target&&target->address!=esp_ota_get_running_partition()->address&&size<=target->size&&size && atx::prepare()){
             ble::request_fast_link();
             ESP_LOGI("ota","begin target=0x%lx bytes=%lu reset_reason=%d",(unsigned long)target->address,(unsigned long)size,(int)esp_reset_reason());
             error=esp_ota_begin(target,OTA_WITH_SEQUENTIAL_WRITES,&handle);

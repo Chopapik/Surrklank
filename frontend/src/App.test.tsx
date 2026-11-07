@@ -6,6 +6,8 @@ import { App } from './App';
 import { useConnectionStore } from './features/connection/connection.store';
 import type { ConnectionSnapshot } from './features/connection/connection.types';
 import type { FirmwareSnapshot } from './features/firmware/firmware.types';
+import { useLaboratoryStore } from './features/laboratory/laboratory.store';
+import type { LaboratoryMessage } from './features/laboratory/laboratory.types';
 
 class FakeWebSocket {
   static OPEN = 1;
@@ -25,6 +27,10 @@ class FakeWebSocket {
     }));
   }
 
+  laboratory(message: LaboratoryMessage) {
+    this.onmessage?.(new MessageEvent('message', { data: JSON.stringify(message) }));
+  }
+
   close() {
     this.readyState = 3;
     this.onclose?.();
@@ -39,6 +45,14 @@ const connected: ConnectionSnapshot = {
 const idleFirmware: FirmwareSnapshot = {
   stage: 'idle', progress: null, error: null, result: null, busy: false, events: [],
 };
+function laboratorySnapshot(state: 'parked' | 'playing' = 'parked'): LaboratoryMessage {
+  return { type: 'laboratory', available: true, supported: true, devices: Array.from({ length: 8 }, (_, index) => ({
+    device_type: 'fdd', device: index + 1, sequence: 1, batch: 1, state,
+    frequency_hz: 220, duration_ms: 3000, elapsed_ms: 0, track0: state === 'parked',
+    left_track0: false, toward_zero: true, steps_issued: 0, return_steps: 0,
+    position_estimate: state === 'parked' ? 0 : 20, error_code: 0, message: null,
+  })) };
+}
 
 function renderApp() {
   const client = new QueryClient({
@@ -60,6 +74,7 @@ describe('Surrklank interface', () => {
     FakeWebSocket.instances = [];
     localStorage.clear();
     useConnectionStore.setState({ connection: null, socketState: 'waiting', statusReady: false, lastKnownState: null });
+    useLaboratoryStore.setState({ snapshot: { type: 'laboratory', available: false, supported: false, devices: [] } });
     vi.stubGlobal('WebSocket', FakeWebSocket);
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify([]), { status: 200 })));
   });
@@ -112,6 +127,56 @@ describe('Surrklank interface', () => {
     act(() => socket.receive({ ...connected, connected: false, state: 'disconnected', atx_on: null }));
     expect(toggle.disabled).toBe(true);
     expect(FakeWebSocket.instances).toHaveLength(1);
+  });
+
+  it('sends a batch without inventing playing state and keeps STOP available during preparation', async () => {
+    const { socket } = renderApp();
+    await establishConnection(socket);
+    act(() => socket.laboratory(laboratorySnapshot()));
+    let finish!: (response: Response) => void;
+    vi.mocked(fetch).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'FDD 2' }));
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Hz FDD 2' }), { target: { value: '110' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Uruchom zaznaczone FDD' }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/laboratory/play', expect.objectContaining({
+      method: 'POST', body: JSON.stringify({ devices: [
+        { device_type: 'fdd', device: 1, frequency_hz: 220, duration_ms: 3000 },
+        { device_type: 'fdd', device: 2, frequency_hz: 110, duration_ms: 3000 },
+      ] }),
+    })));
+    expect(useLaboratoryStore.getState().snapshot.devices[0].state).toBe('parked');
+    expect((screen.getByRole('button', { name: 'Stop wszystkie FDD' }) as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Stop wszystkie FDD' }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/laboratory/stop/all', expect.objectContaining({ method: 'POST' })));
+    finish(new Response(JSON.stringify({ batch: 1 }), { status: 202 }));
+  });
+
+  it('uses device state to block maintenance and sends individual STOP without stopping other devices locally', async () => {
+    const { socket } = renderApp();
+    await establishConnection(socket);
+    act(() => socket.laboratory(laboratorySnapshot('playing')));
+    expect((screen.getByRole('switch') as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: 'Kompiluj i wgraj przez USB' }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Stop FDD 1' }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/laboratory/stop', expect.objectContaining({
+      body: JSON.stringify({ device_type: 'fdd', device: 1 }),
+    })));
+    expect(useLaboratoryStore.getState().snapshot.devices[1].state).toBe('playing');
+    act(() => socket.close());
+    expect(useLaboratoryStore.getState().snapshot.devices[0]).toMatchObject({ state: 'unknown', track0: null, position_estimate: null });
+    expect((screen.getByRole('button', { name: 'Stop wszystkie FDD' }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('shows a Laboratory message error and does not retry the start', async () => {
+    const { socket } = renderApp();
+    await establishConnection(socket);
+    act(() => socket.laboratory(laboratorySnapshot()));
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({ message: 'FDD 2: TRACK0 not confirmed' }), { status: 409 }));
+    fireEvent.click(screen.getByRole('button', { name: 'Uruchom zaznaczone FDD' }));
+    await screen.findByRole('alert');
+    expect(screen.getByRole('alert').textContent).toBe('FDD 2: TRACK0 not confirmed');
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === '/api/laboratory/play')).toHaveLength(1);
   });
 
   it('keeps the last confirmed status during startup and sends ping only when clicked', async () => {

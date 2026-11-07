@@ -1,3 +1,5 @@
+import { useLaboratoryStore } from '../laboratory/laboratory.store';
+import { isLaboratoryActive } from '../laboratory/laboratory.types';
 import { useAtx } from '../atx/useAtx';
 import { useConnection } from '../connection/useConnection';
 import { useDeviceSocket } from '../connection/useDeviceSocket';
@@ -11,10 +13,13 @@ export function useDeviceControls() {
   const firmwareState = useFirmware();
   const operation = connectionState.connection?.operation;
   const maintenance = firmwareState.firmware.busy || firmwareState.uploadPending || operation === 'firmware_update';
-  const busy = maintenance || !!operation;
+  const laboratoryActive = useLaboratoryStore((state) => state.snapshot.devices.some((device) => isLaboratoryActive(device.state)));
+  const busy = maintenance || !!operation || laboratoryActive;
   let busyReason: string | null = null;
   if (maintenance) {
     busyReason = 'Trwa aktualizacja firmware. Sterowanie ATX i inne operacje są teraz niedostępne.';
+  } else if (laboratoryActive) {
+    busyReason = 'Laboratorium pracuje. Zatrzymaj napędy i zaczekaj na zaparkowanie przed zmianą ATX lub firmware.';
   } else if (operation) {
     busyReason = 'ESP32 wykonuje inną operację. Poczekaj na jej zakończenie.';
   }

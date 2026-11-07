@@ -1,3 +1,4 @@
+using Surrklank.Features.Laboratory;
 using System.Text.Json;
 using Surrklank.Features.Application;
 using Surrklank.Features.Atx;
@@ -15,6 +16,9 @@ builder.WebHost.UseUrls(Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ??
 builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower);
 builder.Services.AddSingleton<StateService>();
+builder.Services.AddSingleton<LaboratoryState>();
+builder.Services.AddSingleton<PlayLaboratoryBatchUseCase>();
+builder.Services.AddSingleton<LaboratoryService>();
 builder.Services.AddSingleton<BleConnectionService>();
 builder.Services.AddSingleton<IDeviceConnection>(provider => provider.GetRequiredService<BleConnectionService>());
 builder.Services.AddSingleton<BleOtaService>();

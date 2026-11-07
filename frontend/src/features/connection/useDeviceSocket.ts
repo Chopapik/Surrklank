@@ -1,9 +1,10 @@
+import { useLaboratoryStore } from '../laboratory/laboratory.store';
 import { useCallback, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { firmwareStatusKey } from '../firmware/firmware.types';
 import { useConnectionStore } from './connection.store';
 import type { ConnectionAction, ConnectionSnapshot } from './connection.types';
-import { parseDeviceStateMessage } from './deviceSocket.types';
+import { parseDeviceSocketMessage } from './deviceSocket.types';
 
 // A single WebSocket carries both connection state and firmware progress.
 export function useDeviceSocket() {
@@ -53,8 +54,12 @@ export function useDeviceSocket() {
 
       socket.onmessage = (event: MessageEvent<string>) => {
         if (disposed || socketRef.current !== socket) return;
-        const message = parseDeviceStateMessage(event.data);
+        const message = parseDeviceSocketMessage(event.data);
         if (!message) return;
+        if (message.type === 'laboratory') {
+          useLaboratoryStore.getState().receive(message);
+          return;
+        }
         queryClient.setQueryData(firmwareStatusKey, message.firmware);
         receiveConnection(message.connection);
       };
@@ -67,6 +72,7 @@ export function useDeviceSocket() {
         window.clearTimeout(initialStateTimer);
         initialStateTimer = undefined;
         useConnectionStore.getState().socketClosed();
+        useLaboratoryStore.getState().disconnected();
         reconnectTimer = window.setTimeout(openSocket, 1000);
       };
     }

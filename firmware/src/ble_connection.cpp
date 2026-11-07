@@ -1,6 +1,7 @@
 #include "ble_connection.h"
 #include "atx_power.h"
 #include "ota_update.h"
+#include "fdd_control.h"
 #include "esp_ble_conn_mgr.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -29,6 +30,15 @@ void notify_atx(atx::State state) {
     uint8_t bytes[7]={1,1};put32(bytes+2,state.sequence);bytes[6]=state.on?1:0;
     notify(bytes,sizeof(bytes));
 }
+void notify_laboratory(int device,fdd::State s) {
+    uint8_t bytes[20]={1,3};put32(bytes+2,s.sequence);bytes[6]=device;bytes[7]=(uint8_t)s.phase;
+    put32(bytes+8,s.batch);bytes[12]=(uint8_t)s.error;
+    bytes[13]=(s.track_valid?1:0)|(s.track0?2:0)|(s.left?4:0)|(s.toward_zero?8:0);
+    bytes[14]=s.steps&255;bytes[15]=s.steps>>8;put32(bytes+16,s.elapsed);notify(bytes,20);
+    bytes[1]=4;put32(bytes+7,s.rate);put32(bytes+11,s.duration);
+    bytes[15]=s.return_steps&255;bytes[16]=s.return_steps>>8;
+    bytes[17]=s.position&255;bytes[18]=(s.position>>8)&255;bytes[19]=0;notify(bytes,20);
+}
 void notify_firmware(ota::State state) {
     uint8_t bytes[15]={1,2};put32(bytes+2,state.sequence);bytes[6]=state.stage;
     put32(bytes+7,state.received);put32(bytes+11,(uint32_t)state.error);
@@ -49,8 +59,10 @@ esp_err_t command(const uint8_t* input,uint16_t size,uint8_t** data,uint16_t* le
     }else if(!strcmp(line,"ATX ON") || !strcmp(line,"ATX OFF")){
         bool accepted=atx::set(!strcmp(line,"ATX ON"));
         snprintf(lastReply,sizeof(lastReply),"%s",accepted?(atx::is_on()?"ATX ON":"ATX OFF"):"ERR MAINTENANCE");
+    }else if(!strncmp(line,"LAB ",4)){
+        laboratory::command(line,lastReply,sizeof(lastReply));
     }else if(!strcmp(line,"ATX PREPARE")){
-        atx::prepare();strcpy(lastReply,"ATX OFF");
+        strcpy(lastReply,atx::prepare()?"ATX OFF":"ERR LAB BUSY");
     }else if(!strcmp(line,"INFO")){
         describe(lastReply,sizeof(lastReply));
     }else if(!strcmp(line,"CONFIRM")){
@@ -69,7 +81,7 @@ void describe(char* text, size_t capacity){
     }
     size_t end=strlen(text)-1;
     auto state=atx::state();
-    snprintf(text+end,capacity-end,",\"atx_on\":%s,\"atx_sequence\":%lu,\"events_version\":1}",state.on?"true":"false",(unsigned long)state.sequence);
+    snprintf(text+end,capacity-end,",\"atx_on\":%s,\"atx_sequence\":%lu,\"events_version\":1,\"laboratory_version\":1}",state.on?"true":"false",(unsigned long)state.sequence);
 }
 esp_err_t info(const uint8_t*,uint16_t,uint8_t** data,uint16_t* length,void*,uint8_t* status){
     char text[512];describe(text,sizeof(text));
@@ -102,6 +114,7 @@ esp_err_t ble::init(){
     error=esp_ble_conn_add_svc(&service);if(error!=ESP_OK)return error;
     atx::set_listener(notify_atx);
     ota::set_listener(notify_firmware);
+    laboratory::set_listener(notify_laboratory);
     return esp_event_handler_register(BLE_CONN_MGR_EVENTS,ESP_EVENT_ANY_ID,event,nullptr);
 }
 esp_err_t ble::start(){return esp_ble_conn_start();}

@@ -82,7 +82,15 @@ int main() {
     assert(!atx::is_on());
     press_samples({1,1,1,1,0,0,0,0});
     assert(atx::is_on());
-    atx::prepare();
+    // Instrument ownership rejects OFF, maintenance and button toggles.
+    assert(atx::claim_instruments());
+    assert(!atx::set(false) && atx::is_on());
+    assert(!atx::prepare() && atx::is_on());
+    buttonLevel=1;
+    press_samples({0,0,0,0});
+    assert(atx::is_on());
+    atx::release_instruments();
+    assert(atx::prepare());
     assert(!atx::is_on() && outputLevel==0);
     assert(!atx::set(true) && outputLevel==0);
     assert(atx::set(false));

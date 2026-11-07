@@ -2,8 +2,9 @@
 
 Surrklank is a local application for an ESP32 device. ASP.NET Core serves the
 React interface and communicates with the ESP32 over BLE. The firmware currently
-supports connection, ATX control and USB/BLE firmware maintenance; instrument
-playback is not implemented.
+supports connection, ATX control, an eight-drive FDD Laboratory and USB/BLE
+firmware maintenance. Laboratory motion has been exercised on two physical
+FDDs; see the [firmware limits](docs/FIRMWARE.md#fdd-laboratory).
 
 ## Run
 
@@ -43,6 +44,16 @@ and the physical GPIO13 button can also change the request. The displayed state
 comes from the ESP32's driven output, not from browser storage or a measured
 power rail. An unknown state disables the switch. See [wiring](docs/WIRING.md).
 
+The FDD Laboratory selects one or several drives, frequency and playing time.
+A batch starts only after every selected drive passes its TRACK0 check.
+Separate batches can overlap; **Stop FDD** stops one drive and **Stop all**
+stops all drives, including preparation. Both finish by parking at TRACK0.
+When duration expires, the head stays in place (`stopped`). The next start homes
+and checks it before playing again. Live states and telemetry arrive over the
+same `/ws`. Stop and wait for parking
+before switching ATX off or uploading firmware. The physical ATX button is
+ignored while Laboratory owns the drives.
+
 ## Firmware maintenance
 
 Isolate the ESP32 before an upload: USB only, with ATX and register/instrument
@@ -65,9 +76,12 @@ browser does not cancel an upload. See [firmware operation](docs/FIRMWARE.md).
 | `GET /api/connection` | Current connection and firmware snapshot |
 | `GET /api/connection/events?limit=10` | Recent connection events |
 | `PUT /api/atx` | Explicit `{"state":"on"}` or `{"state":"off"}` request |
+| `POST /api/laboratory/play` | Prepare and start a `devices` batch |
+| `POST /api/laboratory/stop` | Stop and park one FDD |
+| `POST /api/laboratory/stop/all` | Stop and park all FDDs |
 | `GET /api/firmware/ports` | Available CP2102 ports |
 | `POST /api/firmware/usb`, `POST /api/firmware/ota` | Start a firmware job |
-| `WS /ws` | State snapshots and `connect`, `disconnect`, `ping` actions |
+| `WS /ws` | `state` / `laboratory` snapshots and connection actions |
 
 Firmware requests require `{"isolatedHardwareConfirmed":true}`; USB also needs
 `"port":"<selected CP2102 port>"`. Local-origin checks apply to mutating HTTP
@@ -82,10 +96,13 @@ npm --prefix frontend run build
 npm --prefix frontend test
 python3 backend/checks/test_device_state.py
 python3 firmware/tests/test_atx_power.py
+python3 firmware/tests/test_fdd.py
 pio run -d firmware -e esp32
 ```
 
 The backend check compiles the production state decoder in a temporary .NET
 harness; the ATX check compiles the production C++ module with GPIO/FreeRTOS
-stubs. These checks and builds do not exercise a physical ESP32. No C# test
+stubs. The FDD check exercises the production scheduling engine with simulated
+TRACK0 and movement, including unequal outward/return movement. These checks
+and builds do not exercise a physical ESP32. No C# test
 suite for the orchestration layer is included.

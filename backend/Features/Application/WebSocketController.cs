@@ -1,3 +1,4 @@
+using Surrklank.Features.Laboratory;
 using System.Net.WebSockets;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,7 @@ namespace Surrklank.Features.Application;
 
 [ApiController]
 public sealed class WebSocketController(StateService updates, BleConnectionService connection,
-    ApplicationStateService application, ILogger<WebSocketController> logger) : ControllerBase
+    ApplicationStateService application, ILogger<WebSocketController> logger, LaboratoryState laboratory) : ControllerBase
 {
     [HttpGet("/ws")]
     public async Task ConnectAsync()
@@ -36,6 +37,8 @@ public sealed class WebSocketController(StateService updates, BleConnectionServi
                 {
                     var bytes = JsonSerializer.SerializeToUtf8Bytes(application.Message(), StateService.JsonOptions);
                     await socket.SendAsync(bytes, WebSocketMessageType.Text, true, stop.Token);
+                    var labBytes = JsonSerializer.SerializeToUtf8Bytes(laboratory.Snapshot(), StateService.JsonOptions);
+                    await socket.SendAsync(labBytes, WebSocketMessageType.Text, true, stop.Token);
                 }
             }
             catch (OperationCanceledException) { }

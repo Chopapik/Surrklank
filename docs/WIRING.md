@@ -1,9 +1,10 @@
 # Wiring map
 
-This is the wiring reference for the planned instrument assembly. Current
-firmware controls only ATX power, BLE communication and updates; it does not
-drive the registers or instruments listed below. Keep the assembly isolated
-from the ESP32 during firmware maintenance.
+This is the wiring reference for the instrument assembly. Firmware implements
+ATX, BLE/updates and FDD Laboratory control through the 595/165 registers.
+DVD/HDD playback is not implemented. Two FDDs have passed functional checks;
+electrical compatibility is not measured. See [firmware limits](FIRMWARE.md#fdd-laboratory).
+Keep the assembly isolated from the ESP32 during firmware maintenance.
 
 ## Two output branches
 
@@ -62,6 +63,9 @@ Address denotes the device number in this wiring map, not a bus address.
 
 QA and QH of each FDD 595 are unused. /SELECT is active LOW.
 Pin 12 is the assumed drive-select input; this depends on the FDD jumper settings.
+Firmware holds /SELECT LOW throughout preparation, playing and parking, and
+HIGH when inactive. Confirm pin 12 selects the actual drive before a powered
+test; no separate SELECT pulse command is required by this software profile.
 Odd-numbered pins on the FDD signal connector are GND.
 
 ## FDD TRACK0 → 165

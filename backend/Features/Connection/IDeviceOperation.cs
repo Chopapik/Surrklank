@@ -13,6 +13,7 @@ public interface IDeviceOperation : IDisposable
     Task PingAsync(CancellationToken token = default);
     Task<string> SendCommandAsync(string command, CancellationToken token = default);
     Task<JsonElement> ReadInfoAsync(CancellationToken token = default);
+    Task RefreshLaboratoryAsync(CancellationToken token);
     Task WaitForFlashReadyAsync(CancellationToken token);
     Task TransferAsync(BleOtaService ota, byte[] image, Action<double, object> progress, CancellationToken token);
 }

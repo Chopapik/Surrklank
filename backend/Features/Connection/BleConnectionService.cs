@@ -1,3 +1,4 @@
+using Surrklank.Features.Laboratory;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,7 +11,7 @@ using Surrklank.Features.Firmware.Transport;
 
 namespace Surrklank.Features.Connection;
 
-public sealed class BleConnectionService(StateService updates, ILogger<BleConnectionService> logger) : IHostedService, IDeviceConnection
+public sealed class BleConnectionService(StateService updates, ILogger<BleConnectionService> logger, LaboratoryState laboratory) : IHostedService, IDeviceConnection
 {
     public const string Service = "0000fff0-0000-1000-8000-00805f9b34fb";
     public const string Command = "0000fff1-0000-1000-8000-00805f9b34fb";
@@ -153,6 +154,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         public Task PingAsync(CancellationToken token = default) => Owner.PingAsync(token);
         public Task<string> SendCommandAsync(string command, CancellationToken token = default) => Owner.SendCommandAsync(command, token);
         public Task<JsonElement> ReadInfoAsync(CancellationToken token = default) => Owner.ReadInfoAsync(token);
+        public Task RefreshLaboratoryAsync(CancellationToken token) => Owner.RefreshLaboratoryAsync(token);
         public Task WaitForFlashReadyAsync(CancellationToken token) => Owner.WaitForFlashReadyAsync(token);
         public Task TransferAsync(BleOtaService ota, byte[] image, Action<double, object> progress, CancellationToken token) =>
             ota.TransferAsync(Owner.Current, image, progress, token);
@@ -247,6 +249,8 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
             if (!current.IsConnected)
                 throw new InvalidOperationException("BLE connection was not established");
             var information = await ReadInfoAsync(cancellation);
+            bool laboratorySupported = information.TryGetProperty("laboratory_version", out var labVersion) && labVersion.GetInt32() == 1;
+            laboratory.Reset(laboratorySupported);
             // Old images remain readable for the first OTA migration. New images must subscribe.
             if (information.TryGetProperty("events_version", out var version) && version.GetInt32() == 1)
             {
@@ -255,6 +259,15 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                     _subscribed = true;
                 // Close the read/subscribe gap; sequence numbers prevent stale reads overwriting events.
                 information = await ReadInfoAsync(cancellation);
+            }
+            if (laboratorySupported)
+            {
+                for (int id = 1; id <= 8; id++)
+                {
+                    using var json = JsonDocument.Parse(await SendCommandAsync($"LAB INFO {id}", cancellation));
+                    laboratory.Read(json.RootElement);
+                }
+                laboratory.Refreshed();
             }
             lock (_sync)
             {
@@ -266,6 +279,8 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                 // SimpleBLE's macOS implementation reports payload length, not ATT MTU.
                 _mtu = current.Mtu + (OperatingSystem.IsMacOS() ? 3 : 0);
                 Change("connected");
+                if (laboratorySupported)
+                    laboratory.SetAvailable();
             }
         }
         catch (Exception ex)
@@ -286,6 +301,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
             if (_peripheral == client && _session == clientSession && _state is "connected" or "connecting")
             {
                 _subscribed = false;
+                laboratory.Reset();
                 Change("disconnected", "BLE connection lost");
                 SignalState();
             }
@@ -302,6 +318,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
             _mtu = null;
             _subscribed = false;
             _deviceState = new();
+            laboratory.Reset();
             SignalState();
         }
         if (old != null)
@@ -378,13 +395,36 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         {
             if (_peripheral != client || _session != clientSession || _state is not ("connecting" or "connected"))
                 return;
-            if (!_deviceState.Receive(bytes))
+            if (!_deviceState.Receive(bytes) && !laboratory.Receive(bytes))
                 return;
             SignalState();
-            if (_deviceState.NeedsRefresh)
+            if (_deviceState.NeedsRefresh || laboratory.NeedsRefresh)
                 _refreshRequests.Writer.TryWrite(0);
         }
         updates.Publish();
+    }
+
+    private async Task RefreshLaboratoryAsync(CancellationToken token)
+    {
+        int session;
+        Peripheral client;
+        lock (_sync)
+        { session = _session; client = Current; }
+        var snapshots = new List<JsonElement>();
+        for (int id = 1; id <= 8; id++)
+        {
+            using var json = JsonDocument.Parse(await SendCommandAsync($"LAB INFO {id}", token));
+            snapshots.Add(json.RootElement.Clone());
+        }
+        lock (_sync)
+        {
+            if (_state != "connected" || _session != session || _peripheral != client || !client.IsConnected)
+                throw new InvalidOperationException("BLE disconnected during laboratory synchronization");
+            foreach (var snapshot in snapshots)
+                laboratory.Read(snapshot);
+            laboratory.Refreshed();
+            laboratory.SetAvailable();
+        }
     }
 
     private async Task WaitForFlashReadyAsync(CancellationToken cancellation)
@@ -441,12 +481,14 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                 using var operation = await TryReserveAsync("state_refresh", Timeout.InfiniteTimeSpan, cancellation);
                 lock (_sync)
                 {
-                    if (_state != "connected" || !_deviceState.NeedsRefresh)
+                    if (_state != "connected" || (!_deviceState.NeedsRefresh && !laboratory.NeedsRefresh))
                         continue;
                 }
                 try
                 {
                     SetDevice(await operation!.ReadInfoAsync(cancellation));
+                    if (laboratory.Snapshot().Supported)
+                        await operation!.RefreshLaboratoryAsync(cancellation);
                 }
                 catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { throw; }
                 catch (Exception ex)
@@ -540,6 +582,8 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                     currentSession = _session;
                     currentState = _state;
                 }
+                if (currentState == "connected" && laboratory.NeedsRefresh)
+                    _refreshRequests.Writer.TryWrite(0);
                 if (client != null && currentState == "connected")
                 {
                     try

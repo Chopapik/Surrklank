@@ -11,6 +11,7 @@ dependencies, not application source.
 ```sh
 pio run -d firmware -e esp32
 python3 firmware/tests/test_atx_power.py
+python3 firmware/tests/test_fdd.py
 ```
 
 These commands build/check locally and do not connect to a physical ESP32.
@@ -92,8 +93,67 @@ Maintenance events and PlatformIO output are written outside Git under the
 system temporary directory's `surrklank-idf/`. Firmware does not enable Secure
 Boot, flash encryption, signed-image authorization or anti-replay protection,
 and does not change eFuses. Private legacy signing keys remain outside Git.
-Only GPIO19 ATX control and the GPIO13 button are implemented; instrument and
-register control are outside the current firmware.
+Maintenance is rejected while Laboratory owns instruments; OTA START also
+checks this firmware lock. Stop and finish parking before maintenance.
+
+## FDD Laboratory
+
+`fdd_engine.cpp` owns platform-independent drive state and pulse scheduling;
+`fdd_control.cpp` owns the ESP-IDF task, GPIO and 595/165 transfer. One scheduler
+maintains a full 32-bit FDD output image, preserving the other drives when one
+changes. The mapping is defined in [WIRING.md](WIRING.md). DIR HIGH means toward
+TRACK0 in this software profile; /SELECT LOW selects the drive. SELECT is
+asserted before preparation, kept through playing/manual parking and released at a
+terminal state. Each DIR change precedes the next STEP by at least 5 ms.
+
+Preparation homes at 100 steps/s until TRACK0 is active, steps outward until
+TRACK0 releases (at most four pulses), then returns until TRACK0 activates.
+Both transitions are required; a stuck LOW input is not accepted as a working
+sensor. Every member must pass before COMMIT starts a batch. Preparation can
+move a head even if another member eventually fails. An absent HIGH input
+cannot distinguish an unplugged sensor from a missing drive, power or wiring
+fault; the error says TRACK0 was not confirmed.
+
+During playing, a drive receives 70 outward STEP commands and then returns
+until TRACK0 is active. The return is not forced to 70 commands. Head position
+is only estimated from issued pulses; reaching a pulse limit never counts as
+successful parking. Per-drive duration starts at COMMIT and is timed on ESP32;
+preparation is additional time. Duration expiry finishes the current STEP pulse
+and enters `stopped`, releasing SELECT without returning the head to TRACK0.
+Position and issued counts remain unchanged until the next start, which homes
+and checks the drive again. Manual STOP still completes the current pulse and
+parks at 100 steps/s.
+
+The implementation profile permits 1–300 STEP pulses/s for 1–60000 ms.
+STEP is LOW for at least 200 microseconds. Homing/parking uses a 120-pulse or
+two-second limit per seek phase. Playing returns also have a 120-pulse limit.
+Late playing work beyond two requested periods faults rather than emitting
+catch-up pulses. These values are software bounds, not measured accuracy or
+a verified operating range for a particular FDD. Requested STEP frequency
+does not guarantee an exact acoustic pitch; direction guards add pauses.
+
+An ESP timer wakes the dedicated task every 100 microseconds; the timer
+callback itself does not shift registers or send BLE data. Notifications are
+sent outside the engine mutex. FFF2 telemetry and one-shot commands are
+described in [BLE-PROTOCOL.md](BLE-PROTOCOL.md).
+
+The adapter initializes register outputs only while ATX output is requested
+ON. It shifts an inactive FDD image and zeroes the DVD/HDD branch before
+enabling the shared /OE. DVD/HDD playback is not implemented. On ATX OFF it
+disables /OE, releases driven bus pins and invalidates positions. While a
+drive is active, firmware rejects ATX OFF/maintenance and ignores the GPIO13
+button. ATX output is not a supply measurement; external power loss cannot
+be detected directly by this design.
+
+The host tests exercise the real scheduling engine with simulated sensors,
+missed head movement, unequal return counts, parallel batches and stop/fault
+paths. They do not verify electrical levels, SELECT jumper configuration,
+actual motor movement, STEP/DIR timing under BLE load or playback pitch.
+Physical checks on FDD 1 and 2 confirm sensor transitions, concurrent playing,
+independent STOP, STOP ALL and final TRACK0 parking at the tested frequencies
+(100, 110, 220 and 300 Hz). This is ESP32 telemetry evidence, not an external
+position, frequency or voltage measurement. Other drives and disconnected-sensor
+faults have not been exercised physically. Keep ATX OFF during uploads.
 
 References: [Espressif BLE OTA example](https://github.com/espressif/esp-iot-solution/tree/5fbb2597b88f21ec41e952f81292ccd6ae569761/examples/bluetooth/ble_profiles/ble_ota),
 [ESP-IDF OTA](https://docs.espressif.com/projects/esp-idf/en/v5.5/esp32/api-reference/system/ota.html).

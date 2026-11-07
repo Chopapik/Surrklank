@@ -9,5 +9,7 @@ State state();
 bool is_on();
 void set_listener(void (*callback)(State));
 bool set(bool on);
-void prepare();
+bool prepare();
+bool claim_instruments();
+void release_instruments();
 }

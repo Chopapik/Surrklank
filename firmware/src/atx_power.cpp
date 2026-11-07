@@ -9,6 +9,7 @@ constexpr gpio_num_t button = GPIO_NUM_13;
 portMUX_TYPE lock = portMUX_INITIALIZER_UNLOCKED;
 bool on = false;
 bool maintenance = false;
+bool instruments = false;
 uint32_t sequence = 0;
 void (*listener)(atx::State) = nullptr;
 
@@ -35,7 +36,7 @@ void poll_button(void*) {
         if (stable == 1) armed = true;
         else if (armed) {
             armed = false;
-            if (!maintenance) {
+            if (!maintenance && !instruments) {
                 on = !on;
                 ++sequence;
                 changed = true;
@@ -80,7 +81,7 @@ void atx::set_listener(void (*callback)(State)) {
 
 bool atx::set(bool requested) {
     portENTER_CRITICAL(&lock);
-    bool accepted = !requested || !maintenance;
+    bool accepted = (!requested || !maintenance) && (!instruments || requested);
     bool changed = accepted && on != requested;
     if (changed) ++sequence;
     if (accepted) {
@@ -93,8 +94,9 @@ bool atx::set(bool requested) {
     return accepted;
 }
 
-void atx::prepare() {
+bool atx::prepare() {
     portENTER_CRITICAL(&lock);
+    if (instruments) { portEXIT_CRITICAL(&lock); return false; }
     maintenance = true;
     bool changed = on;
     if (changed) ++sequence;
@@ -103,4 +105,15 @@ void atx::prepare() {
     State value = {on, sequence};
     portEXIT_CRITICAL(&lock);
     if (changed) notify(value);
+    return true;
+}
+bool atx::claim_instruments() {
+    portENTER_CRITICAL(&lock);
+    bool accepted=on && !maintenance;
+    if(accepted) instruments=true;
+    portEXIT_CRITICAL(&lock);
+    return accepted;
+}
+void atx::release_instruments() {
+    portENTER_CRITICAL(&lock);instruments=false;portEXIT_CRITICAL(&lock);
 }
