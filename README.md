@@ -53,16 +53,18 @@ unknown/disconnected/unsupported. It represents the driven output, not voltage
 or PWR_OK. The UI uses WebSocket snapshots stored in Zustand, with no optimistic
 state update or persisted ATX value.
 
-`AtxService` reads the existing BLE information characteristic every 500 ms
-while connected to compatible firmware. Changes reach browsers through `/ws`;
-button response includes this polling interval plus BLE/network latency. The
-poller shares the device gate and stops reading during maintenance. The GATT
-layout, UUIDs and official OTA protocol are unchanged.
+`FFF1` carries commands and replies, including `INFO` for a current snapshot.
+`FFF2` carries subscribed ATX and firmware flash-state events; the backend no
+longer polls ATX. On connect it reads the information once to detect capabilities,
+subscribes, then requests `INFO` through FFF1. Sequence numbers prevent a late
+snapshot from overwriting a newer event. SimpleBLE/macOS waits for the next event
+when reading a notifying characteristic, so subscribed FFF2 must not be read.
+See [BLE application protocol](docs/BLE-PROTOCOL.md) for framing and migration.
 
 Before maintenance, a connected compatible device receives `ATX PREPARE` and
 must confirm OFF. The firmware also forces OFF at OTA START. ON commands and
 button presses are blocked until ESP32 restarts, including after failed or
-cancelled uploads. An initial upgrade from pre-ATX firmware, or USB provisioning
+interrupted uploads. An initial upgrade from pre-ATX firmware, or USB provisioning
 without BLE, still relies on the explicit physical-isolation confirmation;
 software cannot verify or switch off an unreachable device.
 
@@ -77,7 +79,7 @@ OTA profile. No flash backup or eFuse/security operation is performed.
 
 The same BLE owner handles connection and OTA; USB and BLE maintenance are
 serialized. An upload is successful only after reconnecting, checking the built
-image identity, ping–pong and, for a trial image, confirming the boot. Closing
+image identity, ping–pong and, for a trial image, confirming the boot. There is no manual cancel command. Closing
 the browser does not cancel a firmware operation. Do not restore Arduino.
 
 | Interface | Purpose |
@@ -88,7 +90,7 @@ the browser does not cancel a firmware operation. Do not restore Arduino.
 | `GET /api/firmware/ports` | CP2102 USB port selection via PlatformIO |
 | `POST /api/firmware/usb` | Build current source and provision over USB |
 | `POST /api/firmware/ota` | Build current source and update over BLE |
-| `WS /ws` | Push state; commands `connect`, `disconnect`, `ping`, `cancel` |
+| `WS /ws` | Push state; commands `connect`, `disconnect`, `ping` |
 
 USB request: `{"isolatedHardwareConfirmed":true,"port":"/dev/cu.usbserial-0001"}`.
 OTA request: `{"isolatedHardwareConfirmed":true}`. HTTP 202 means started;
@@ -104,10 +106,11 @@ retried automatically.
 | `backend/Controllers/FirmwareController.cs` | USB port and firmware maintenance endpoints |
 | `backend/Controllers/WebSocketController.cs` | Browser WebSocket connections, commands and snapshots |
 | `backend/Services/BleConnectionService.cs` | Background discovery, single BLE session, explicit connect and manual ping |
-| `backend/Services/AtxService.cs` | ATX commands, periodic state reads and maintenance preparation |
+| `backend/Services/AtxService.cs` | ATX commands and maintenance preparation |
 | `backend/Controllers/AtxController.cs` | Validated explicit ATX requests |
 | `backend/Services/FirmwareService.cs` | Exclusive build, USB and OTA maintenance |
 | `backend/Services/BleOtaService.cs` | Sender for Espressif's official BLE OTA profile |
+| `backend/Services/DeviceState.cs` | Decode typed FFF2 events and merge ordered state snapshots |
 | `backend/Services/StateService.cs` | Notify connected WebSocket clients when state changes |
 | `frontend/src/App.tsx` | Single React component containing the entire browser UI |
 | `frontend/src/features/connection/` | WebSocket, connection state, and TypeScript types |
@@ -135,3 +138,6 @@ behavior of the ASP.NET migration. See `docs/FIRMWARE.md` for details and limits
 
 ATX firmware offline test: `python3 firmware/tests/test_atx_power.py` (requires a C++ compiler).
 See [ATX validation](docs/ATX-VALIDATION.md) for the two physical OTA runs and test limits.
+
+FFF2 decoder offline check: `python3 backend/checks/test_device_state.py`.
+Latest subscription validation: [BLE protocol validation](docs/BLE-PROTOCOL-VALIDATION.md).

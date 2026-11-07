@@ -1,0 +1,241 @@
+{
+  "image_bytes": 558864,
+  "image_sha256": "4b4cfce12accf0965cb9b7cbce1392b32bb6810a52ff15f6858fd127899349d4",
+  "migration_ota": {
+    "at": "2026-11-07T14:03:23.195Z",
+    "same_websocket": true,
+    "messages": 153,
+    "result": {
+      "identity": "5a96152c5b9aeab0d2c6a1e9554459a976872dc44ad71ae72920774ad56e5239",
+      "version": "0.1.7",
+      "slot": 2031616,
+      "trial": false,
+      "ota": "idle",
+      "received": 0,
+      "error": 0,
+      "reset_reason": 3,
+      "firmware_sequence": 0,
+      "interval_us": 30000,
+      "latency": 0,
+      "atx_on": false,
+      "atx_sequence": 0,
+      "events_version": 1,
+      "transfer_seconds": 26.178,
+      "transfer_interval_us": 15000,
+      "build_seconds": 3.553,
+      "total_seconds": 29.677,
+      "transport": "ble"
+    }
+  },
+  "subscribed_ota": {
+    "at": "2026-11-07T14:04:34.289Z",
+    "messages": 163,
+    "same_websocket": true,
+    "device_firmware_events": [
+      {
+        "stage": "idle",
+        "received": 0,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 0,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 65536,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 131072,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 196608,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 262144,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 327680,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 393216,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 458752,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 524288,
+        "error": 0
+      },
+      {
+        "stage": "ready",
+        "received": 558848,
+        "error": 0
+      },
+      {
+        "stage": "idle",
+        "received": 0,
+        "error": 0
+      }
+    ],
+    "result": {
+      "identity": "1ecb70adfae362d7c074b3d3724f3b2f51df45673c3036e0374348eddb5c965c",
+      "version": "0.1.7",
+      "slot": 65536,
+      "trial": false,
+      "ota": "idle",
+      "received": 0,
+      "error": 0,
+      "reset_reason": 3,
+      "firmware_sequence": 0,
+      "interval_us": 15000,
+      "latency": 0,
+      "atx_on": false,
+      "atx_sequence": 0,
+      "events_version": 1,
+      "transfer_seconds": 24.726,
+      "transfer_interval_us": 15000,
+      "build_seconds": 2.413,
+      "total_seconds": 28.394,
+      "transport": "ble"
+    },
+    "error": null
+  },
+  "reconnect": {
+    "at": "2026-11-07T14:06:18.605Z",
+    "same_websocket": true,
+    "results": [
+      {
+        "cycle": 1,
+        "ping": {
+          "ok": true,
+          "rtt_ms": 65.9,
+          "at": "2026-11-07T14:06:16.884116+00:00",
+          "reply": "PONG 446308998",
+          "error": null
+        },
+        "atx_on": false
+      },
+      {
+        "cycle": 2,
+        "ping": {
+          "ok": true,
+          "rtt_ms": 75.9,
+          "at": "2026-11-07T14:06:18.604318+00:00",
+          "reply": "PONG 444777518",
+          "error": null
+        },
+        "atx_on": false
+      }
+    ]
+  },
+  "limitations": [
+    "No physical ATX ON or button actuation. ATX notifications checked with host stubs and decoder checks.",
+    "No USB upload, abrupt power-cut or endurance trial.",
+    "Initial development image hit a read-after-subscribe hang and was not confirmed; subsequent connection reported the previous confirmed identity."
+  ],
+  "final_ota": {
+    "at": "2026-11-07T14:08:11.062Z",
+    "messages": 163,
+    "same_websocket": true,
+    "device_firmware_events": [
+      {
+        "stage": "idle",
+        "received": 0,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 0,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 65536,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 131072,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 196608,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 262144,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 327680,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 393216,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 458752,
+        "error": 0
+      },
+      {
+        "stage": "writing",
+        "received": 524288,
+        "error": 0
+      },
+      {
+        "stage": "ready",
+        "received": 558864,
+        "error": 0
+      },
+      {
+        "stage": "idle",
+        "received": 0,
+        "error": 0
+      }
+    ],
+    "result": {
+      "identity": "3e2277046eb616db832703b4ef01afdfe2f8a3e2ca11cdcf3f3614a0e7e05111",
+      "version": "0.1.7",
+      "slot": 2031616,
+      "trial": false,
+      "ota": "idle",
+      "received": 0,
+      "error": 0,
+      "reset_reason": 3,
+      "firmware_sequence": 0,
+      "interval_us": 15000,
+      "latency": 0,
+      "atx_on": false,
+      "atx_sequence": 0,
+      "events_version": 1,
+      "transfer_seconds": 23.51,
+      "transfer_interval_us": 15000,
+      "build_seconds": 2.795,
+      "total_seconds": 26.951,
+      "transport": "ble"
+    },
+    "error": null
+  }
+}

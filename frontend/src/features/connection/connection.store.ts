@@ -7,6 +7,7 @@ type SocketState = 'waiting' | 'ready' | 'offline';
 interface ConnectionStore {
   connection: ConnectionSnapshot | null;
   socketState: SocketState;
+  statusReady: boolean;
   lastKnownState: LastKnownState | null;
   setSnapshot: (connection: ConnectionSnapshot) => void;
   confirmSnapshot: (connection: ConnectionSnapshot) => void;
@@ -35,9 +36,15 @@ function saveLastKnownState(state: LastKnownState): void {
 export const useConnectionStore = create<ConnectionStore>((set, get) => ({
   connection: null,
   socketState: 'waiting',
+  statusReady: false,
   lastKnownState: readLastKnownState(),
 
-  setSnapshot: (connection) => set({ connection }),
+  setSnapshot: (connection) => {
+    if (connection.connected) {
+      saveLastKnownState('connected');
+      set({ connection, socketState: 'ready', lastKnownState: 'connected' });
+    } else set({ connection, socketState: 'ready' });
+  },
 
   confirmSnapshot: (connection) => {
     const state = connection.state;
@@ -47,8 +54,8 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     if (lastKnownState && lastKnownState !== get().lastKnownState) {
       saveLastKnownState(lastKnownState);
     }
-    set({ connection, socketState: 'ready', lastKnownState });
+    set({ connection, socketState: 'ready', statusReady: true, lastKnownState });
   },
 
-  socketClosed: () => set({ socketState: 'offline' }),
+  socketClosed: () => set({ socketState: 'offline', statusReady: false }),
 }));

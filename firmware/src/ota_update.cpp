@@ -23,12 +23,23 @@ SemaphoreHandle_t mutex;
 esp_ota_handle_t handle;
 const esp_partition_t* target;
 bool writing=false,ready=false;
-uint32_t expected=0,received=0,epoch=0;
+uint32_t expected=0,received=0,committed=0,epoch=0;
 esp_err_t failure=ESP_OK;
 int64_t lastData=0,bootAt=0;
 // Batch sequential SDK writes at a flash erase-block boundary. No protocol change.
 uint8_t flashBlock[64*1024];
 size_t buffered=0;
+ota::State published = {};
+void (*listener)(ota::State) = nullptr;
+// Called with the flash mutex held; BLE callbacks run after releasing it.
+ota::State state_update() {
+    uint8_t stage = failure != ESP_OK ? 3 : ready ? 2 : writing ? 1 : 0;
+    // Report bytes after each flash block has actually been written.
+    if (published.stage != stage || published.received != committed || published.error != failure)
+        published = {stage, committed, failure, published.sequence + 1};
+    return published;
+}
+void notify(ota::State state) { if (listener) listener(state); }
 bool trial(){esp_ota_img_states_t state;return esp_ota_get_state_partition(esp_ota_get_running_partition(),&state)==ESP_OK && state==ESP_OTA_IMG_PENDING_VERIFY;}
 void abortTransfer(){if(writing)esp_ota_abort(handle);writing=false;buffered=0;++epoch;}
 esp_err_t begin(uint32_t size){
@@ -42,10 +53,11 @@ esp_err_t begin(uint32_t size){
             ESP_LOGI("ota","begin target=0x%lx bytes=%lu reset_reason=%d",(unsigned long)target->address,(unsigned long)size,(int)esp_reset_reason());
             error=esp_ota_begin(target,OTA_WITH_SEQUENTIAL_WRITES,&handle);
             ESP_LOGI("ota","begin result=%s",esp_err_to_name(error));
-            if(error==ESP_OK){++epoch;writing=true;received=0;buffered=0;expected=size;failure=ESP_OK;lastData=esp_timer_get_time();}
+            if(error==ESP_OK){++epoch;writing=true;received=0;committed=0;buffered=0;expected=size;failure=ESP_OK;lastData=esp_timer_get_time();}
         }
     }
-    xSemaphoreGive(mutex);return error;
+    auto state = state_update();
+    xSemaphoreGive(mutex);notify(state);return error;
 }
 void receive(uint8_t* data,uint32_t length){
     Sector sector={};xSemaphoreTake(mutex,portMAX_DELAY);
@@ -54,7 +66,7 @@ void receive(uint8_t* data,uint32_t length){
     if(valid)memcpy(sector.data,data,length);
     xSemaphoreGive(mutex);
     if(!valid||xQueueSend(queue,&sector,pdMS_TO_TICKS(1000))!=pdTRUE){
-        xSemaphoreTake(mutex,portMAX_DELAY);failure=ESP_ERR_NO_MEM;abortTransfer();xSemaphoreGive(mutex);
+        xSemaphoreTake(mutex,portMAX_DELAY);failure=ESP_ERR_NO_MEM;abortTransfer();auto state=state_update();xSemaphoreGive(mutex);notify(state);
     }
 }
 void worker(void*){
@@ -62,6 +74,7 @@ void worker(void*){
     for(;;){
         bool available=xQueueReceive(queue,&sector,pdMS_TO_TICKS(500))==pdTRUE;
         xSemaphoreTake(mutex,portMAX_DELAY);
+        uint32_t previous = published.sequence;
         if(available&&writing&&sector.epoch==epoch){
             if(sector.length>expected-received || buffered+sector.length>sizeof(flashBlock)){
                 failure=ESP_ERR_INVALID_SIZE;abortTransfer();
@@ -69,7 +82,9 @@ void worker(void*){
                 memcpy(flashBlock+buffered,sector.data,sector.length);
                 buffered+=sector.length;received+=sector.length;lastData=esp_timer_get_time();
                 if(buffered==sizeof(flashBlock)||received==expected){
-                    failure=esp_ota_write(handle,flashBlock,buffered);buffered=0;
+                    failure=esp_ota_write(handle,flashBlock,buffered);
+                    if(failure==ESP_OK)committed+=buffered;
+                    buffered=0;
                     if(failure!=ESP_OK)abortTransfer();
                     else if(received==expected){
                         failure=esp_ota_end(handle);writing=false;
@@ -80,12 +95,15 @@ void worker(void*){
             }
         }
         if(writing&&esp_timer_get_time()-lastData>30000000){failure=ESP_ERR_TIMEOUT;abortTransfer();}
+        auto state = state_update();
         xSemaphoreGive(mutex);
+        if (state.sequence != previous) notify(state);
         if(trial()&&esp_timer_get_time()-bootAt>60000000)esp_ota_mark_app_invalid_rollback_and_reboot();
     }
 }
 void restart(void*){vTaskDelay(pdMS_TO_TICKS(400));esp_restart();}
 }
+void ota::set_listener(void (*callback)(State)) { listener = callback; }
 esp_err_t ota::init(){
     bootAt=esp_timer_get_time();mutex=xSemaphoreCreateMutex();queue=xQueueCreate(4,sizeof(Sector));
     if(!mutex||!queue)return ESP_ERR_NO_MEM;
@@ -97,7 +115,7 @@ esp_err_t ota::init(){
 }
 void ota::disconnected(){
     if(!mutex)return;
-    xSemaphoreTake(mutex,portMAX_DELAY);abortTransfer();xSemaphoreGive(mutex);
+    xSemaphoreTake(mutex,portMAX_DELAY);abortTransfer();auto state=state_update();xSemaphoreGive(mutex);notify(state);
     // Reset the official profile through its existing STOP parser after link loss.
     const uint8_t stop[]={2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,67,240};
     esp_ble_ota_recv_cmd_data(stop,sizeof(stop));
@@ -106,7 +124,9 @@ void ota::describe(char* output,size_t capacity){
     const auto* partition=esp_ota_get_running_partition();const auto* desc=esp_app_get_description();
     char sha[65];for(int i=0;i<32;++i)snprintf(sha+2*i,3,"%02x",desc->app_elf_sha256[i]);
     xSemaphoreTake(mutex,portMAX_DELAY);
-    snprintf(output,capacity,"{\"identity\":\"%s\",\"version\":\"%s\",\"slot\":%lu,\"trial\":%s,\"ota\":\"%s\",\"received\":%lu,\"error\":%d,\"reset_reason\":%d}",sha,desc->version,(unsigned long)partition->address,trial()?"true":"false",ready?"ready":writing?"writing":"idle",(unsigned long)received,(int)failure,(int)esp_reset_reason());
+    snprintf(output,capacity,"{\"identity\":\"%s\",\"version\":\"%s\",\"slot\":%lu,\"trial\":%s,\"ota\":\"%s\",\"received\":%lu,\"error\":%d,\"reset_reason\":%d}",sha,desc->version,(unsigned long)partition->address,trial()?"true":"false",ready?"ready":writing?"writing":"idle",(unsigned long)committed,(int)failure,(int)esp_reset_reason());
+    size_t end=strlen(output)-1;
+    snprintf(output+end,capacity-end,",\"firmware_sequence\":%lu}",(unsigned long)published.sequence);
     xSemaphoreGive(mutex);
 }
 esp_err_t ota::confirm(){return trial()?esp_ota_mark_app_valid_cancel_rollback():ESP_OK;}

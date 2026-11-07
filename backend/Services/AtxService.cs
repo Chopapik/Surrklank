@@ -2,8 +2,8 @@ using System.Text.Json;
 
 namespace Surrklank.Services;
 
-// All ATX commands and polling share the BLE gate with firmware maintenance.
-public sealed class AtxService(BleConnectionService connection, ILogger<AtxService> logger) : BackgroundService
+// ATX commands share the BLE gate with firmware maintenance; state arrives through FFF2.
+public sealed class AtxService(BleConnectionService connection)
 {
     public async Task SetAsync(bool on, CancellationToken cancellation)
     {
@@ -15,7 +15,9 @@ public sealed class AtxService(BleConnectionService connection, ILogger<AtxServi
                 throw new InvalidOperationException("ATX state is unavailable; connect compatible firmware first");
             string command = on ? "ATX ON" : "ATX OFF";
             var reply = await connection.SendCommandAsync(command, cancellation);
-            connection.SetDevice(await connection.ReadInfoAsync(cancellation));
+            // Read-after-command is needed only for the one-time upgrade from old firmware.
+            if (!connection.Snapshot().Subscribed)
+                connection.SetDevice(await connection.ReadInfoAsync(cancellation));
             if (reply != command) throw new InvalidOperationException(reply);
         }
         finally { connection.Gate.Release(); }
@@ -35,31 +37,4 @@ public sealed class AtxService(BleConnectionService connection, ILogger<AtxServi
             throw new InvalidOperationException("ESP32 did not confirm ATX OFF");
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        try
-        {
-            using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
-            while (await timer.WaitForNextTickAsync(stoppingToken))
-            {
-                if (!await connection.Gate.WaitAsync(0, stoppingToken)) continue;
-                try
-                {
-                    var snapshot = connection.Snapshot();
-                    if (!snapshot.Connected || snapshot.AtxOn is null) continue;
-                    var info = await connection.ReadInfoAsync(stoppingToken);
-                    if (info.GetProperty("atx_on").GetBoolean() != snapshot.AtxOn)
-                        connection.SetDevice(info);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { throw; }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "ATX state refresh failed");
-                    await connection.DisconnectAsync();
-                }
-                finally { connection.Gate.Release(); }
-            }
-        }
-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
-    }
 }

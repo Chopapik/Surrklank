@@ -21,6 +21,11 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
     private PingResult? lastPing;
     private JsonElement? device;
     private int? mtu;
+    private DeviceState deviceState = new();
+    private bool subscribed;
+    private TaskCompletionSource stateChanged = NewSignal();
+    private static TaskCompletionSource NewSignal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private void SignalState() { var previous = stateChanged; stateChanged = NewSignal(); previous.TrySetResult(); }
     private readonly List<ConnectionEvent> events = [];
     private readonly CancellationTokenSource stopping = new();
     private Task? observer;
@@ -37,8 +42,8 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         lock (sync)
         {
             return new ConnectionDto(state, error, session, lastPing, device, events.ToArray(), mtu, discoveryState,
-                state == "connected" && device is { } info && info.TryGetProperty("atx_on", out var atx)
-                    && atx.ValueKind is JsonValueKind.True or JsonValueKind.False ? atx.GetBoolean() : null);
+                state == "connected" ? deviceState.AtxOn : null,
+                state == "connected" ? deviceState.Firmware : null, subscribed);
         }
     }
 
@@ -90,7 +95,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         if (peripheral is { IsConnected: true }) return;
         if (peripheral != null) await DisconnectAsync();
         int thisSession;
-        lock (sync) thisSession = ++session;
+        lock (sync) { thisSession = ++session; deviceState = new(); subscribed = false; SignalState(); }
         Change("scanning");
         Peripheral? selected = null;
         IReadOnlyList<Adapter> adapters = [];
@@ -143,11 +148,21 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
             cancellation.ThrowIfCancellationRequested();
             if (!current.IsConnected) throw new InvalidOperationException("BLE connection was not established");
             var information = await ReadInfoAsync(cancellation);
+            // Old images remain readable for the first OTA migration. New images must subscribe.
+            if (information.TryGetProperty("events_version", out var version) && version.GetInt32() == 1)
+            {
+                await current.NotifyAsync(Service, Info, bytes => ReceiveState(current, thisSession, bytes), cancellation);
+                lock (sync) subscribed = true;
+                // Close the read/subscribe gap; sequence numbers prevent stale reads overwriting events.
+                information = await ReadInfoAsync(cancellation);
+            }
             lock (sync)
             {
                 if (peripheral != current || session != thisSession || !current.IsConnected)
                     throw new InvalidOperationException("BLE disconnected while reading device information");
                 device = information;
+                deviceState.Read(information);
+                SignalState();
                 // SimpleBLE's macOS implementation reports payload length, not ATT MTU.
                 mtu = current.Mtu + (OperatingSystem.IsMacOS() ? 3 : 0);
                 Change("connected");
@@ -169,14 +184,18 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         lock (sync)
         {
             if (peripheral == client && session == clientSession && state is "connected" or "connecting")
+            {
+                subscribed = false;
                 Change("disconnected", "BLE connection lost");
+                SignalState();
+            }
         }
     }
 
     public async Task DisconnectAsync()
     {
         Peripheral? old;
-        lock (sync) { old = peripheral; peripheral = null; mtu = null; }
+        lock (sync) { old = peripheral; peripheral = null; mtu = null; subscribed = false; deviceState = new(); SignalState(); }
         if (old != null)
         {
             try { if (old.IsConnected) await old.DisconnectAsync(); }
@@ -188,8 +207,12 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
 
     public async Task<JsonElement> ReadInfoAsync(CancellationToken cancellation = default)
     {
-        var bytes = await Current.ReadAsync(Service, Info, cancellation);
-        return JsonSerializer.Deserialize<JsonElement>(bytes);
+        bool notifications; lock (sync) notifications = subscribed;
+        // SimpleBLE/macOS Read on a notifying characteristic waits for its next event.
+        // FFF1 INFO is a request/response snapshot while FFF2 remains subscribed.
+        if (notifications)
+            return JsonSerializer.Deserialize<JsonElement>(await SendCommandAsync("INFO", cancellation));
+        return JsonSerializer.Deserialize<JsonElement>(await Current.ReadAsync(Service, Info, cancellation));
     }
 
     public async Task<string> SendCommandAsync(string text, CancellationToken cancellation = default)
@@ -218,7 +241,40 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         updates.Publish();
     }
 
-    public void SetDevice(JsonElement information) { lock (sync) device = information; updates.Publish(); }
+    public void SetDevice(JsonElement information)
+    {
+        lock (sync) { device = information; deviceState.Read(information); SignalState(); }
+        updates.Publish();
+    }
+
+    private void ReceiveState(Peripheral client, int clientSession, byte[] bytes)
+    {
+        lock (sync)
+        {
+            if (peripheral != client || session != clientSession || state is not ("connecting" or "connected")) return;
+            if (!deviceState.Receive(bytes)) return;
+            SignalState();
+        }
+        updates.Publish();
+    }
+
+    public async Task WaitForFlashReadyAsync(CancellationToken cancellation)
+    {
+        while (true)
+        {
+            Task changed;
+            lock (sync)
+            {
+                if (state != "connected") throw new InvalidOperationException("BLE disconnected while waiting for flash");
+                var firmware = deviceState.Firmware;
+                if (firmware?.Error is not (null or 0))
+                    throw new InvalidOperationException($"ESP flash write failed: {firmware.Error}");
+                if (firmware?.Stage == "ready") return;
+                changed = stateChanged.Task;
+            }
+            await changed.WaitAsync(cancellation);
+        }
+    }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {

@@ -58,7 +58,7 @@ describe('Surrklank interface', () => {
   beforeEach(() => {
     FakeWebSocket.instances = [];
     localStorage.clear();
-    useConnectionStore.setState({ connection: null, socketState: 'waiting', lastKnownState: null });
+    useConnectionStore.setState({ connection: null, socketState: 'waiting', statusReady: false, lastKnownState: null });
     vi.stubGlobal('WebSocket', FakeWebSocket);
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify([]), { status: 200 })));
   });
@@ -67,6 +67,14 @@ describe('Surrklank interface', () => {
     cleanup();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+  });
+
+  it('keeps browser readiness independent of ESP32 readiness', async () => {
+    const { socket } = renderApp();
+    act(() => socket.receive({ ...connected, state: 'connecting', connected: false }));
+    expect(screen.getByText('Połączenie z aplikacją aktywne')).toBeTruthy();
+    expect((screen.getByRole('button', { name: 'Kompiluj i wgraj przez USB' }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByRole('button', { name: 'Ping' }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('updates ATX only from ESP32 snapshots and sends explicit state', async () => {
@@ -113,9 +121,8 @@ describe('Surrklank interface', () => {
     expect(screen.getByText('ble_upload')).toBeTruthy();
     expect((screen.getByRole('progressbar') as HTMLProgressElement).value).toBe(50);
     expect((screen.getByRole('button', { name: 'Ping' }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole('button', { name: 'Anuluj' }) as HTMLButtonElement).disabled).toBe(false);
-    fireEvent.click(screen.getByRole('button', { name: 'Anuluj' }));
-    expect(socket.send).toHaveBeenCalledWith(JSON.stringify({ action: 'cancel' }));
+    expect(screen.queryByRole('button', { name: 'Anuluj' })).toBeNull();
+    expect(socket.send).not.toHaveBeenCalled();
   });
 
   it('uses the selected CP2102 port and asks for confirmation before USB upload', async () => {

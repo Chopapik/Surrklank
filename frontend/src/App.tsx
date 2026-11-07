@@ -74,9 +74,6 @@ export function App() {
         <button className={controlStyle} disabled={!ready || busy} onClick={() => requestUpload('ota')}>
           Kompiluj i wgraj przez BLE OTA
         </button>
-        <button className={controlStyle} disabled={!ready || !firmware.busy} onClick={() => sendAction('cancel')}>
-          Anuluj
-        </button>
         <p>{firmware.stage}</p>
         <progress className="w-full accent-white" max="100" value={firmware.progress ?? 0} />
         <pre className={preStyle}>{firmware.result ? JSON.stringify(firmware.result, null, 2) : ''}</pre>

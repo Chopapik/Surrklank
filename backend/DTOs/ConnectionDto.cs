@@ -11,7 +11,9 @@ public sealed record ConnectionDto(
     IReadOnlyList<ConnectionEvent> Events,
     int? Mtu,
     string Discovery,
-    bool? AtxOn = null)
+    bool? AtxOn = null,
+    DeviceFirmwareDto? DeviceFirmware = null,
+    bool Subscribed = false)
 {
     public bool Connected => State == "connected";
 }
@@ -20,3 +22,5 @@ public sealed record PingResult(bool Ok, double? RttMs = null,
     DateTimeOffset? At = null, string? Reply = null, string? Error = null);
 
 public sealed record ConnectionEvent(DateTimeOffset At, string State, string? Error, int Session);
+
+public sealed record DeviceFirmwareDto(string Stage, uint Received, int Error);

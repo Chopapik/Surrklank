@@ -13,9 +13,10 @@ const statusLabels: Record<ConnectionStatus, string> = {
 export function useConnection() {
   const connection = useConnectionStore((state) => state.connection);
   const socketState = useConnectionStore((state) => state.socketState);
+  const statusReady = useConnectionStore((state) => state.statusReady);
   const lastKnownState = useConnectionStore((state) => state.lastKnownState);
   const ready = socketState === 'ready';
-  const state = ready ? connection?.state ?? 'unknown' : lastKnownState ?? 'unknown';
+  const state = ready && statusReady ? connection?.state ?? 'unknown' : lastKnownState ?? 'unknown';
   const statusLabel = ready && state === 'unknown' && connection?.discovery === 'unavailable'
     ? 'Stan BLE nieznany'
     : statusLabels[state];

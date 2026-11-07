@@ -14,7 +14,7 @@ export type DiscoveryStatus =
   | 'paused'
   | 'unavailable';
 
-export type ConnectionAction = 'connect' | 'disconnect' | 'ping' | 'cancel';
+export type ConnectionAction = 'connect' | 'disconnect' | 'ping';
 
 export interface DeviceInfo {
   identity: string;
@@ -56,4 +56,6 @@ export interface ConnectionSnapshot {
   mtu: number | null;
   discovery: DiscoveryStatus;
   atx_on?: boolean | null;
+  subscribed?: boolean;
+  device_firmware?: { stage: string; received: number; error: number } | null;
 }

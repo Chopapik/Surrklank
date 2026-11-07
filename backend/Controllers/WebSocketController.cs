@@ -53,8 +53,7 @@ public sealed class WebSocketController(StateService updates, BleConnectionServi
                 {
                     using var request = JsonDocument.Parse(message.ToArray());
                     string? action = request.RootElement.TryGetProperty("action", out var value) ? value.GetString() : null;
-                    if (action == "cancel") await firmware.CancelAsync();
-                    else await connection.ExecuteActionAsync(action);
+                    await connection.ExecuteActionAsync(action);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 { connection.ReportError(ex); }

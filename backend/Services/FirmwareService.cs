@@ -114,13 +114,6 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
         catch { connection.Gate.Release(); throw; }
     }
 
-    public async Task CancelAsync()
-    {
-        Task? current;
-        lock (sync) { cancellation?.Cancel(); current = task; }
-        if (current != null) await current;
-    }
-
     private async Task ProcessAsync(string[] args, CancellationToken cancellationToken)
     {
         var start = new ProcessStartInfo("pio") { WorkingDirectory = root, RedirectStandardOutput = true,
@@ -219,16 +212,23 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
                     Event("ble_upload", value, details: new() { ["link"] = link }), token);
                 using var readyTimeout = CancellationTokenSource.CreateLinkedTokenSource(token);
                 readyTimeout.CancelAfter(TimeSpan.FromSeconds(15));
-                JsonElement info;
-                while (true)
+                if (connection.Snapshot().Subscribed)
+                    await connection.WaitForFlashReadyAsync(readyTimeout.Token);
+                else
                 {
-                    readyTimeout.Token.ThrowIfCancellationRequested();
-                    info = await connection.ReadInfoAsync(readyTimeout.Token);
-                    if (info.GetProperty("error").GetInt32() != 0)
-                        throw new InvalidOperationException($"ESP flash write failed: {info.GetProperty("error")}");
-                    if (info.GetProperty("ota").GetString() == "ready") break;
-                    await Task.Delay(100, readyTimeout.Token);
+                    // Compatibility only: the old image cannot notify during its first upgrade.
+                    while (true)
+                    {
+                        var legacy = await connection.ReadInfoAsync(readyTimeout.Token);
+                        if (legacy.GetProperty("error").GetInt32() != 0)
+                            throw new InvalidOperationException("ESP flash write failed");
+                        if (legacy.GetProperty("ota").GetString() == "ready") break;
+                        await Task.Delay(100, readyTimeout.Token);
+                    }
                 }
+                var info = await connection.ReadInfoAsync(readyTimeout.Token);
+                if (info.GetProperty("ota").GetString() != "ready" || info.GetProperty("error").GetInt32() != 0)
+                    throw new InvalidOperationException("ESP flash verification failed");
                 transferSeconds = Math.Round(transfer.Elapsed.TotalSeconds, 3);
                 if (info.TryGetProperty("interval_us", out var interval)) intervalUs = interval.GetInt32();
                 Event("verified_flash", details: new() { ["transfer_seconds"] = transferSeconds, ["transfer_interval_us"] = intervalUs });
@@ -266,5 +266,10 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
     }
 
     public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-    public Task StopAsync(CancellationToken cancellationToken) => CancelAsync();
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        Task? current;
+        lock (sync) { cancellation?.Cancel(); current = task; }
+        if (current != null) await current.WaitAsync(cancellationToken);
+    }
 }

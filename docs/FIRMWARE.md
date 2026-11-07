@@ -21,7 +21,7 @@ BLE callback. A static 64 KiB buffer batches `esp_ota_write()` calls at hardware
 erase-block boundaries; this trades 64 KiB of RAM for fewer erase operations. Session epochs discard queued data from an aborted transfer.
 The ESP-IDF project name is `surrklank`; it appears in the firmware image's
 application metadata. The BLE name, UUIDs, existing commands and OTA wire protocol are
-unchanged. ATX commands extend the existing command characteristic. The queue/window sizes bound memory use. `OTA_WITH_SEQUENTIAL_WRITES` keeps
+unchanged. FFF2 gains the Notify property and its CCCD. ATX commands extend the existing command characteristic. The queue/window sizes bound memory use. `OTA_WITH_SEQUENTIAL_WRITES` keeps
 bulk erase out of the NimBLE START callback; erasure happens in the flash task. Disconnect/timeout aborts an incomplete
 flash session without selecting it for boot. The official STOP command resets
 the profile after disconnect. A completed boot selection is retained.
@@ -29,7 +29,7 @@ the profile after disconnect. A completed boot selection is retained.
 ## Connection service
 
 Vendor service `0xFFF0`: command characteristic `0xFFF1` (Write / Read) and
-information characteristic `0xFFF2` (Read). Write `PING <digits>` and read the
+information/event characteristic `0xFFF2` (Read / Notify). Write `PING <digits>` and read the
 matching `PONG <digits>`. The backend never schedules heartbeat pings.
 Information is JSON with the application ELF SHA-256 identity, version, slot,
 trial state, flash progress, reset reason and last SDK error. Native NimBLE
@@ -37,8 +37,10 @@ connection interval and latency are also reported. `CONFIRM` accepts a trial ima
 and `REBOOT` is allowed only after a completed OTA image has been validated.
 `ATX ON` and `ATX OFF` set an explicit output state. `ATX PREPARE` forces OFF
 and locks out ON until restart. The information JSON adds `atx_on`; it describes
-GPIO19 output state, not measured power. The backend polls this information
-every 500 ms outside maintenance; no new GATT characteristic is registered.
+GPIO19 output state, not measured power. `INFO` returns the same JSON through
+FFF1. FFF2 publishes typed, sequenced ATX and flash-state notifications; ATX is
+not polled. The backend uses FFF1 INFO after subscribing to avoid SimpleBLE's
+macOS read-on-notifying behavior. See [BLE protocol](BLE-PROTOCOL.md).
 These application commands do not replace the official OTA transfer protocol.
 
 ## Official OTA protocol

@@ -57,11 +57,17 @@ void press_samples(std::vector<int> values) {
     samples=values; nextSample=0;
     try { buttonTask(nullptr); } catch(const EndSamples&) {}
 }
+int reports=0;
+atx::State lastReport={};
+void receive(atx::State state) { ++reports; lastReport=state; }
 int main() {
+    atx::set_listener(receive);
     assert(atx::init()==ESP_OK);
     assert(!atx::is_on() && outputLevel==0);
     assert(atx::set(true) && atx::is_on() && outputLevel==1);
+    assert(reports==1 && lastReport.on && lastReport.sequence==1);
     assert(atx::set(true) && outputLevel==1);
+    assert(reports==1);
     assert(atx::set(false) && !atx::is_on() && outputLevel==0);
     assert(atx::set(false));
     // Bounce does not become a press; a stable press toggles once while held.
@@ -83,6 +89,7 @@ int main() {
     buttonLevel=1;
     press_samples({0,0,0,0});
     assert(!atx::is_on() && outputLevel==0);
+    assert(!lastReport.on && reports==(int)lastReport.sequence);
 }
 ''')
             binary = root / "test-atx"

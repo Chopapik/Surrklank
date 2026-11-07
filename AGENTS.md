@@ -43,7 +43,9 @@ Physical USB and BLE OTA tests are explicitly authorized in this chat. The board
 was confirmed isolated from registers/instruments, with ATX disconnected; never
 power instruments or ATX during maintenance. ATX GPIO19 control and the GPIO13 button are supported; instrument/register
 control remains out of scope. ATX state means the driven transistor output,
-not PWR_OK or measured supply voltage. Keep the existing GATT layout and OTA protocol. Do not change eFuses or flash security settings.
+not PWR_OK or measured supply voltage. Preserve the GATT UUIDs and official OTA protocol. FFF1 carries commands and INFO
+snapshots; FFF2 publishes typed state events and remains readable before subscribing.
+Never read a subscribed FFF2 through SimpleBLE on macOS; use FFF1 INFO instead. Do not change eFuses or flash security settings.
 Never connect/flash physical hardware as an implicit offline software test.
 Private legacy signing keys remain outside Git; never print or publish them.
 This clean repository contains only the native application, ESP-IDF firmware,

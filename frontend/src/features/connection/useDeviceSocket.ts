@@ -29,8 +29,11 @@ export function useDeviceSocket() {
       pendingConnection = connection;
       const settling = ['unknown', 'scanning', 'connecting'].includes(connection.state);
       if (settling && connection.discovery !== 'unavailable') {
-        window.clearTimeout(initialStateTimer);
-        initialStateTimer = undefined;
+        if (initialStateTimer === undefined) initialStateTimer = window.setTimeout(() => {
+          waitingForState = false;
+          initialStateTimer = undefined;
+          if (pendingConnection) useConnectionStore.getState().confirmSnapshot(pendingConnection);
+        }, 1500);
         return;
       }
       // Ignore short startup transitions; later connection loss is immediate.

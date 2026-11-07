@@ -9,6 +9,15 @@ constexpr gpio_num_t button = GPIO_NUM_13;
 portMUX_TYPE lock = portMUX_INITIALIZER_UNLOCKED;
 bool on = false;
 bool maintenance = false;
+uint32_t sequence = 0;
+void (*listener)(atx::State) = nullptr;
+
+void notify(atx::State value) {
+    portENTER_CRITICAL(&lock);
+    auto callback = listener;
+    portEXIT_CRITICAL(&lock);
+    if (callback) callback(value);
+}
 
 void poll_button(void*) {
     int stable = gpio_get_level(button), previous = stable;
@@ -21,16 +30,21 @@ void poll_button(void*) {
         previous = value;
         if (ticks < 3 || value == stable) continue;
         stable = value;
+        bool changed = false;
         portENTER_CRITICAL(&lock);
         if (stable == 1) armed = true;
         else if (armed) {
             armed = false;
             if (!maintenance) {
                 on = !on;
+                ++sequence;
+                changed = true;
                 gpio_set_level(output, on);
             }
         }
+        atx::State next = {on, sequence};
         portEXIT_CRITICAL(&lock);
+        if (changed) notify(next);
     }
 }
 }
@@ -49,29 +63,44 @@ esp_err_t atx::init() {
         ? ESP_OK : ESP_ERR_NO_MEM;
 }
 
-bool atx::is_on() {
+atx::State atx::state() {
     portENTER_CRITICAL(&lock);
-    bool value = on;
+    State value = {on, sequence};
     portEXIT_CRITICAL(&lock);
     return value;
+}
+
+bool atx::is_on() { return state().on; }
+
+void atx::set_listener(void (*callback)(State)) {
+    portENTER_CRITICAL(&lock);
+    listener = callback;
+    portEXIT_CRITICAL(&lock);
 }
 
 bool atx::set(bool requested) {
     portENTER_CRITICAL(&lock);
     bool accepted = !requested || !maintenance;
+    bool changed = accepted && on != requested;
+    if (changed) ++sequence;
     if (accepted) {
         on = requested;
         gpio_set_level(output, on);
     }
+    State value = {on, sequence};
     portEXIT_CRITICAL(&lock);
+    if (changed) notify(value);
     return accepted;
 }
 
 void atx::prepare() {
     portENTER_CRITICAL(&lock);
     maintenance = true;
+    bool changed = on;
+    if (changed) ++sequence;
     on = false;
     gpio_set_level(output, 0);
+    State value = {on, sequence};
     portEXIT_CRITICAL(&lock);
+    if (changed) notify(value);
 }
-
