@@ -1,6 +1,6 @@
-# ESP32 BLE / ESP-IDF
+# Surrklank
 
-This project contains a local ASP.NET Core application and minimal ESP-IDF
+Surrklank contains a local ASP.NET Core application and minimal ESP-IDF
 firmware for an isolated ESP32. The browser connects to the application over
 HTTP and WebSocket; the application communicates with the ESP32 using BLE.
 
@@ -16,7 +16,7 @@ npm --prefix frontend run build
 
 Run `python3 run.py` (Windows: `py run.py`) and open <http://127.0.0.1:5173>.
 The Python script only launches `dotnet run`; the backend is entirely C#. You
-can also run `dotnet run --project backend/ElectromechanicalMidi.csproj` or
+can also run `dotnet run --project backend/Surrklank.csproj` or
 the Rider run configuration directly. ASP.NET serves the React build from
 `frontend/dist`, so production use needs one application process.
 
@@ -34,7 +34,9 @@ Linux, BlueZ and D-Bus are required. SimpleBLE uses the Business Source License
 1.1, with a non-commercial production grant; check its license before commercial
 use. The first .NET restore needs access to NuGet.
 
-The application scans for EM-MIDI-IDF in the background and connects automatically.
+For compatibility with existing firmware and clients, the Surrklank device keeps
+the BLE discovery identifier `EM-MIDI-IDF`. The application scans for it in the
+background and connects automatically.
 After link loss it searches again. Explicit disconnect pauses automatic connection;
 click Connect to resume. Click **Ping** for a manual check.
 There is no automatic heartbeat. Scanning pauses during device operations.

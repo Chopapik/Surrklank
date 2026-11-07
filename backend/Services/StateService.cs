@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Threading.Channels;
 
-namespace ElectromechanicalMidi.Services;
+namespace Surrklank.Services;
 
 // Subscribers receive snapshots, not a history of every intermediate update.
 public sealed class StateService

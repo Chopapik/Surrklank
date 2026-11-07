@@ -3,9 +3,9 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using ElectromechanicalMidi.DTOs;
+using Surrklank.DTOs;
 
-namespace ElectromechanicalMidi.Services;
+namespace Surrklank.Services;
 
 public sealed record SerialPortInfo(string Port, string Name);
 
@@ -19,7 +19,7 @@ public sealed class FirmwareService(BleConnectionService connection, BleOtaServi
 {
     private readonly object sync = new();
     private readonly string root = Path.GetFullPath(Path.Combine(environment.ContentRootPath, ".."));
-    private readonly string logRoot = Path.Combine(Path.GetTempPath(), "electromechanical-midi-idf");
+    private readonly string logRoot = Path.Combine(Path.GetTempPath(), "surrklank-idf");
     private readonly List<Dictionary<string, object?>> events = [];
     private string stage = "idle";
     private double? progress;

@@ -1,4 +1,4 @@
-# ESP-IDF BLE and OTA
+# Surrklank ESP-IDF firmware: BLE and OTA
 
 ## Dependencies and ownership
 
@@ -9,7 +9,8 @@ pinned to `5fbb2597b88f21ec41e952f81292ccd6ae569761`; see `src/idf_component.yml
 The component manager downloads them as generated dependencies, not application code.
 
 `main.cpp` initializes NVS, the event loop, connection and OTA modules.
-`ble_connection.cpp` uses the official connection manager, advertises EM-MIDI-IDF,
+`ble_connection.cpp` uses the official connection manager and advertises the
+legacy identifier `EM-MIDI-IDF` so existing Surrklank clients can discover it. It
 registers the small command/info service and observes native connection events.
 It requests standard 251-byte Data Length Extension and a 15 ms interval; actual
 MTU and connection interval are observed, not assumed.
@@ -17,7 +18,9 @@ MTU and connection interval are observed, not assumed.
 It copies completed sectors to a bounded FreeRTOS queue and writes outside the
 BLE callback. A static 64 KiB buffer batches `esp_ota_write()` calls at hardware
 erase-block boundaries; this trades 64 KiB of RAM for fewer erase operations. Session epochs discard queued data from an aborted transfer.
-The queue/window sizes bound memory use. `OTA_WITH_SEQUENTIAL_WRITES` keeps
+The ESP-IDF project name is `surrklank`; it appears in the firmware image's
+application metadata. The BLE name, UUIDs, commands and OTA wire protocol are
+unchanged. The queue/window sizes bound memory use. `OTA_WITH_SEQUENTIAL_WRITES` keeps
 bulk erase out of the NimBLE START callback; erasure happens in the flash task. Disconnect/timeout aborts an incomplete
 flash session without selecting it for boot. The official STOP command resets
 the profile after disconnect. A completed boot selection is retained.
@@ -91,7 +94,9 @@ The isolated ESP32-D0WD-V3 / CP2102 remained USB-only, with no ATX or actuator p
 Image SHA-256: `3854a82c49b1688f8227883c6d04e448408ad00861d3c1477c2d69137621bc8f`.
 ELF identity: `1df5d5e45169284e40b37f9edfb8077243ba3ca7f37e86e4a0b007d306d25b41`.
 Link during OTA: MTU 498, 495-byte packets, window 3, interval 15 ms.
-For the historical Python run, detailed jobs were stored outside Git under the system temp directory's
+Current ASP.NET maintenance logs are stored outside Git in the system temp
+directory's `surrklank-idf/`. For the historical Python run, detailed jobs were
+stored outside Git under the system temp directory's
 `electromechanical-midi-idf/validation.jsonl` and job-specific build/upload logs.
 
 These measurements predate the ASP.NET migration and do not verify the C# sender.

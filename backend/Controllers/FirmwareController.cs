@@ -1,7 +1,7 @@
-using ElectromechanicalMidi.Services;
+using Surrklank.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ElectromechanicalMidi.Controllers;
+namespace Surrklank.Controllers;
 
 [ApiController]
 [Route("api/firmware")]

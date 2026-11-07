@@ -1,10 +1,10 @@
 using System.Net.WebSockets;
 using System.Text.Json;
-using ElectromechanicalMidi.DTOs;
-using ElectromechanicalMidi.Services;
+using Surrklank.DTOs;
+using Surrklank.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ElectromechanicalMidi.Controllers;
+namespace Surrklank.Controllers;
 
 [ApiController]
 public sealed class WebSocketController(StateService updates, BleConnectionService connection,

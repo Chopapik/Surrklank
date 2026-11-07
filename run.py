@@ -12,7 +12,7 @@ if not (root / "frontend" / "dist" / "index.html").is_file():
 
 try:
     raise SystemExit(subprocess.call(
-        ["dotnet", "run", "--project", str(root / "backend" / "ElectromechanicalMidi.csproj"),
+        ["dotnet", "run", "--project", str(root / "backend" / "Surrklank.csproj"),
          "--no-launch-profile", *sys.argv[1:]],
         cwd=root,
     ))

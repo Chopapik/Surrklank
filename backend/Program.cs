@@ -1,4 +1,4 @@
-using ElectromechanicalMidi.Services;
+using Surrklank.Services;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions

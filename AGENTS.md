@@ -18,6 +18,12 @@ for reconstructing the development process without relying on chat history.
 
 # Language and application
 
+The official name of the complete system is Surrklank; use `surrklank` for
+new technical names. Preserve existing API routes, WebSocket messages, BLE
+UUIDs, the `EM-MIDI-IDF` BLE discovery name and other persistent identifiers
+unless a compatible migration is explicitly planned. Historical measurements
+and paths must remain identifiable as historical evidence.
+
 Conversation is Polish. Documentation, filenames and commits are English.
 Run the ASP.NET application with `python3 run.py` (Windows: `py run.py`); the script launches the C# backend.
 It serves http://127.0.0.1:5173. Do not run Docker or the archived TCP gateway.

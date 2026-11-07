@@ -52,6 +52,7 @@ void event(void*,esp_event_base_t,int32_t id,void* value){
 }
 }
 esp_err_t ble::init(){
+    // Preserve the discovery identifier used by existing Surrklank installations.
     esp_ble_conn_config_t config={};strcpy((char*)config.device_name,"EM-MIDI-IDF");
     config.include_service_uuid=1;config.adv_uuid_type=BLE_CONN_UUID_TYPE_16;config.adv_uuid16=0x8018;
     esp_err_t error=esp_ble_conn_init(&config);if(error!=ESP_OK)return error;

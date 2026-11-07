@@ -30,7 +30,7 @@ export function App() {
 
   return (
     <>
-      <h1>ESP32 · BLE / ESP-IDF</h1>
+      <h1>Surrklank</h1>
       <small className="block min-h-[1.2em]">{socketLabel}</small>
 
       <section className={sectionStyle}>

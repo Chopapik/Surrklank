@@ -2,7 +2,7 @@ using System.Buffers.Binary;
 using System.Threading.Channels;
 using SimpleSharpBLE;
 
-namespace ElectromechanicalMidi.Services;
+namespace Surrklank.Services;
 
 // The OTA sender only needs these BLE operations; this also allows it to be
 // checked offline without connecting to a physical ESP32.

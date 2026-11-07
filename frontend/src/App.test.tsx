@@ -54,7 +54,7 @@ async function establishConnection(socket: FakeWebSocket) {
   await waitFor(() => expect((screen.getByRole('button', { name: 'Ping' }) as HTMLButtonElement).disabled).toBe(false));
 }
 
-describe('ESP32 interface', () => {
+describe('Surrklank interface', () => {
   beforeEach(() => {
     FakeWebSocket.instances = [];
     localStorage.clear();
@@ -72,6 +72,7 @@ describe('ESP32 interface', () => {
   it('keeps the last confirmed status during startup and sends ping only when clicked', async () => {
     useConnectionStore.setState({ lastKnownState: 'connected' });
     const { socket } = renderApp();
+    expect(screen.getByRole('heading', { name: 'Surrklank' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Połączony' })).toBeTruthy();
     expect((screen.getByRole('button', { name: 'Ping' }) as HTMLButtonElement).disabled).toBe(true);
 

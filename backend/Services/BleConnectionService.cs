@@ -2,10 +2,10 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using ElectromechanicalMidi.DTOs;
+using Surrklank.DTOs;
 using SimpleSharpBLE;
 
-namespace ElectromechanicalMidi.Services;
+namespace Surrklank.Services;
 
 // One device connection shared by WebSocket commands and firmware maintenance.
 public sealed class BleConnectionService(StateService updates, ILogger<BleConnectionService> logger) : IHostedService
@@ -130,7 +130,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                 }
                 if (selected != null) break;
             }
-            if (selected == null) throw new InvalidOperationException("ESP32 EM-MIDI-IDF was not found");
+            if (selected == null) throw new InvalidOperationException("Surrklank ESP32 was not found");
             cancellation.ThrowIfCancellationRequested();
             Change("connecting");
             var current = selected;

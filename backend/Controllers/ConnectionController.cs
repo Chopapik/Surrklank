@@ -1,8 +1,8 @@
-using ElectromechanicalMidi.DTOs;
-using ElectromechanicalMidi.Services;
+using Surrklank.DTOs;
+using Surrklank.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ElectromechanicalMidi.Controllers;
+namespace Surrklank.Controllers;
 
 [ApiController]
 public sealed class ConnectionController(BleConnectionService connection, FirmwareService firmware) : ControllerBase

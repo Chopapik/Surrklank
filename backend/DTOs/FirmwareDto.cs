@@ -1,4 +1,4 @@
-namespace ElectromechanicalMidi.DTOs;
+namespace Surrklank.DTOs;
 
 public sealed record FirmwareDto(
     string Stage,

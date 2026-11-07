@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ElectromechanicalMidi.DTOs;
+namespace Surrklank.DTOs;
 
 public sealed record ConnectionDto(
     string State,
