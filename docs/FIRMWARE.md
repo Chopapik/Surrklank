@@ -150,9 +150,12 @@ sampling QH before the first rising edge. These are configured delays;
 they are software delays, not an electrical signal-integrity qualification.
 
 An ESP timer wakes the dedicated motion task every 100 microseconds; the timer
-callback itself does not shift registers or send BLE data. After a falling STEP edge is latched, its
-next deadline and LOW duration are based on the post-latch timestamp, so time
-spent preparing the register image cannot shorten the pulse or step interval.
+callback itself does not shift registers or send BLE data. STEP deadlines follow
+an absolute per-drive cadence, so small dispatch and register-transfer delays do
+not accumulate into a lower average rate. If dispatch is more than half a period
+late, a fresh full period is scheduled to avoid a catch-up burst; playing delays
+over two periods still fault. The LOW hold is referenced to the post-latch
+timestamp and pulses are completed in the same motion iteration.
 Task scheduling and BLE load can still delay edges; electrical accuracy is not
 established by this scheduling rule.
 The motion task completes all pending LOW pulses before releasing its mutex.

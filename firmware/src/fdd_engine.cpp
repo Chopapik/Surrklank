@@ -228,7 +228,9 @@ void fdd::Engine::tick(int64_t now, uint8_t track0) {
         }
         d.step_low = true;
         d.raised = now + step_low_us;
-        d.due = now + period;
+        // Keep the cadence on its deadline grid; small dispatch delays must not accumulate.
+        // A substantial overrun starts a fresh period rather than a catch-up pulse.
+        d.due = now - d.due > period / 2 ? now + period : d.due + period;
         ++s.steps;
         ++d.seek;
         if (s.toward_zero)
@@ -268,7 +270,6 @@ void fdd::Engine::steps_latched(uint32_t before, uint32_t after, int64_t schedul
         const int bit = (i / 2) * 8 + (i % 2 ? 1 : 4);
         const uint32_t step = 1UL << bit;
         if ((before & step) && !(after & step)) {
-            drives[i].due += delay;
             drives[i].raised += delay;
         }
     }

@@ -63,7 +63,7 @@ struct Simulation {
     }
 };
 int main() {
-    // A delayed register write must not shorten either the pulse or next interval.
+    // Register latency extends the LOW hold but must not move the cadence grid.
     {
         fdd::Engine engine;
         auto &drive = engine.drives[0];
@@ -73,19 +73,48 @@ int main() {
         drive.state.left = true;
         drive.state.toward_zero = false;
         auto before = engine.outputs();
+        drive.due = 10000;
         engine.tick(10000, 0);
         auto after = engine.outputs();
         engine.steps_latched(before, after, 10000, 10350);
         assert(drive.raised == 10350 + fdd::step_low_us);
-        assert(drive.due == 20350);
+        assert(drive.due == 20000);
         engine.tick(10350 + fdd::step_low_us - 1, 0);
         assert(drive.step_low);
         engine.tick(10350 + fdd::step_low_us, 0);
         assert(!drive.step_low);
-        engine.tick(20349, 0);
+        engine.tick(19999, 0);
         assert(!drive.step_low);
-        engine.tick(20350, 0);
+        engine.tick(20000, 0);
         assert(drive.step_low);
+    }
+    // Varying task and register delays do not accumulate over a 100 Hz run.
+    {
+        fdd::Engine engine;
+        auto &d = engine.drives[0];
+        d.state.phase = fdd::Phase::playing;
+        d.state.rate = 100000;
+        d.state.duration = 1000;
+        d.state.left = true;
+        d.state.toward_zero = false;
+        d.due = 10000;
+        for (int i = 0; i < 50; ++i) {
+            int64_t now = 10000 + i * 10000 + (i % 3) * 100;
+            auto before = engine.outputs();
+            engine.tick(now, 0);
+            assert(d.step_low);
+            engine.steps_latched(before, engine.outputs(), now, now + 70);
+            assert(d.due == 10000 + (i + 1) * 10000);
+            engine.finish_pulses();
+        }
+        // A late dispatch must not trigger a burst immediately afterwards.
+        engine.tick(d.due + 7500, 0);
+        const auto next = d.due;
+        engine.finish_pulses();
+        engine.tick(next - 1, 0);
+        assert(!d.step_low);
+        engine.tick(next, 0);
+        assert(d.step_low);
     }
     {
         laboratory::EventHistory history;
