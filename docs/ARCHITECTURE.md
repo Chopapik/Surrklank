@@ -138,3 +138,12 @@ application, so an isolated final ATX/firmware event can remain unseen until rec
 The backend reconciles detected sequence gaps and explicit ATX commands with a
 one-shot INFO request; it does not poll ATX periodically. Physical ATX output
 voltage and PWR_OK are not measured.
+
+## Timing correspondence
+
+LaboratoryService owns reserved, read-only clock and event-history exchanges.
+LaboratoryController exposes `/api/laboratory/clock` and `/api/laboratory/events`.
+The single WebSocket sender additionally publishes the last requested
+`laboratory_timing` history envelope. Replay buffers can overwrite old events;
+clients must detect gaps and restarts. Replay never substitutes for live state
+or initiates motion. See [timing contract](BLE-PROTOCOL.md#laboratory-timing-v1).

@@ -9,6 +9,22 @@ namespace Surrklank.Features.Laboratory;
 [Route("api/laboratory")]
 public sealed class LaboratoryController(LaboratoryService laboratory) : ControllerBase
 {
+    [HttpPost("clock")]
+    public async Task<IActionResult> ClockAsync(CancellationToken token)
+    {
+        if (!LocalOrigin.IsAllowed(Request)) return StatusCode(403, new { message = "Local origin required" });
+        try { return Ok(await laboratory.ReadClockAsync(token)); }
+        catch (DeviceBusyException ex) { return Conflict(new { message = ex.Message, operation = ex.Operation }); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { return StatusCode(503, new { message = ex.Message }); }
+    }
+    [HttpPost("events")]
+    public async Task<IActionResult> EventsAsync([FromQuery] uint after, CancellationToken token)
+    {
+        if (!LocalOrigin.IsAllowed(Request)) return StatusCode(403, new { message = "Local origin required" });
+        try { return Ok(await laboratory.ReadTimingAsync(after, token)); }
+        catch (DeviceBusyException ex) { return Conflict(new { message = ex.Message, operation = ex.Operation }); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { return StatusCode(503, new { message = ex.Message }); }
+    }
     [HttpPost("play")]
     public async Task<IActionResult> PlayAsync(LaboratoryPlayRequestDto request, CancellationToken cancellationToken)
     {

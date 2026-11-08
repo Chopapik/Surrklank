@@ -3,8 +3,62 @@ using Surrklank.Features.Laboratory.DTOs;
 
 namespace Surrklank.Features.Laboratory;
 
-public sealed class LaboratoryService(IDeviceConnection connection, LaboratoryState state, PlayLaboratoryBatchUseCase play)
+public sealed class LaboratoryService(IDeviceConnection connection, LaboratoryState state, PlayLaboratoryBatchUseCase play, Surrklank.Features.Application.StateService updates)
 {
+    private readonly object _timingLock = new();
+    private object? _timing;
+    public object? TimingSnapshot() { lock (_timingLock) return _timing; }
+    public async Task<object> ReadTimingAsync(uint after, CancellationToken token)
+    {
+        using var operation = await connection.ReserveAsync("laboratory_timing", token);
+        RequireReady(connection, state);
+        using var clock = ParseTimingReply(await operation.SendCommandAsync("LAB CLOCK", token));
+        var clockValue = clock.RootElement.Clone();
+        if (!clockValue.TryGetProperty("timing_version", out var version) || version.GetInt32() != 1)
+            throw new InvalidOperationException("Firmware does not support timing v1");
+        var events = new List<System.Text.Json.JsonElement>();
+        uint cursor = after;
+        bool gap = false;
+        for (int i = 0; i < 128; i++)
+        {
+            using var response = ParseTimingReply(await operation.SendCommandAsync($"LAB EVENT {cursor}", token));
+            var root = response.RootElement;
+            if (root.GetProperty("esp_boot_id").GetUInt32() != clockValue.GetProperty("esp_boot_id").GetUInt32())
+                throw new InvalidOperationException("ESP32 restarted during timing capture");
+            var e = root.GetProperty("event");
+            if (e.ValueKind == System.Text.Json.JsonValueKind.Null) {
+                if (cursor > root.GetProperty("latest").GetUInt32()) gap = true;
+                break;
+            }
+            uint sequence = e.GetProperty("event_sequence").GetUInt32();
+            if (sequence <= cursor) throw new InvalidOperationException("Invalid event sequence");
+            gap |= sequence != cursor + 1;
+            events.Add(e.Clone()); cursor = sequence;
+            if (cursor == root.GetProperty("latest").GetUInt32()) break;
+        }
+        object result = new { type = "laboratory_timing", clock = clockValue, after, next = cursor, gap, events };
+        lock (_timingLock) _timing = result;
+        updates.Publish();
+        return result;
+    }
+    public async Task<System.Text.Json.JsonElement> ReadClockAsync(CancellationToken token)
+    {
+        using var operation = await connection.ReserveAsync("laboratory_clock", token);
+        RequireReady(connection, state);
+        using var response = ParseTimingReply(await operation.SendCommandAsync("LAB CLOCK", token));
+        var root = response.RootElement;
+        if (!root.TryGetProperty("timing_version", out var version) || version.GetInt32() != 1)
+            throw new InvalidOperationException("Firmware does not support timing v1");
+        return root.Clone();
+    }
+    private static System.Text.Json.JsonDocument ParseTimingReply(string reply)
+    {
+        try { return System.Text.Json.JsonDocument.Parse(reply); }
+        catch (System.Text.Json.JsonException ex)
+        {
+            throw new InvalidOperationException("Firmware timing v1 is unavailable or returned an invalid reply", ex);
+        }
+    }
     public Task<uint> PlayAsync(LaboratoryPlayRequestDto request, CancellationToken cancellationToken) => play.ExecuteAsync(request, cancellationToken);
     public async Task StopAsync(LaboratoryStopRequestDto? request, CancellationToken cancellationToken)
     {

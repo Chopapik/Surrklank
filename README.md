@@ -54,6 +54,11 @@ same `/ws`. Stop and wait for parking
 before switching ATX off or uploading firmware. The physical ATX button is
 ignored while Laboratory owns the drives.
 
+Timing-capable firmware also retains a bounded FDD event history with ESP32
+monotonic timestamps. Integrations can query clock correspondence and replay
+history through the [timing API](docs/BLE-PROTOCOL.md#laboratory-timing-v1).
+Timestamp precision is not independently validated synchronization accuracy.
+
 ## Firmware maintenance
 
 Isolate the ESP32 before an upload: USB only, with ATX and register/instrument

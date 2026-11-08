@@ -1,3 +1,4 @@
+#include "laboratory_timing.h"
 #include "fdd_engine.h"
 #include <cassert>
 #include <cstdio>
@@ -62,6 +63,23 @@ struct Simulation {
     }
 };
 int main() {
+    {
+        laboratory::EventHistory history;
+        fdd::State state;
+        history.observe(1, state, 1);
+        assert(history.latest == 0);
+        state.phase = fdd::Phase::playing; state.batch = 7;
+        history.observe(1, state, 100);
+        history.observe(1, state, 101);
+        assert(history.latest == 1 && history.after(0)->time_us == 100);
+        for (unsigned i = 0; i < 140; ++i) {
+            state.toward_zero = !state.toward_zero;
+            history.observe(1, state, 200 + i);
+        }
+        assert(history.after(0)->sequence == history.latest - 127);
+        assert(history.after(history.latest) == nullptr);
+    }
+
     // SELECT is active LOW at the documented QG/QD outputs, independently of STEP/DIR.
     {
         Simulation s;

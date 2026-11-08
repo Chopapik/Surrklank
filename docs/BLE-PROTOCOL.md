@@ -128,3 +128,38 @@ OTA upgrade. It cannot publish FFF2 events, so its flash-ready check uses
 bounded reads. Images advertising event version 1 require a successful FFF2
 subscription. The backend translates device state into JSON snapshots on the
 browser's existing `/ws`; its socket remains open while the ESP32 reboots.
+
+## Laboratory timing v1
+
+Timing is an additive FFF1 extension; existing FFF2 frames and UUIDs are unchanged.
+`LAB CLOCK` returns `timing_version: 1`, a boot-scoped random uint32
+`esp_boot_id`, `event_cursor`, `esp_receive_time_us`, and `esp_send_time_us`.
+The receive stamp is taken on entry to the Laboratory command handler; the send
+stamp is taken before reply formatting, not on-air transmission. Both use
+`esp_timer_get_time()`. The exchange includes native transport and reply work.
+The boot identifier distinguishes restarts probabilistically; it is not a persistent identity.
+
+`LAB EVENT <cursor>` returns the oldest retained event newer than the cursor,
+plus `esp_boot_id` and `latest`. `event` is null when none remains. Events contain
+`event_sequence`, `device`, `batch`, `state`, `toward_zero`, `esp_event_time_us`.
+The fixed ring retains 128 phase/direction/batch changes across all eight FDDs.
+A first returned sequence greater than cursor+1 means records were overwritten.
+No per-STEP events are emitted. Sequence wrap is outside timing v1's supported
+capture lifetime; restart or a cursor ahead of latest requires a new capture.
+
+Events are captured under the engine lock: command-side transitions after command
+execution; worker transitions after output update (or pin release). These are
+software observation times, not exact latch-edge, sensor-motion or audio times.
+Only bounded memory operations occur in the motion path; replay is request-driven.
+Older firmware rejects the extension without changing motion commands.
+
+`POST /api/laboratory/clock` performs one reserved clock exchange.
+`POST /api/laboratory/events?after=N` drains up to 128 retained events under one
+native reservation and returns `type: laboratory_timing`, `clock`, `after`, `next`,
+`gap`, and `events`. Local Origin is required, as for play/stop. Busy is 409;
+unsupported timing, malformed replies, disconnection or reboot during replay is 503.
+The envelope is also published on `/ws` after replay and on subsequent snapshots.
+It is retained history, not a continuously pushed live event stream: consumers
+must refresh through the endpoint, deduplicate by boot/sequence, and never treat
+socket arrival as event time. Clock stamps are ESP boot-relative microseconds;
+backend-created notifications do not acquire fabricated ESP timestamps.

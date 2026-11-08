@@ -2,6 +2,8 @@
 #include "atx_power.h"
 #include "driver/gpio.h"
 #include "esp_timer.h"
+#include "esp_random.h"
+#include "laboratory_timing.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
@@ -12,6 +14,8 @@
 
 namespace {
 fdd::Engine engine;
+laboratory::EventHistory history;
+uint32_t boot_id;
 SemaphoreHandle_t mutex;
 TaskHandle_t task;
 using Listener = void (*)(int, fdd::State);
@@ -101,6 +105,8 @@ void worker(void *) {
                 previous = image;
             }
         }
+        for (int i = 0; i < 8; ++i)
+            history.observe(i + 1, engine.drives[i].state, esp_timer_get_time());
         if (!engine.busy())
             atx::release_instruments();
         for (int i = 0; i < 8; ++i) {
@@ -127,6 +133,7 @@ void timer(void *) {
 }
 } // namespace
 esp_err_t laboratory::init() {
+    boot_id = esp_random();
     mutex = xSemaphoreCreateMutex();
     if (!mutex)
         return ESP_ERR_NO_MEM;
@@ -143,6 +150,28 @@ void laboratory::set_listener(void (*callback)(int, fdd::State)) {
     listener = callback;
 }
 void laboratory::command(const char *text, char *reply, size_t capacity) {
+    int64_t received = esp_timer_get_time();
+    if (!strcmp(text, "LAB CLOCK")) {
+        xSemaphoreTake(mutex, portMAX_DELAY);
+        uint32_t cursor = history.latest;
+        xSemaphoreGive(mutex);
+        snprintf(reply, capacity, "{\"timing_version\":1,\"event_cursor\":%lu,\"esp_boot_id\":%lu,\"esp_receive_time_us\":%lld,\"esp_send_time_us\":%lld}",
+                 (unsigned long)cursor, (unsigned long)boot_id, (long long)received, (long long)esp_timer_get_time());
+        return;
+    }
+    unsigned cursor = 0;
+    char trailing = 0;
+    if (sscanf(text, "LAB EVENT %u %c", &cursor, &trailing) == 1) {
+        xSemaphoreTake(mutex, portMAX_DELAY);
+        auto e = history.after(cursor);
+        if (e) {
+            snprintf(reply, capacity, "{\"esp_boot_id\":%lu,\"latest\":%lu,\"event\":{\"event_sequence\":%lu,\"batch\":%lu,\"device\":%u,\"state\":\"%s\",\"toward_zero\":%s,\"esp_event_time_us\":%lld}}",
+                     (unsigned long)boot_id, (unsigned long)history.latest, (unsigned long)e->sequence,
+                     (unsigned long)e->batch, e->device, fdd::name(e->phase), e->toward_zero ? "true" : "false", (long long)e->time_us);
+        } else snprintf(reply, capacity, "{\"esp_boot_id\":%lu,\"latest\":%lu,\"event\":null}", (unsigned long)boot_id, (unsigned long)history.latest);
+        xSemaphoreGive(mutex);
+        return;
+    }
     unsigned batch = 0, mask = 0, device = 0, rate = 0, duration = 0;
     char end = 0;
     xSemaphoreTake(mutex, portMAX_DELAY);
@@ -180,6 +209,8 @@ void laboratory::command(const char *text, char *reply, size_t capacity) {
         engine.stop_all(now);
         ok = true;
     }
+    for (int i = 0; i < 8; ++i)
+        history.observe(i + 1, engine.drives[i].state, esp_timer_get_time());
     if (!engine.busy())
         atx::release_instruments();
     snprintf(reply, capacity, "%s", ok ? "LAB OK" : "ERR LAB BUSY OR INVALID");

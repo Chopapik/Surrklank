@@ -43,8 +43,11 @@ sector index, packet sequence and data; the final packet of a sector contains
 its CRC16-XMODEM. Sectors contain at most 4096 firmware bytes, with official
 sector receipts. The sender introduces no separate data or credit protocol.
 
-The sender respects the advertised window, capped at three sectors with
-495-byte ATT payloads or one sector with smaller payloads. SimpleBLE 1.2.0
+The sender uses one sector in flight, awaiting its receipt before sending the
+next. This bounds receiver queue pressure during flash erase/write stalls.
+After each full 64 KiB group it waits one second before the next group.
+This pacing is not an acknowledgment of committed flash; final ready/identity
+verification remains mandatory. SimpleBLE 1.2.0
 reports the write-without-response payload length on macOS. Other platforms
 use a 20-byte payload until their native behavior is verified; their OTA
 throughput is unknown. An ACK means a sector was accepted into the application
@@ -161,3 +164,12 @@ faults have not been exercised physically. Keep ATX OFF during uploads.
 
 References: [Espressif BLE OTA example](https://github.com/espressif/esp-iot-solution/tree/5fbb2597b88f21ec41e952f81292ccd6ae569761/examples/bluetooth/ble_profiles/ble_ota),
 [ESP-IDF OTA](https://docs.espressif.com/projects/esp-idf/en/v5.5/esp32/api-reference/system/ota.html).
+
+## Timestamped FDD history
+
+`laboratory_timing.h` owns a fixed 128-event ring, accessed through the engine
+mutex in `fdd_control.cpp`. It records changes of phase, direction and batch
+with boot-relative microsecond timestamps. FFF1 provides clock queries and
+cursor-based replay; the motion worker performs no replay I/O. These timestamps
+are software observations, not independently measured physical transitions.
+See [timing v1](BLE-PROTOCOL.md#laboratory-timing-v1) for time boundaries and limits.

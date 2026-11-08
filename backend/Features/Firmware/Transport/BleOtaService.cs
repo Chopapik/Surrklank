@@ -132,7 +132,8 @@ public sealed class BleOtaService
             await client.SubscribeAsync(Service, Firmware, data => Receive(receipts, data), cancellation);
             firmwareSubscribed = true;
             var ack = await Control(1, checked((uint)image.Length));
-            int window = Math.Max(1, Math.Min(capacity >= 495 ? 3 : 1, (int)ack[6]));
+            // Stop-and-wait avoids queue pressure during flash erase/write stalls.
+            int window = 1;
             int sectors = (image.Length + 4095) / 4096;
             if (sectors > ushort.MaxValue + 1)
                 throw new InvalidOperationException("Firmware image exceeds OTA sector limit");
@@ -192,6 +193,11 @@ public sealed class BleOtaService
                             duplicate_receipts = duplicates
                         });
                 }
+                // Sector receipts acknowledge queueing, not flash completion. The
+                // receiver flushes 64 KiB blocks; let that worker finish before
+                // feeding the next block while flash operations stall BLE work.
+                if ((first + 1) % 16 == 0 && first + 1 < sectors)
+                    await Task.Delay(1000, cancellation);
             }
             await Control(2);
         }
