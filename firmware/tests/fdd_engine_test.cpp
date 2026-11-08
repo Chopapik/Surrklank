@@ -63,6 +63,30 @@ struct Simulation {
     }
 };
 int main() {
+    // A delayed register write must not shorten either the pulse or next interval.
+    {
+        fdd::Engine engine;
+        auto &drive = engine.drives[0];
+        drive.state.phase = fdd::Phase::playing;
+        drive.state.rate = 100000;
+        drive.state.duration = 1000;
+        drive.state.left = true;
+        drive.state.toward_zero = false;
+        auto before = engine.outputs();
+        engine.tick(10000, 0);
+        auto after = engine.outputs();
+        engine.steps_latched(before, after, 10000, 10350);
+        assert(drive.raised == 10350 + fdd::step_low_us);
+        assert(drive.due == 20350);
+        engine.tick(10350 + fdd::step_low_us - 1, 0);
+        assert(drive.step_low);
+        engine.tick(10350 + fdd::step_low_us, 0);
+        assert(!drive.step_low);
+        engine.tick(20349, 0);
+        assert(!drive.step_low);
+        engine.tick(20350, 0);
+        assert(drive.step_low);
+    }
     {
         laboratory::EventHistory history;
         fdd::State state;

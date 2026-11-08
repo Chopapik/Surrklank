@@ -3,6 +3,7 @@
 #include "driver/gpio.h"
 #include "esp_timer.h"
 #include "esp_random.h"
+#include "esp_rom_sys.h"
 #include "laboratory_timing.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -18,6 +19,9 @@ laboratory::EventHistory history;
 uint32_t boot_id;
 SemaphoreHandle_t mutex;
 TaskHandle_t task;
+TaskHandle_t reporting_task;
+fdd::State pending_reports[8];
+uint8_t pending_report_mask = 0;
 using Listener = void (*)(int, fdd::State);
 std::atomic<Listener> listener{nullptr};
 constexpr gpio_num_t data = GPIO_NUM_23, clock595 = GPIO_NUM_18, latch = GPIO_NUM_22, oe = GPIO_NUM_21,
@@ -40,7 +44,9 @@ void setup() {
     ESP_ERROR_CHECK(gpio_config(&config));
     for (int i = 0; i < 24; ++i) {
         gpio_set_level(clock595, 1);
+        esp_rom_delay_us(1);
         gpio_set_level(clock595, 0);
+        esp_rom_delay_us(1);
     }
     gpio_set_level(dvd_latch, 1);
     gpio_set_level(dvd_latch, 0);
@@ -48,25 +54,34 @@ void setup() {
     config.mode = GPIO_MODE_INPUT;
     ESP_ERROR_CHECK(gpio_config(&config));
 }
-void write(uint32_t image) {
+int64_t write(uint32_t image) {
     gpio_set_level(latch, 0);
     for (int bit = 31; bit >= 0; --bit) {
         gpio_set_level(data, (image >> bit) & 1);
+        esp_rom_delay_us(1);
         gpio_set_level(clock595, 1);
+        esp_rom_delay_us(1);
         gpio_set_level(clock595, 0);
     }
     gpio_set_level(latch, 1);
+    int64_t edge = esp_timer_get_time();
+    esp_rom_delay_us(1);
     gpio_set_level(latch, 0);
+    return edge;
 }
 uint8_t read() {
     gpio_set_level(load, 0);
+    esp_rom_delay_us(1);
     gpio_set_level(load, 1);
+    esp_rom_delay_us(1);
     uint8_t bits = 0;
     for (int bit = 7; bit >= 0; --bit) {
         if (!gpio_get_level(input))
             bits |= 1 << bit;
         gpio_set_level(clock165, 1);
+        esp_rom_delay_us(1);
         gpio_set_level(clock165, 0);
+        esp_rom_delay_us(1);
     }
     return bits;
 }
@@ -80,8 +95,7 @@ void worker(void *) {
     int64_t published[8] = {};
     for (;;) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        fdd::State reports[8];
-        bool changed[8] = {};
+        bool report_ready = false;
         xSemaphoreTake(mutex, portMAX_DELAY);
         int64_t now = esp_timer_get_time();
         bool on = atx::is_on();
@@ -98,11 +112,24 @@ void worker(void *) {
             engine.power_lost();
         }
         if (powered) {
-            engine.tick(now, read());
+            const uint8_t sensors = read();
+            now = esp_timer_get_time();
+            engine.tick(now, sensors);
             uint32_t image = engine.outputs();
             if (image != previous) {
-                write(image);
+                const int64_t edge = write(image);
+                engine.steps_latched(previous, image, now, edge);
                 previous = image;
+                // Complete STEP before yielding or publishing.
+                bool pulsing = false;
+                for (const auto &drive : engine.drives)
+                    pulsing |= drive.step_low;
+                if (pulsing) {
+                    esp_rom_delay_us(fdd::step_low_us);
+                    engine.finish_pulses();
+                    previous = engine.outputs();
+                    write(previous);
+                }
             }
         }
         for (int i = 0; i < 8; ++i)
@@ -116,14 +143,30 @@ void worker(void *) {
                     ++state.sequence;
                 sequences[i] = state.sequence;
                 published[i] = now;
-                reports[i] = state;
-                changed[i] = true;
+                pending_reports[i] = state;
+                pending_report_mask |= 1 << i;
+                report_ready = true;
             }
         }
         xSemaphoreGive(mutex);
+        if (report_ready)
+            xTaskNotifyGive(reporting_task);
+    }
+}
+void report_worker(void *) {
+    for (;;) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        fdd::State reports[8];
+        xSemaphoreTake(mutex, portMAX_DELAY);
+        const uint8_t changed = pending_report_mask;
+        pending_report_mask = 0;
+        for (int i = 0; i < 8; ++i)
+            if (changed & (1 << i))
+                reports[i] = pending_reports[i];
+        xSemaphoreGive(mutex);
         auto callback = listener.load();
         for (int i = 0; i < 8; ++i)
-            if (changed[i] && callback)
+            if ((changed & (1 << i)) && callback)
                 callback(i + 1, reports[i]);
     }
 }
@@ -137,8 +180,12 @@ esp_err_t laboratory::init() {
     mutex = xSemaphoreCreateMutex();
     if (!mutex)
         return ESP_ERR_NO_MEM;
-    if (xTaskCreate(worker, "fdd", 4096, nullptr, 10, &task) != pdPASS)
+    if (xTaskCreate(report_worker, "fdd_reports", 4096, nullptr, 5, &reporting_task) != pdPASS)
         return ESP_ERR_NO_MEM;
+    if (xTaskCreate(worker, "fdd", 4096, nullptr, 10, &task) != pdPASS) {
+        vTaskDelete(reporting_task);
+        return ESP_ERR_NO_MEM;
+    }
     esp_timer_create_args_t args = {};
     args.callback = timer;
     args.name = "fdd_tick";

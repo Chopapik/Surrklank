@@ -12,6 +12,7 @@ dependencies, not application source.
 pio run -d firmware -e esp32
 python3 firmware/tests/test_atx_power.py
 python3 firmware/tests/test_fdd.py
+python3 firmware/tests/test_fdd_control.py
 ```
 
 These commands build/check locally and do not connect to a physical ESP32.
@@ -132,16 +133,36 @@ and checks the drive again. Manual STOP still completes the current pulse and
 parks at 100 steps/s.
 
 The implementation profile permits 1–300 STEP pulses/s for 1–60000 ms.
-STEP is LOW for at least 200 microseconds. Homing/parking uses a 120-pulse or
+Each STEP is completed in the motion task: latch LOW, wait 30 microseconds,
+then shift and latch HIGH.
+The LOW interval includes that wait plus the HIGH-frame transfer and may be
+extended by preemption; 30 microseconds is not a measured physical pulse width.
+Homing/parking uses a 120-pulse or
 two-second limit per seek phase. Playing returns also have a 120-pulse limit.
 Late playing work beyond two requested periods faults rather than emitting
 catch-up pulses. These values are software bounds, not measured accuracy or
 a verified operating range for a particular FDD. Requested STEP frequency
 does not guarantee an exact acoustic pitch; direction guards add pauses.
 
-An ESP timer wakes the dedicated task every 100 microseconds; the timer
-callback itself does not shift registers or send BLE data. Notifications are
-sent outside the engine mutex. FFF2 telemetry and one-shot commands are
+The 595 serializer uses one-microsecond DATA setup and CLOCK HIGH delays.
+The 165 reader uses one-microsecond load/settle and clock half-period delays,
+sampling QH before the first rising edge. These are configured delays;
+they are software delays, not an electrical signal-integrity qualification.
+
+An ESP timer wakes the dedicated motion task every 100 microseconds; the timer
+callback itself does not shift registers or send BLE data. After a falling STEP edge is latched, its
+next deadline and LOW duration are based on the post-latch timestamp, so time
+spent preparing the register image cannot shorten the pulse or step interval.
+Task scheduling and BLE load can still delay edges; electrical accuracy is not
+established by this scheduling rule.
+The motion task completes all pending LOW pulses before releasing its mutex.
+It hands snapshots to a fixed per-drive mailbox. A separate lower-priority task
+copies and clears the mailbox under the mutex, then sends notifications outside
+it. Slow BLE delivery can coalesce intermediate telemetry snapshots but cannot
+block the motion task in a notification call. Phase/direction events remain in
+the separate bounded event history. Task scheduling can still delay motion;
+offline tests do not establish acoustic improvement or timing under radio load.
+FFF2 telemetry and one-shot commands are
 described in [BLE-PROTOCOL.md](BLE-PROTOCOL.md).
 
 The adapter initializes register outputs only while ATX output is requested

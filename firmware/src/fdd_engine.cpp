@@ -8,7 +8,7 @@ bool moving(fdd::Phase p) {
     return p == fdd::Phase::homing || p == fdd::Phase::checking_out || p == fdd::Phase::checking_return ||
            p == fdd::Phase::playing || p == fdd::Phase::parking;
 }
-constexpr int64_t seek_period = 10000, pulse_width = 200, direction_guard = 5000;
+constexpr int64_t seek_period = 10000, direction_guard = 5000;
 constexpr unsigned seek_limit = 120;
 } // namespace
 bool fdd::Engine::busy() const {
@@ -227,7 +227,7 @@ void fdd::Engine::tick(int64_t now, uint8_t track0) {
             continue;
         }
         d.step_low = true;
-        d.raised = now + pulse_width;
+        d.raised = now + step_low_us;
         d.due = now + period;
         ++s.steps;
         ++d.seek;
@@ -261,6 +261,21 @@ void fdd::Engine::tick(int64_t now, uint8_t track0) {
             mask = 0;
         }
     }
+}
+void fdd::Engine::steps_latched(uint32_t before, uint32_t after, int64_t scheduled_at, int64_t latched_at) {
+    const int64_t delay = latched_at - scheduled_at;
+    for (int i = 0; i < count; ++i) {
+        const int bit = (i / 2) * 8 + (i % 2 ? 1 : 4);
+        const uint32_t step = 1UL << bit;
+        if ((before & step) && !(after & step)) {
+            drives[i].due += delay;
+            drives[i].raised += delay;
+        }
+    }
+}
+void fdd::Engine::finish_pulses() {
+    for (auto &drive : drives)
+        drive.step_low = false;
 }
 uint32_t fdd::Engine::outputs() const {
     uint32_t image = 0;

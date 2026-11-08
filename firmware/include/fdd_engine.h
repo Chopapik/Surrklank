@@ -3,6 +3,7 @@
 
 namespace fdd {
 constexpr int count = 8;
+constexpr unsigned step_low_us = 30;
 enum class Phase : uint8_t {
     unknown,
     staged,
@@ -56,6 +57,8 @@ class Engine {
     void stop_all(int64_t now);
     void power_lost();
     void tick(int64_t now, uint8_t track0);
+    void steps_latched(uint32_t before, uint32_t after, int64_t scheduled_at, int64_t latched_at);
+    void finish_pulses();
     uint32_t outputs() const;
 
   private:
