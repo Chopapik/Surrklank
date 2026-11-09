@@ -21,6 +21,7 @@ void one_iteration(void (*function)(void*)) {
 }
 int main() {
     assert(laboratory::init() == ESP_OK);
+    assert(task_cores.at("fdd") == 1);
     laboratory::set_listener(slow_ble);
     setup();
     input_image = 0xa5;

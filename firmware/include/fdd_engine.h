@@ -38,7 +38,7 @@ struct State {
 struct Drive {
     State state;
     bool configured = false, step_low = false, parking_requested = false;
-    unsigned leg = 0, seek = 0;
+    unsigned leg = 0, seek = 0, startup_steps = 0;
     int64_t due = 0, raised = 0, started = 0, deadline = 0;
 };
 class Engine {

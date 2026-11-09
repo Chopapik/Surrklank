@@ -2,6 +2,7 @@
 #include "fdd_engine.h"
 #include <cassert>
 #include <cstdio>
+#include <initializer_list>
 
 struct Simulation {
     fdd::Engine engine;
@@ -63,6 +64,90 @@ struct Simulation {
     }
 };
 int main() {
+    // High-rate profiles complete repeated sensor-confirmed traverses and still
+    // fault at the existing return limit when TRACK0 disappears during playing.
+    for (uint32_t rate : {200000u, 300000u}) {
+        Simulation sim;
+        sim.prepare(1, 1);
+        auto &state = sim.engine.drives[0].state;
+        state.rate = rate;
+        state.duration = 8000;
+        assert(sim.engine.commit(1, sim.now));
+        sim.run(8100000);
+        assert(state.phase == fdd::Phase::stopped && state.error == fdd::Error::none);
+        assert(sim.played[0] > 1000 && sim.played[0] < rate / 1000 * 8);
+        assert(sim.position[0] >= 0 && sim.position[0] <= 70);
+
+        sim.prepare(2, 1);
+        auto &again = sim.engine.drives[0].state;
+        again.rate = rate;
+        assert(sim.engine.commit(2, sim.now));
+        sim.run(50000);
+        sim.absent[0] = true;
+        sim.run(2000000);
+        assert(again.phase == fdd::Phase::error && again.error == fdd::Error::return_timeout);
+        assert(again.return_steps == 120);
+    }
+    // High-rate playback starts gradually and then keeps the requested cadence.
+    for (uint32_t rate : {100000u, 120000u, 199999u, 200000u, 300000u}) {
+        fdd::Engine engine;
+        auto &d = engine.drives[0];
+        d.state.phase = fdd::Phase::playing;
+        d.state.rate = rate;
+        d.state.duration = 3000;
+        d.state.left = true;
+        d.state.toward_zero = false;
+        d.due = 10000;
+        int64_t previous_period = 10000;
+        for (int step = 0; step < 16; ++step) {
+            const int64_t now = d.due;
+            engine.tick(now, 0);
+            assert(d.step_low);
+            const int64_t period = d.due - now;
+            if (rate < 200000 || step >= 8)
+                assert(period == 1000000000LL / rate);
+            else {
+                assert(period <= previous_period && period >= 1000000000LL / rate);
+                if (step == 0) assert(period == 10000);
+            }
+            previous_period = period;
+            engine.finish_pulses();
+        }
+        // A reversal retains the plateau; it must not restart the tone ramp.
+        d.state.toward_zero = true;
+        engine.tick(d.due, 1);
+        assert(!d.state.toward_zero);
+        auto now = d.due;
+        engine.tick(now, 0);
+        assert(d.step_low && d.due - now == 1000000000LL / rate);
+    }
+    // The outward limit retains the plateau, then allows a longer reversal pause.
+    {
+        fdd::Engine engine;
+        auto &d = engine.drives[0];
+        d.state.phase = fdd::Phase::playing;
+        d.state.rate = 300000;
+        d.state.duration = 3000;
+        d.state.left = true;
+        d.state.toward_zero = false;
+        d.state.position = 62;
+        d.leg = d.seek = 62;
+        d.startup_steps = 8;
+        d.due = 10000;
+
+        for (int i = 0; i < 8; ++i) {
+            const auto now = d.due;
+            engine.tick(now, 0);
+            assert(d.step_low && !d.state.toward_zero);
+            const auto period = d.due - now;
+            assert(period == 1000000000LL / 300000);
+            engine.finish_pulses();
+        }
+        const auto limit = d.due;
+        engine.tick(limit, 0);
+        assert(!d.step_low && d.state.toward_zero && d.leg == 70);
+        assert(d.due >= limit + 15000);
+    }
     // Register latency extends the LOW hold but must not move the cadence grid.
     {
         fdd::Engine engine;

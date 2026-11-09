@@ -1,6 +1,7 @@
 #include "fdd_control.h"
 #include "atx_power.h"
 #include "driver/gpio.h"
+#include "driver/gptimer.h"
 #include "esp_timer.h"
 #include "esp_random.h"
 #include "esp_rom_sys.h"
@@ -29,6 +30,49 @@ constexpr gpio_num_t data = GPIO_NUM_23, clock595 = GPIO_NUM_18, latch = GPIO_NU
 constexpr gpio_num_t load = GPIO_NUM_33, clock165 = GPIO_NUM_32, input = GPIO_NUM_34;
 bool powered = false;
 uint32_t previous = 0;
+// Temporary bench instrumentation. Captures software latch timestamps only;
+// printing happens in the report task after a drive reaches a terminal state.
+struct CadenceProbe {
+    uint32_t batch = 0, intervals = 0, outside_100us = 0, widths = 0;
+    int64_t last = 0, sum = 0, squares = 0;
+    int minimum = 1000000000, maximum = 0, low_minimum = 1000000000, low_maximum = 0;
+    bool plateau = false, toward_zero = false, reported = false;
+};
+CadenceProbe probes[8];
+void probe_edges(uint32_t before, uint32_t after, int64_t edge) {
+    for (int i = 0; i < 8; ++i) {
+        const auto &drive = engine.drives[i];
+        const auto &s = drive.state;
+        const uint32_t bit = 1UL << ((i / 2) * 8 + (i % 2 ? 1 : 4));
+        auto &p = probes[i];
+        if ((before & bit) && !(after & bit) && s.phase == fdd::Phase::playing) {
+            if (p.batch != s.batch) {
+                p = CadenceProbe{};
+                p.batch = s.batch;
+            }
+            const bool plateau = s.rate < 200000 ||
+                (drive.startup_steps >= 8 && drive.seek > 2);
+            if (p.last && plateau && p.plateau && p.toward_zero == s.toward_zero) {
+                const int gap = int(edge - p.last);
+                const int64_t error = gap - 1000000000LL / s.rate;
+                ++p.intervals;
+                p.sum += gap;
+                p.squares += int64_t(gap) * gap;
+                if (gap < p.minimum) p.minimum = gap;
+                if (gap > p.maximum) p.maximum = gap;
+                if (error < -100 || error > 100) ++p.outside_100us;
+            }
+            p.last = edge;
+            p.plateau = plateau;
+            p.toward_zero = s.toward_zero;
+        } else if (!(before & bit) && (after & bit) && s.phase == fdd::Phase::playing && p.last) {
+            const int width = int(edge - p.last);
+            ++p.widths;
+            if (width < p.low_minimum) p.low_minimum = width;
+            if (width > p.low_maximum) p.low_maximum = width;
+        }
+    }
+}
 void setup() {
     gpio_config_t config = {};
     config.pin_bit_mask = (1ULL << data) | (1ULL << clock595) | (1ULL << latch) | (1ULL << oe) | (1ULL << load) |
@@ -90,7 +134,31 @@ void release_pins() {
     for (auto pin : {data, clock595, latch, load, clock165, dvd_data, dvd_latch})
         gpio_set_direction(pin, GPIO_MODE_INPUT);
 }
+bool timer_alarm(gptimer_handle_t, const gptimer_alarm_event_data_t *, void *context) {
+    BaseType_t wake = pdFALSE;
+    vTaskNotifyGiveFromISR(static_cast<TaskHandle_t>(context), &wake);
+    return wake == pdTRUE;
+}
+void start_motion_timer() {
+    gptimer_config_t config = {};
+    config.clk_src = GPTIMER_CLK_SRC_DEFAULT;
+    config.direction = GPTIMER_COUNT_UP;
+    config.resolution_hz = 1000000;
+    gptimer_handle_t handle;
+    ESP_ERROR_CHECK(gptimer_new_timer(&config, &handle));
+    gptimer_event_callbacks_t callbacks = {};
+    callbacks.on_alarm = timer_alarm;
+    ESP_ERROR_CHECK(gptimer_register_event_callbacks(handle, &callbacks, xTaskGetCurrentTaskHandle()));
+    gptimer_alarm_config_t alarm = {};
+    alarm.alarm_count = 100;
+    alarm.flags.auto_reload_on_alarm = true;
+    ESP_ERROR_CHECK(gptimer_set_alarm_action(handle, &alarm));
+    // Enable on the motion core so the interrupt is allocated there.
+    ESP_ERROR_CHECK(gptimer_enable(handle));
+    ESP_ERROR_CHECK(gptimer_start(handle));
+}
 void worker(void *) {
+    start_motion_timer();
     uint32_t sequences[8] = {};
     int64_t published[8] = {};
     for (;;) {
@@ -118,6 +186,7 @@ void worker(void *) {
             uint32_t image = engine.outputs();
             if (image != previous) {
                 const int64_t edge = write(image);
+                probe_edges(previous, image, edge);
                 engine.steps_latched(previous, image, now, edge);
                 previous = image;
                 // Complete STEP before yielding or publishing.
@@ -127,8 +196,10 @@ void worker(void *) {
                 if (pulsing) {
                     esp_rom_delay_us(fdd::step_low_us);
                     engine.finish_pulses();
+                    const uint32_t low = previous;
                     previous = engine.outputs();
-                    write(previous);
+                    const int64_t high = write(previous);
+                    probe_edges(low, previous, high);
                 }
             }
         }
@@ -157,22 +228,36 @@ void report_worker(void *) {
     for (;;) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         fdd::State reports[8];
+        CadenceProbe completed[8];
+        uint8_t complete = 0;
         xSemaphoreTake(mutex, portMAX_DELAY);
         const uint8_t changed = pending_report_mask;
         pending_report_mask = 0;
         for (int i = 0; i < 8; ++i)
-            if (changed & (1 << i))
+            if (changed & (1 << i)) {
                 reports[i] = pending_reports[i];
+                if ((reports[i].phase == fdd::Phase::stopped || reports[i].phase == fdd::Phase::error) &&
+                    probes[i].intervals && !probes[i].reported && probes[i].batch == reports[i].batch) {
+                    completed[i] = probes[i];
+                    probes[i].reported = true;
+                    complete |= 1 << i;
+                }
+            }
         xSemaphoreGive(mutex);
         auto callback = listener.load();
         for (int i = 0; i < 8; ++i)
             if ((changed & (1 << i)) && callback)
                 callback(i + 1, reports[i]);
+        for (int i = 0; i < 8; ++i)
+            if (complete & (1 << i)) {
+                const auto &p = completed[i];
+                printf("FDD_CADENCE device=%d batch=%lu target_mhz=%lu n=%lu sum_us=%lld sum_sq_us=%lld min_us=%d max_us=%d outside_100us=%lu widths=%lu low_min_us=%d low_max_us=%d\n",
+                    i + 1, (unsigned long)p.batch, (unsigned long)reports[i].rate, (unsigned long)p.intervals,
+                    (long long)p.sum, (long long)p.squares, p.minimum, p.maximum,
+                    (unsigned long)p.outside_100us, (unsigned long)p.widths, p.low_minimum, p.low_maximum);
+                fflush(stdout);
+            }
     }
-}
-void timer(void *) {
-    if (task)
-        xTaskNotifyGive(task);
 }
 } // namespace
 esp_err_t laboratory::init() {
@@ -182,16 +267,11 @@ esp_err_t laboratory::init() {
         return ESP_ERR_NO_MEM;
     if (xTaskCreate(report_worker, "fdd_reports", 4096, nullptr, 5, &reporting_task) != pdPASS)
         return ESP_ERR_NO_MEM;
-    if (xTaskCreate(worker, "fdd", 4096, nullptr, 10, &task) != pdPASS) {
+    if (xTaskCreatePinnedToCore(worker, "fdd", 4096, nullptr, 10, &task, 1) != pdPASS) {
         vTaskDelete(reporting_task);
         return ESP_ERR_NO_MEM;
     }
-    esp_timer_create_args_t args = {};
-    args.callback = timer;
-    args.name = "fdd_tick";
-    esp_timer_handle_t handle;
-    ESP_ERROR_CHECK(esp_timer_create(&args, &handle));
-    return esp_timer_start_periodic(handle, 100);
+    return ESP_OK;
 }
 void laboratory::set_listener(void (*callback)(int, fdd::State)) {
     listener = callback;

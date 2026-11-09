@@ -133,13 +133,24 @@ and checks the drive again. Manual STOP still completes the current pulse and
 parks at 100 steps/s.
 
 The implementation profile permits 1–300 STEP pulses/s for 1–60000 ms.
+For requests of 200 steps/s or higher, playing uses a high-rate startup profile:
+it starts at 100 steps/s and ramps linearly in frequency over the first eight
+issued playing steps of the whole tone. The ramp does not restart after a
+reversal. Later traverses retain the requested cadence. High-rate playing uses
+a 15 ms direction guard; lower-rate playing and preparation retain 5 ms.
+The outward limit remains 70 commands and TRACK0 alone confirms a return,
+with the unchanged 120-pulse limit. Startup and direction pauses lower the
+whole-tone mean, so these recordings are not constant-rate trials for their
+entire duration. Record firmware identity when comparing measurements.
+Software timing diagnostics and successful completion do not establish the
+absence of audible grain or faithful mechanical following of every command.
 Each STEP is completed in the motion task: latch LOW, wait 30 microseconds,
 then shift and latch HIGH.
 The LOW interval includes that wait plus the HIGH-frame transfer and may be
 extended by preemption; 30 microseconds is not a measured physical pulse width.
 Homing/parking uses a 120-pulse or
 two-second limit per seek phase. Playing returns also have a 120-pulse limit.
-Late playing work beyond two requested periods faults rather than emitting
+Late playing work beyond two current-profile periods faults rather than emitting
 catch-up pulses. These values are software bounds, not measured accuracy or
 a verified operating range for a particular FDD. Requested STEP frequency
 does not guarantee an exact acoustic pitch; direction guards add pauses.
@@ -149,8 +160,10 @@ The 165 reader uses one-microsecond load/settle and clock half-period delays,
 sampling QH before the first rising edge. These are configured delays;
 they are software delays, not an electrical signal-integrity qualification.
 
-An ESP timer wakes the dedicated motion task every 100 microseconds; the timer
-callback itself does not shift registers or send BLE data. STEP deadlines follow
+A GPTimer alarm wakes the motion task every 100 microseconds through an ISR
+notification. The motion task is pinned to CPU1 and creates/enables the timer
+on that core; Bluetooth remains on CPU0 in this configuration. The callback
+itself does not shift registers, acquire the engine mutex or send BLE data. STEP deadlines follow
 an absolute per-drive cadence, so small dispatch and register-transfer delays do
 not accumulate into a lower average rate. If dispatch is more than half a period
 late, a fresh full period is scheduled to avoid a catch-up burst; playing delays
@@ -158,6 +171,14 @@ over two periods still fault. The LOW hold is referenced to the post-latch
 timestamp and pulses are completed in the same motion iteration.
 Task scheduling and BLE load can still delay edges; electrical accuracy is not
 established by this scheduling rule.
+The diagnostic build also records software latch intervals on the constant-rate
+middle sections and STEP LOW durations. After a drive becomes stopped/error,
+the lower-priority report task prints one `FDD_CADENCE` summary to UART. These
+are internal timestamp observations, not independently measured pin edges;
+printing occurs after the reported drive is terminal, outside the engine mutex. Opening the USB
+serial port can reset this board, so bench capture opens it with ATX OFF before
+connecting BLE and starting a trial.
+
 The motion task completes all pending LOW pulses before releasing its mutex.
 It hands snapshots to a fixed per-drive mailbox. A separate lower-priority task
 copies and clears the mailbox under the mutex, then sends notifications outside

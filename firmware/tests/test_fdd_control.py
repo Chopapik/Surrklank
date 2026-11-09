@@ -33,19 +33,28 @@ inline void esp_rom_delay_us(unsigned us) { fake_now+=us; }
 """,
                 "esp_random.h": "#pragma once\ninline unsigned esp_random() { return 123; }\n",
                 "freertos/FreeRTOS.h": """#pragma once
-constexpr int pdTRUE=1, pdPASS=1, portMAX_DELAY=-1;
+using BaseType_t=int;
+constexpr int pdFALSE=0, pdTRUE=1, pdPASS=1, portMAX_DELAY=-1;
 """,
                 "freertos/task.h": """#pragma once
 #include <string>
 #include <map>
 using TaskHandle_t = void*;
 inline std::map<std::string, void (*)(void*)> tasks;
+inline std::map<std::string, int> task_cores;
 inline unsigned wakes=0;
 struct EndIteration {};
 inline int ulTaskNotifyTake(int,int) { if(wakes++) throw EndIteration{}; return 1; }
 inline void xTaskNotifyGive(TaskHandle_t) {}
+inline TaskHandle_t xTaskGetCurrentTaskHandle() { return reinterpret_cast<void*>(1); }
+inline void vTaskNotifyGiveFromISR(TaskHandle_t, BaseType_t* wake) { *wake=pdTRUE; }
 inline int xTaskCreate(void (*f)(void*), const char* name, int, void*, int, TaskHandle_t* handle) {
     tasks[name]=f; *handle=reinterpret_cast<void*>(tasks.size()); return pdPASS;
+}
+inline int xTaskCreatePinnedToCore(void (*f)(void*), const char* name, int stack, void* arg, int priority,
+                                 TaskHandle_t* handle, int core) {
+    task_cores[name]=core;
+    return xTaskCreate(f,name,stack,arg,priority,handle);
 }
 inline void vTaskDelete(TaskHandle_t) {}
 """,
@@ -55,6 +64,19 @@ inline bool locked=false;
 inline int xSemaphoreCreateMutex() { return 1; }
 inline void xSemaphoreTake(int,int) { assert(!locked); locked=true; }
 inline void xSemaphoreGive(int) { assert(locked); locked=false; }
+""",
+                "driver/gptimer.h": """#pragma once
+using gptimer_handle_t=int;
+struct gptimer_alarm_event_data_t {};
+constexpr int GPTIMER_CLK_SRC_DEFAULT=0, GPTIMER_COUNT_UP=0;
+struct gptimer_config_t { int clk_src, direction, resolution_hz; };
+struct gptimer_event_callbacks_t { bool (*on_alarm)(gptimer_handle_t,const gptimer_alarm_event_data_t*,void*); };
+struct gptimer_alarm_config_t { unsigned alarm_count=0; struct { bool auto_reload_on_alarm=false; } flags; };
+inline int gptimer_new_timer(const gptimer_config_t* c,gptimer_handle_t* h) { assert(c->resolution_hz==1000000); *h=1; return 0; }
+inline int gptimer_register_event_callbacks(int,const gptimer_event_callbacks_t* c,void* ctx) { assert(c->on_alarm(1,nullptr,ctx)); return 0; }
+inline int gptimer_set_alarm_action(int,const gptimer_alarm_config_t* a) { assert(a->alarm_count==100 && a->flags.auto_reload_on_alarm); return 0; }
+inline int gptimer_enable(int) { return 0; }
+inline int gptimer_start(int) { return 0; }
 """,
                 "driver/gpio.h": """#pragma once
 #include "esp_timer.h"

@@ -46,6 +46,10 @@ power rail. An unknown state disables the switch. See [wiring](docs/WIRING.md).
 
 The FDD Laboratory selects one or several drives, frequency and playing time.
 A batch starts only after every selected drive passes its TRACK0 check.
+At 200 Hz and above, the high-rate firmware profile ramps once at tone start
+and allows a longer direction-change pause. The mean step rate over the whole
+tone is lower than the setting. See the [motion profile](docs/FIRMWARE.md#fdd-laboratory)
+when interpreting measurements.
 Separate batches can overlap; **Stop FDD** stops one drive and **Stop all**
 stops all drives, including preparation. Both finish by parking at TRACK0.
 When duration expires, the head stays in place (`stopped`). The next start homes

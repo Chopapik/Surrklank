@@ -10,6 +10,8 @@ bool moving(fdd::Phase p) {
 }
 constexpr int64_t seek_period = 10000, direction_guard = 5000;
 constexpr unsigned seek_limit = 120;
+constexpr uint32_t startup_threshold = 200000, startup_rate = 100000;
+constexpr unsigned startup_length = 8;
 } // namespace
 bool fdd::Engine::busy() const {
     for (const auto &d : drives)
@@ -23,7 +25,7 @@ void fdd::Engine::phase(Drive &d, Phase next, int64_t now) {
         d.state.return_steps = 0;
     d.step_low = false;
     d.seek = 0;
-    d.due = now + direction_guard;
+    d.due = now + (d.state.phase == Phase::playing && d.state.rate >= startup_threshold ? 15000 : direction_guard);
     d.deadline = now + 2000000;
     ++d.state.sequence;
 }
@@ -92,6 +94,7 @@ bool fdd::Engine::commit(uint32_t batch, int64_t now) {
         if (mask & (1 << i)) {
             auto &d = drives[i];
             d.started = now;
+            d.startup_steps = 0;
             d.leg = 0;
             d.state.toward_zero = false;
             d.state.left = false;
@@ -216,11 +219,17 @@ void fdd::Engine::tick(int64_t now, uint8_t track0) {
             s.toward_zero = true;
             s.return_steps = 0;
             d.seek = 0;
-            d.due = now + direction_guard;
+            d.due = now + (d.state.phase == Phase::playing && d.state.rate >= startup_threshold ? 15000 : direction_guard);
             ++s.sequence;
             continue;
         }
-        int64_t period = s.phase == Phase::playing ? 1000000000LL / s.rate : seek_period;
+        uint32_t rate = s.rate;
+        if (s.phase == Phase::playing && rate >= startup_threshold) {
+            // Ramp only once per tone, retaining constant rate across later traverses.
+            unsigned progress = d.startup_steps < startup_length ? d.startup_steps : startup_length;
+            rate = startup_rate + (rate - startup_rate) * progress / startup_length;
+        }
+        int64_t period = s.phase == Phase::playing ? 1000000000LL / rate : seek_period;
         // Late work must not emit a burst of catch-up steps.
         if (s.phase == Phase::playing && now - d.due > period * 2) {
             fail(d, Error::timing, now);
@@ -232,6 +241,8 @@ void fdd::Engine::tick(int64_t now, uint8_t track0) {
         // A substantial overrun starts a fresh period rather than a catch-up pulse.
         d.due = now - d.due > period / 2 ? now + period : d.due + period;
         ++s.steps;
+        if (s.phase == Phase::playing && d.startup_steps < startup_length)
+            ++d.startup_steps;
         ++d.seek;
         if (s.toward_zero)
             ++s.return_steps;
