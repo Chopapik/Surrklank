@@ -130,7 +130,7 @@ the head before starting. Manual STOP retains explicit parking.
 
 ## Current limits
 
-Only FDD Laboratory playback is implemented; DVD/HDD and MIDI playback are not.
+Only FDD Laboratory playback is implemented; LSM/HDD and MIDI playback are not.
 Two physical FDDs pass playback/parking and stop checks; electrical levels,
 pulse accuracy and other drive models remain unverified.
 The app has no manual firmware-cancel command. FFF2 delivery is not acknowledged by the

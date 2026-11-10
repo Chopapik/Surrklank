@@ -6,6 +6,10 @@ supports connection, ATX control, an eight-drive FDD Laboratory and USB/BLE
 firmware maintenance. Laboratory motion has been exercised on two physical
 FDDs; see the [firmware limits](docs/FIRMWARE.md#fdd-laboratory).
 
+The wiring reference uses **LSM (Lead-Screw Motor)** for the removed optical-drive
+stepper motors with lead screws, alongside FDD and HDD. LSM/HDD playback remains
+unimplemented; see [instrument names](docs/WIRING.md#instrument-names).
+
 ## Run
 
 Install the .NET 10 SDK, Node.js 24 or newer, npm and PlatformIO Core. Build the

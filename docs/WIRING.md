@@ -2,9 +2,21 @@
 
 This is the wiring reference for the instrument assembly. Firmware implements
 ATX, BLE/updates and FDD Laboratory control through the 595/165 registers.
-DVD/HDD playback is not implemented. Two FDDs have passed functional checks;
+LSM/HDD playback is not implemented. Two FDDs have passed functional checks;
 electrical compatibility is not measured. See [firmware limits](FIRMWARE.md#fdd-laboratory).
 Keep the assembly isolated from the ESP32 during firmware maintenance.
+
+## Instrument names
+
+**LSM (Lead-Screw Motor)** is this project's short label for a miniature
+stepper motor with a lead screw, removed from an optical disc drive. It does
+not mean a complete DVD drive or every type of stepper motor. FDD refers to
+the complete floppy-drive assembly. Each of the four LSM motors has a separate
+control channel; a shared resonating enclosure does not make them one channel.
+
+Older `DVD1`–`DVD4` labels correspond to `LSM1`–`LSM4`. Register labels
+D1/D2, wiring addresses `SLED 1`–`SLED 4` and internal `dvd_data`/`dvd_latch`
+names are retained. The display terminology does not add LSM playback support.
 
 ## Two output branches
 
@@ -13,7 +25,7 @@ ESP32 GPIO23 → 595 F1 → 595 F2 → 595 F3 → 595 F4
                FDD1–2  FDD3–4  FDD5–6  FDD7–8
 
 ESP32 GPIO17 → 595 D1 → 595 D2 → 595 H1
-               DVD1–2  DVD3–4  HDD1–4
+               LSM1–2  LSM3–4  HDD1–4
 
 FDD1–8 TRACK0 → one 165 → ESP32 GPIO34
 ```
@@ -26,10 +38,10 @@ to SER (pin 14) of the next 595 in the same branch.
 | ESP32 GPIO | Connection |
 | --- | --- |
 | 23 | SER, pin 14 of the first 595 in the FDD branch |
-| 17 | SER, pin 14 of the first 595 in the DVD/HDD branch |
+| 17 | SER, pin 14 of the first 595 in the LSM/HDD branch |
 | 18 | CLOCK, pin 11 of all 595s in both branches |
 | 22 | LATCH, pin 12 of all 595s in the FDD branch |
-| 16 | LATCH, pin 12 of all 595s in the DVD/HDD branch |
+| 16 | LATCH, pin 12 of all 595s in the LSM/HDD branch |
 | 21 | /OE, pin 13 of all 595s in both branches |
 | 33 | /PL, pin 1 of the 165 |
 | 32 | CLOCK, pin 2 of the 165 |
@@ -87,17 +99,19 @@ Other 165 pins: VCC16 → 3.3 V, GND8 → GND, CLK INH15 → GND,
 SER10 → 3.3 V. Inverted output /QH7 is unused.
 With four FDDs, unused inputs D4–D7 are held HIGH.
 
-## DVD/HDD — addresses and 595 outputs
+<a id="dvdhdd--addresses-and-595-outputs"></a>
 
-DVD drives use addresses `SLED 1`…`SLED 4`. Each DVD motor uses one DRV8833:
+## LSM/HDD — addresses and 595 outputs
+
+LSM channels retain the wiring addresses `SLED 1`…`SLED 4`. Each motor uses one DRV8833:
 AOUT1/AOUT2 → coil A, BOUT1/BOUT2 → coil B.
 
 | Device / address | Register | AIN1 | AIN2 | BIN1 | BIN2 |
 | --- | --- | --- | --- | --- | --- |
-| DVD1 / SLED 1 | D1 | QA, pin 15 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
-| DVD2 / SLED 2 | D1 | QE, pin 4 | QF, pin 5 | QG, pin 6 | QH, pin 7 |
-| DVD3 / SLED 3 | D2 | QA, pin 15 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
-| DVD4 / SLED 4 | D2 | QE, pin 4 | QF, pin 5 | QG, pin 6 | QH, pin 7 |
+| LSM1 / SLED 1 | D1 | QA, pin 15 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
+| LSM2 / SLED 2 | D1 | QE, pin 4 | QF, pin 5 | QG, pin 6 | QH, pin 7 |
+| LSM3 / SLED 3 | D2 | QA, pin 15 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
+| LSM4 / SLED 4 | D2 | QE, pin 4 | QF, pin 5 | QG, pin 6 | QH, pin 7 |
 
 Each HDD VCM coil uses one DRV8833 H-bridge:
 
@@ -110,7 +124,7 @@ Each HDD VCM coil uses one DRV8833 H-bridge:
 
 ## DRV8833 — driver connections
 
-Six driver modules are used: DRV1–4 for DVD1–4, DRV7 for HDD1–2 and DRV8
+Six driver modules are used: DRV1–4 for LSM1–4, DRV7 for HDD1–2 and DRV8
 for HDD3–4. These are module labels, not bus addresses. DRV5–6 are not used.
 There are no direct motor-control connections from ESP32 GPIOs to these modules;
 the 595 outputs drive AIN1/AIN2/BIN1/BIN2 as listed above.
@@ -136,16 +150,18 @@ header order. IC pin numbers also depend on the package; select the exact part
 before assigning a KiCad symbol or footprint. The nSLEEP pull-up is a proposed
 addition, not a confirmed connection on the current modules.
 
-### DVD motor wiring
+<a id="dvd-motor-wiring"></a>
 
-Each DVD motor has two separate coil pairs and uses both bridges of one module:
+### LSM motor wiring
+
+Each LSM motor has two separate coil pairs and uses both bridges of one module:
 
 ```text
 595 → AIN1/AIN2 → DRV8833 bridge A → AOUT1 ─ coil A ─ AOUT2
 595 → BIN1/BIN2 → DRV8833 bridge B → BOUT1 ─ coil B ─ BOUT2
 ```
 
-DVD1 uses DRV1, DVD2 uses DRV2, DVD3 uses DRV3 and DVD4 uses DRV4.
+LSM1 uses DRV1, LSM2 uses DRV2, LSM3 uses DRV3 and LSM4 uses DRV4.
 Neither coil terminal connects to GND or directly to +5 V.
 
 ### HDD VCM wiring
@@ -174,7 +190,7 @@ sense resistors and existing nSLEEP circuitry.
 ## Power connections
 
 ESP32, registers, drivers and drives share GND. 595/165 logic uses ATX 3.3 V;
-FDD power and DVD/HDD driver VM use 5 V. ESP32 is powered by USB.
+FDD power and LSM/HDD driver VM use 5 V. ESP32 is powered by USB.
 Do not connect the positive ATX 3.3 V rail to ESP32 3V3/5V/VIN.
 
 ## ATX power switch and button
@@ -255,9 +271,9 @@ signal, not series resistors between the GPIO and the register.
 | CLOCK165, GPIO32 | 10 kΩ pull-down | 165 pin 2 → GND | LOW |
 | CLOCK595, GPIO18 | One shared 10 kΩ pull-down | Register pin 11 → GND | LOW |
 | FDD LATCH, GPIO22 | 10 kΩ pull-down | FDD branch register pin 12 → GND | LOW |
-| DVD/HDD LATCH, GPIO16 | 10 kΩ pull-down | DVD/HDD branch register pin 12 → GND | LOW |
+| LSM/HDD LATCH, GPIO16 | 10 kΩ pull-down | LSM/HDD branch register pin 12 → GND | LOW |
 | FDD DATA, GPIO23 | 10 kΩ pull-down | First 595 F1 SER pin 14 → GND | LOW |
-| DVD/HDD DATA, GPIO17 | 10 kΩ pull-down | First 595 D1 SER pin 14 → GND | LOW |
+| LSM/HDD DATA, GPIO17 | 10 kΩ pull-down | First 595 D1 SER pin 14 → GND | LOW |
 
 Total: 8 × 5.1 kΩ and 8 × 10 kΩ. With four FDDs, only four TRACK0 pull-ups
 are needed; unused inputs E–H remain connected to 3.3 V.

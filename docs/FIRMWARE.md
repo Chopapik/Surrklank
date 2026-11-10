@@ -190,8 +190,8 @@ FFF2 telemetry and one-shot commands are
 described in [BLE-PROTOCOL.md](BLE-PROTOCOL.md).
 
 The adapter initializes register outputs only while ATX output is requested
-ON. It shifts an inactive FDD image and zeroes the DVD/HDD branch before
-enabling the shared /OE. DVD/HDD playback is not implemented. On ATX OFF it
+ON. It shifts an inactive FDD image and zeroes the LSM/HDD branch before
+enabling the shared /OE. LSM/HDD playback is not implemented. On ATX OFF it
 disables /OE, releases driven bus pins and invalidates positions. While a
 drive is active, firmware rejects ATX OFF/maintenance and ignores the GPIO13
 button. ATX output is not a supply measurement; external power loss cannot
