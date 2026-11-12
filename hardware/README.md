@@ -24,9 +24,10 @@ ESP32 board as purchased: "ESP32-WROOM-32 38-pin, micro-USB, CP2102"
 (seller code ARD-ESP32-38P), about 55.3 × 28 mm, 2 × 19 pins on 2.54 mm pitch,
 pin order listed by the seller and matching the silkscreen photo.
 
-- Row spacing is **not confirmed**: official DevKitC boards use 25.4 mm, many
-  38-pin clones 22.86 mm. The 28 mm board width suggests 25.4 mm; measure before
-  drawing the footprint.
+- Row spacing is **25.4 mm** (as on official DevKitC boards; many 38-pin clones
+  use 22.86 mm). Measured by the user with a caliper on pin outer edges: 46.0 mm
+  across 18 pitches along a row (45.72 mm nominal) and 25.5 mm across the rows,
+  giving about 25.2 mm centre to centre; the nearest standard spacing is 25.4 mm.
 - The board plugs into two 1 × 19 female headers; the USB end faces a board edge
   with clearance.
 - The WROOM antenna (end opposite USB) gets no copper underneath and should
@@ -41,7 +42,7 @@ pin order listed by the seller and matching the silkscreen photo.
 | FDD drive cable | Salvaged 40-pin IDE header; standard DIN 41651 2 × 20 footprint (2.54 mm pitch, 1.0 mm holes, body about 58.5 × 8.9 mm in KiCad) with extra clearance for a cut-down housing |
 | Molex power | Custom: Molex 8981 family, 5.08 mm pitch, slightly enlarged holes and a few millimetres of clearance for different salvaged housings; pin tail diameter (optional measurement) can refine holes |
 | DRV8833 module | Custom 2 × 6, 2.54 mm pitch, rows 15.24 mm apart, holes for 0.64 mm square header pins |
-| ESP32 board | Two 1 × 19 female headers, row spacing to be measured |
+| ESP32 board | Two 1 × 19 female headers, 2.54 mm pitch, rows 25.4 mm apart |
 
 Male Molex connectors may be salvaged from HDD controller boards, where they
 often share one housing with the IDE header and jumpers. Desolder the whole part
@@ -64,7 +65,7 @@ fees; costs are not estimated yet.
 
 ## Open items
 
-- ESP32 row spacing (25.4 or 22.86 mm); +5 V on the mainboard terminal.
+- +5 V on the mainboard terminal.
 - Values: pull resistors, series resistors, PWR_OK divider, bulk capacitors.
 - Parts: input buffer, LDO, Schottky diode; exact register bit order.
 - Drive input terminations and MOTOR behaviour on the installed drives.
