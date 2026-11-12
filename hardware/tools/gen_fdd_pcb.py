@@ -5,6 +5,7 @@
   $KIPY gen_fdd_pcb.py place  <netlist.xml> <board.kicad_pcb>   # footprints, nets, outline, GND zones
   $KIPY gen_fdd_pcb.py dsn    <board.kicad_pcb> <out.dsn>        # Specctra export without zones
   $KIPY gen_fdd_pcb.py import <board.kicad_pcb> <in.ses>         # import routes, fill zones
+  $KIPY gen_fdd_pcb.py brand  <board.kicad_pcb> -                # (re)place logo and text only
 
 Routing itself is done by Freerouting between `dsn` and `import`
 (see hardware/README.md). This script never draws tracks.
@@ -42,8 +43,41 @@ for i, ref in enumerate(["RN10", "RN11", "RN12", "RN13", "RN14", "RN15", "RN16",
     PLACE[ref] = (27.0 + i * 5.5, 46.0, 90)
 
 
+# Silkscreen branding (board-only, not in the schematic)
+LOGO_AT = (87.0, 56.0)
+BRAND_TEXT = [("SURRKLANK", 63.0, 1.3), ("FDD MODULE v0.1", 65.6, 1.0)]
+
+
 def mm(v):
     return pcbnew.FromMM(v)
+
+
+def brand(board):
+    """Logo footprint and short text on the front silkscreen; replaces old ones."""
+    for fp in list(board.GetFootprints()):
+        if fp.GetReference() == "LOGO1":
+            board.Remove(fp)
+    for d in list(board.GetDrawings()):
+        if d.GetClass() == "PCB_TEXT" and d.GetText() in {t for t, _, _ in BRAND_TEXT}:
+            board.Remove(d)
+    logo = load_footprint("surrklank:Surrklank_Logo_8mm")
+    logo.SetReference("LOGO1")
+    logo.SetPosition(pcbnew.VECTOR2I(mm(OX + LOGO_AT[0]), mm(OY + LOGO_AT[1])))
+    board.Add(logo)
+    for text, y, size in BRAND_TEXT:
+        t = pcbnew.PCB_TEXT(board)
+        t.SetText(text)
+        t.SetLayer(pcbnew.F_SilkS)
+        t.SetPosition(pcbnew.VECTOR2I(mm(OX + LOGO_AT[0]), mm(OY + y)))
+        t.SetTextSize(pcbnew.VECTOR2I(mm(size), mm(size)))
+        t.SetTextThickness(mm(size * 0.15))
+        board.Add(t)
+
+
+def brand_file(board_path, _unused):
+    board = pcbnew.LoadBoard(board_path)
+    brand(board)
+    pcbnew.SaveBoard(board_path, board)
 
 
 def load_footprint(fpid):
@@ -119,6 +153,7 @@ def place(netlist, out):
         board.Add(fp)
 
     add_rect(board, pcbnew.Edge_Cuts, 0, 0, W, H)
+    brand(board)
     add_zone(board, nets["GND"], pcbnew.F_Cu)
     add_zone(board, nets["GND"], pcbnew.B_Cu)
     pcbnew.SaveBoard(out, board)
@@ -163,4 +198,4 @@ def finish(board_path, _unused):
 
 
 if __name__ == "__main__":
-    {"place": place, "dsn": dsn, "import": import_ses, "finish": finish}[sys.argv[1]](sys.argv[2], sys.argv[3])
+    {"place": place, "dsn": dsn, "import": import_ses, "finish": finish, "brand": brand_file}[sys.argv[1]](sys.argv[2], sys.argv[3])

@@ -1376,6 +1376,105 @@
 			)
 		)
 	)
+	(footprint "surrklank:Surrklank_Logo_8mm"
+		(layer "F.Cu")
+		(uuid "30744bf3-e4f8-418a-a039-3743cbf09f71")
+		(at 187 156)
+		(descr "Surrklank logo: square ring, 8 mm, front silkscreen. Proportions from the user-supplied image (outer 150 px, hole 80 px).")
+		(property "Reference" "LOGO1"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "d84dfe29-24ee-4b2c-bb78-bfce610ddcd2")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Value" "Surrklank_Logo"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "b6b2e546-aed8-4578-bd02-b5f20cf9b742")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "b7226ff2-b606-47a7-8762-c30ab01408a0")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "90068f91-920d-4d0f-8d44-c79da2564c74")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr board_only exclude_from_pos_files exclude_from_bom)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_rect
+			(start -4 -4)
+			(end 4 -2.133)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "498f11d1-0b7c-4a45-a780-43174e03e2ea")
+		)
+		(fp_rect
+			(start -4 -2.133)
+			(end -2.133 2.133)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "170a115f-ec3e-4be9-9f3c-656f6ff24f44")
+		)
+		(fp_rect
+			(start -4 2.133)
+			(end 4 4)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "ed809791-3dae-46dd-8721-23f106ceb914")
+		)
+		(fp_rect
+			(start 2.133 -2.133)
+			(end 4 2.133)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "45f7c4bb-f9da-4bbc-898e-13e4e64269aa")
+		)
+		(embedded_fonts no)
+	)
 	(footprint "Connector_IDC:IDC-Header_2x08_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "382c71b5-5afe-40cc-b8ea-b612def6e222")
@@ -10256,6 +10355,28 @@
 		)
 		(layer "Edge.Cuts")
 		(uuid "38be3d32-ed58-478c-9a2c-825ae535273f")
+	)
+	(gr_text "FDD MODULE v0.1"
+		(at 187 165.6 0)
+		(layer "F.SilkS")
+		(uuid "5ec6ec93-ae8b-42f8-a573-a9729536ab71")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "SURRKLANK"
+		(at 187 163 0)
+		(layer "F.SilkS")
+		(uuid "f93f6edf-27ad-4f2c-9a84-33e2c6ce8917")
+		(effects
+			(font
+				(size 1.3 1.3)
+				(thickness 0.195)
+			)
+		)
 	)
 	(segment
 		(start 168.151 124.5362)

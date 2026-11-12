@@ -12,7 +12,7 @@ KiCad 10 projects:
 | `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
 | `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic; PCB not started |
 | `surrklank-controller/` | Empty placeholder for the mainboard |
-| `lib/` | Custom symbol (DRV8833 module) and footprints (Molex 8981, DRV8833 module) |
+| `lib/` | Custom symbol (DRV8833 module) and footprints (Molex 8981, DRV8833 module, Surrklank logo) |
 | `tools/` | Generators, netlist check and build script |
 
 Boards are generated, not edited by hand. One command rebuilds the FDD module
@@ -95,6 +95,11 @@ first, then cut the plastic housing; the cut-off IDE part can serve as an FDD
 module header.
 
 ## Layout notes
+
+- Front silkscreen branding: the Surrklank logo (square ring, 8 mm, drawn
+  geometrically in the proportions of the user's image) with "SURRKLANK" and
+  the board name and revision, in white. It is a board-only footprint, not in
+  the schematic; `gen_fdd_pcb.py brand` re-applies it without rerouting.
 
 - LSM/HDD modules: wide copper from the Molex to the DRV8833 positions and a
   bulk capacitor at the input; mark the unconnected +12 V Molex position.
