@@ -142,9 +142,14 @@ class Sheet:
                 pins[num] = info
                 pins.setdefault("name:" + nm, info)
         virtual = ref.startswith("#")
+
+        def flag(key):
+            v = child(s, key)
+            return "no" if virtual else (str(v[1]) if v else "yes")
+
         inst = ["symbol", ["lib_id", Q(lib_id)], ["at", x, y, angle], ["unit", 1],
-                ["exclude_from_sim", "no"], ["in_bom", "no" if virtual else "yes"],
-                ["on_board", "no" if virtual else "yes"], ["dnp", "no"], ["uuid", self._id("sym")]]
+                ["exclude_from_sim", "no"], ["in_bom", flag("in_bom")],
+                ["on_board", flag("on_board")], ["dnp", "no"], ["uuid", self._id("sym")]]
         values = {"Reference": ref, "Value": value}
         if footprint:
             values["Footprint"] = footprint

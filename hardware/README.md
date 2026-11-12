@@ -9,22 +9,38 @@ KiCad 10 projects:
 
 | Folder | Content |
 | --- | --- |
-| `fdd-module/` | FDD module schematic v0.1 (generated); PCB not started |
+| `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
 | `surrklank-controller/` | Empty placeholder for the mainboard |
 | `lib/surrklank.pretty/` | Custom footprints (Molex 8981) |
-| `tools/` | Schematic generator and netlist check |
+| `tools/` | Generators, netlist check and build script |
 
-Schematics are generated, not edited by hand:
+Boards are generated, not edited by hand. One command rebuilds the FDD module
+(schematic, ERC, netlist check, placement, autorouting, zone fill, DRC):
 
 ```sh
-python3 -I hardware/tools/gen_fdd_module.py hardware/fdd-module/surrklank-fdd-module.kicad_sch
-kicad-cli sch erc hardware/fdd-module/surrklank-fdd-module.kicad_sch
-kicad-cli sch export netlist --format kicadxml -o /tmp/fdd.xml hardware/fdd-module/surrklank-fdd-module.kicad_sch
-python3 -I hardware/tools/check_fdd_module.py /tmp/fdd.xml
+hardware/tools/build_fdd_module.sh [work_dir]
 ```
 
-The check verifies the netlist against WIRING.md rules written independently of
-the generator (drive header pins, pull-ups, register chain, ribbon, supplies).
+Requirements: KiCad 10 (its bundled Python runs `gen_fdd_pcb.py`), Freerouting
+2.5.0 jar in `~/.local/share/freerouting/bin/` (official GitHub release,
+SHA-256 `f6f51bb0…5de3c7`) and Java 25 (`brew install openjdk@25`). The script
+runs Freerouting headless with analytics and telemetry disabled. The native
+Freerouting 2.5.0 CLI build fails on board serialization and is not used.
+
+- `check_fdd_module.py` verifies the netlist against WIRING.md rules written
+  independently of the generator (drive header pins, pull-ups, register chain,
+  ribbon, supplies).
+- Routing is not deterministic: each run gives different tracks. The build
+  passes only with zero DRC violations and zero unconnected pads.
+- Design rules: Default class 0.25 mm tracks / 0.2 mm clearance, Power class
+  (+5V, +3V3, GND) 0.6 mm / 0.25 mm, vias 0.6/0.3 mm, minimum track 0.15 mm
+  (above the 0.127 mm limit of low-cost fabs). Freerouting neck-down is disabled;
+  any remaining track under 0.15 mm is widened and re-checked by DRC.
+- GND is poured on both layers with solid pad connections; dense IDE header
+  pins left no room for thermal spokes.
+- The autorouted layout is electrically complete but not hand-optimised
+  (long detours, signals near edges). It has not been reviewed for signal
+  integrity or checked with a 1:1 paper print.
 
 ## Board family
 
