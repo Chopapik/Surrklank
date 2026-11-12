@@ -3,7 +3,7 @@
 This branch (`pcb-modules`) describes the **planned PCB wiring**: a mainboard
 and chained FDD and LSM/HDD modules. Nothing here is built or tested yet.
 Firmware on this branch still implements the hand-wired mapping recorded in
-`docs/WIRING.md` on `main` (commit `eef29dd`): four 595s for FDD1–8 with three
+`docs/WIRING.md` on `main` (commit `30f4cbc`): four 595s for FDD1–8 with three
 outputs per drive, one 165 for TRACK0 and no LSM/HDD playback. Firmware moves
 to this wiring after the modules are assembled. Board-level design (footprints,
 salvaged connectors, manufacturing) is in [hardware/README.md](../hardware/README.md).
