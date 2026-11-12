@@ -137,18 +137,38 @@ the 595 outputs drive AIN1/AIN2/BIN1/BIN2 as listed above.
 | GND | Common GND shared with ATX, registers and ESP32 |
 | AIN1, AIN2 | Two 595 outputs controlling bridge A |
 | BIN1, BIN2 | Two 595 outputs controlling bridge B |
-| nSLEEP (sometimes SLP) | HIGH to enable the driver; proposed connection: 10 kΩ pull-up to register logic 3.3 V if the module has no existing enable circuit |
-| nFAULT (sometimes FLT) | Leave unconnected; not read by this project |
+| nSLEEP (sometimes SLP, `EEP` on the installed module) | HIGH enables the driver; the installed module pulls it up on board (J1 closed), so leave it unconnected |
+| nFAULT (sometimes FLT, `ULT` on the installed module) | Leave unconnected; open-drain, not read by this project |
 | AISEN, BISEN | Current-sense connections described below; not digital control inputs |
 
 The bare DRV8833 has no separate 3.3 V logic-supply input. VM supplies the IC;
 the 3.3 V signals from the 595s connect to its logic inputs. VINT is an internal
 regulator output for its capacitor, not an external power input.
 
-The module model is not identified. Use the signal labels above, not an assumed
-header order. IC pin numbers also depend on the package; select the exact part
-before assigning a KiCad symbol or footprint. The nSLEEP pull-up is a proposed
-addition, not a confirmed connection on the current modules.
+### Installed module and header pinout
+
+The installed modules are the common 12-pin "DRV8833 2 Channel DC Motor Driver
+Module" boards. Identification is from the vendor document (Rajguru Electronics)
+and the user's check of the module underside (`EEP`, `ULT`, jumper J1); no
+module schematic is available. Header geometry was measured by the user:
+2 × 6 pins, 2.54 mm pitch, rows 15.24 mm apart (centre to centre).
+
+Pins in top view (component side), numbered like a DIP package:
+
+| Pin | Label | Signal | Pin | Label | Signal |
+| --- | --- | --- | --- | --- | --- |
+| 1 | EEP | nSLEEP | 12 | IN4 | BIN2 |
+| 2 | OUT1 | AOUT1 | 11 | IN3 | BIN1 |
+| 3 | OUT2 | AOUT2 | 10 | GND | GND |
+| 4 | OUT3 | BOUT1 | 9 | VCC | VM, +5 V motor supply |
+| 5 | OUT4 | BOUT2 | 8 | IN2 | AIN2 |
+| 6 | ULT | nFAULT | 7 | IN1 | AIN1 |
+
+Pins 1–6 run down the left row and 7–12 up the right row; the underside view is
+mirrored. With J1 closed (factory default) an on-board pull-up keeps nSLEEP HIGH;
+opening J1 leaves the chip's internal pull-down, disabling the driver.
+A KiCad footprint needs holes for 0.64 mm square header pins, not the 0.8 mm
+holes of standard DIP footprints.
 
 <a id="dvd-motor-wiring"></a>
 
@@ -182,10 +202,12 @@ trip relationship is `I_trip = 0.2 V / R_sense`. Values depend on the motor and
 are not specified here. A direct GND connection disables current regulation;
 it is not a current-limiting resistor. Neither sense input should float.
 
-On a ready-made module these connections may already be fitted or tied to GND.
+According to the vendor document, the installed module has no sense resistors
+fitted ("can be enabled by adding sense resistors"), so current regulation is
+inactive; only the IC's over-current, over-temperature and under-voltage
+protection applies. This is not electrically verified. Vendor ratings are
+1.2 A continuous and 2 A peak per bridge; VCM coil current is not measured.
 The local VM, VCP and VINT capacitors are listed in the passive-components section.
-The exact module schematic is still needed to record its header pins, fitted
-sense resistors and existing nSLEEP circuitry.
 
 ## Power connections
 
@@ -299,10 +321,10 @@ For the bare DRV8833 IC, the manufacturer specifies:
 | 10 nF X7R ceramic capacitor, rated at least 16 V | VCP → VM |
 | 2.2 µF ceramic capacitor, rated at least 6.3 V | VINT → GND |
 
-The installed module model and AISEN/BISEN current-sense resistor values have
-not been identified. Additional motor-rail bulk capacitance depends on the
-module and load. If the proposed nSLEEP pull-ups above are fitted to all six
-modules, add 6 × 10 kΩ to the register/TRACK0 resistor count.
+Vendor photos of the installed module type show these three capacitors fitted
+on the module (marked 10 µF tantalum, 0.01 µF and 2.2 µF), so they are not added
+to the carrier board. Additional motor-rail bulk capacitance depends on the load
+and is not specified here. No external nSLEEP pull-ups are needed while J1 is closed.
 
 Sources: [TI SN74HC595 — decoupling and inputs](https://www.ti.com/lit/ds/symlink/sn74hc595.pdf),
 [TI SN74HC165](https://www.ti.com/lit/ds/symlink/sn74hc165.pdf),
