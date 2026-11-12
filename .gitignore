@@ -17,3 +17,10 @@ backend/obj/
 
 frontend/node_modules/
 frontend/dist/
+
+# KiCad working files
+hardware/**/.history/
+hardware/**/*-backups/
+hardware/**/*.kicad_prl
+hardware/**/*.lck
+hardware/**/fp-info-cache

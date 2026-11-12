@@ -109,7 +109,9 @@ checks this firmware lock. Stop and finish parking before maintenance.
 `fdd_engine.cpp` owns platform-independent drive state and pulse scheduling;
 `fdd_control.cpp` owns the ESP-IDF task, GPIO and 595/165 transfer. One scheduler
 maintains a full 32-bit FDD output image, preserving the other drives when one
-changes. The mapping is defined in [WIRING.md](WIRING.md). DIR HIGH means toward
+changes. The implemented mapping is the hand-wired one in `docs/WIRING.md` on
+`main` (commit `eef29dd`); [WIRING.md](WIRING.md) on this branch describes the
+planned PCB modules, which firmware does not support yet. DIR HIGH means toward
 TRACK0 in this software profile; /SELECT LOW selects the drive. SELECT is
 asserted before preparation, kept through playing/manual parking and released at a
 terminal state. Each DIR change precedes the next STEP by at least 5 ms.

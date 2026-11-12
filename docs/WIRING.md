@@ -1,10 +1,15 @@
 # Wiring map
 
-This is the wiring reference for the instrument assembly. Firmware implements
-ATX, BLE/updates and FDD Laboratory control through the 595/165 registers.
-LSM/HDD playback is not implemented. Two FDDs have passed functional checks;
-electrical compatibility is not measured. See [firmware limits](FIRMWARE.md#fdd-laboratory).
-Keep the assembly isolated from the ESP32 during firmware maintenance.
+This branch (`pcb-modules`) describes the **planned PCB wiring**: a mainboard
+and chained FDD and LSM/HDD modules. Nothing here is built or tested yet.
+Firmware on this branch still implements the hand-wired mapping recorded in
+`docs/WIRING.md` on `main` (commit `eef29dd`): four 595s for FDD1–8 with three
+outputs per drive, one 165 for TRACK0 and no LSM/HDD playback. Firmware moves
+to this wiring after the modules are assembled. Board-level design (footprints,
+salvaged connectors, manufacturing) is in [hardware/README.md](../hardware/README.md).
+
+Keep the assembly isolated from the ESP32 during firmware maintenance (see
+[Maintenance](#maintenance)).
 
 ## Instrument names
 
@@ -14,138 +19,237 @@ not mean a complete DVD drive or every type of stepper motor. FDD refers to
 the complete floppy-drive assembly. Each of the four LSM motors has a separate
 control channel; a shared resonating enclosure does not make them one channel.
 
-Older `DVD1`–`DVD4` labels correspond to `LSM1`–`LSM4`. Register labels
-D1/D2, wiring addresses `SLED 1`–`SLED 4` and internal `dvd_data`/`dvd_latch`
-names are retained. The display terminology does not add LSM playback support.
+Older `DVD1`–`DVD4` labels correspond to `LSM1`–`LSM4`. Wiring addresses
+`SLED 1`–`SLED 4` and internal `dvd_data`/`dvd_latch` names are retained.
+The display terminology does not add LSM playback support.
 
-## Two output branches
+## System overview
 
 ```text
-ESP32 GPIO23 → 595 F1 → 595 F2 → 595 F3 → 595 F4
-               FDD1–2  FDD3–4  FDD5–6  FDD7–8
-
-ESP32 GPIO17 → 595 D1 → 595 D2 → 595 H1
-               LSM1–2  LSM3–4  HDD1–4
-
-FDD1–8 TRACK0 → one 165 → ESP32 GPIO34
+mainboard ──16-pin ribbon── FDD module 1 ──ribbon── FDD module 2 ── … FDD module N
+          └─16-pin ribbon── LSM/HDD module 1 ──ribbon── … LSM/HDD module N
 ```
 
-F1/D1 are closest to the ESP32. Connect each 595 serial output QH′ (pin 9)
-to SER (pin 14) of the next 595 in the same branch.
+- Two branches leave the mainboard on separate long, flexible ribbons
+  (modules can move around a roughly 50 × 50 cm area).
+- Every module has identical IN and OUT connectors; modules of one branch are
+  daisy-chained. Module 1 is closest to the mainboard.
+- An FDD module serves four drives; two FDD modules serve the current eight.
+- An LSM/HDD module carries up to four DRV8833 driver modules.
+- ESP32, modules, drivers and drives share GND.
 
-## ESP32 → registers
+## Mainboard
 
-| ESP32 GPIO | Connection |
-| --- | --- |
-| 23 | SER, pin 14 of the first 595 in the FDD branch |
-| 17 | SER, pin 14 of the first 595 in the LSM/HDD branch |
-| 18 | CLOCK, pin 11 of all 595s in both branches |
-| 22 | LATCH, pin 12 of all 595s in the FDD branch |
-| 16 | LATCH, pin 12 of all 595s in the LSM/HDD branch |
-| 21 | /OE, pin 13 of all 595s in both branches |
-| 33 | /PL, pin 1 of the 165 |
-| 32 | CLOCK, pin 2 of the 165 |
-| 34 | QH, pin 9 of the 165 — data to ESP32 |
+### ESP32 GPIO
 
-## 595 — common pins
-
-| Function | Pin |
-| --- | --- |
-| QA, QB, QC, QD, QE, QF, QG, QH | 15, 1, 2, 3, 4, 5, 6, 7 |
-| SER — serial input | 14 |
-| QH′ — serial output to the next 595 | 9 |
-| CLOCK / LATCH / /OE | 11 / 12 / 13 |
-| /SRCLR | 10 → 3.3 V |
-| VCC / GND | 16 → 3.3 V / 8 → GND |
-
-## FDD — addresses and 595 outputs
-
-Address denotes the device number in this wiring map, not a bus address.
-
-| Address | Register | STEP → FDD pin 20 | DIR → FDD pin 18 | /SELECT → FDD pin 12 |
-| --- | --- | --- | --- | --- |
-| FDD 1 | F1 | QE, pin 4 | QF, pin 5 | QG, pin 6 |
-| FDD 2 | F1 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
-| FDD 3 | F2 | QE, pin 4 | QF, pin 5 | QG, pin 6 |
-| FDD 4 | F2 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
-| FDD 5 | F3 | QE, pin 4 | QF, pin 5 | QG, pin 6 |
-| FDD 6 | F3 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
-| FDD 7 | F4 | QE, pin 4 | QF, pin 5 | QG, pin 6 |
-| FDD 8 | F4 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
-
-QA and QH of each FDD 595 are unused. /SELECT is active LOW.
-Pin 12 is the assumed drive-select input; this depends on the FDD jumper settings.
-Firmware holds /SELECT LOW throughout preparation, playing and parking, and
-HIGH when inactive. Confirm pin 12 selects the actual drive before a powered
-test; no separate SELECT pulse command is required by this software profile.
-Odd-numbered pins on the FDD signal connector are GND.
-
-## FDD TRACK0 → 165
-
-Each FDD: pin 26 (/TRACK0) → a separate 165 input, with a 5.1 kΩ pull-up to 3.3 V.
-
-| FDD | 165 input | 165 pin |
+| GPIO | Function | Status |
 | --- | --- | --- |
-| 1 | A / D0 | 11 |
-| 2 | B / D1 | 12 |
-| 3 | C / D2 | 13 |
-| 4 | D / D3 | 14 |
-| 5 | E / D4 | 3 |
-| 6 | F / D5 | 4 |
-| 7 | G / D6 | 5 |
-| 8 | H / D7 | 6 |
+| 23 | FDD branch DATA | as today |
+| 22 | FDD branch LATCH | as today |
+| 34 | FDD branch Q165 (input only) | as today |
+| 17 | LSM/HDD branch DATA | as today |
+| 16 | LSM/HDD branch LATCH | as today |
+| 35 | LSM/HDD branch Q165 (input only) | new, proposed |
+| 18 | CLK, both branches | as today |
+| 21 | /OE, both branches | as today |
+| 33 | /PL, both branches | as today (FDD only) |
+| 32 | CLK165, both branches | as today (FDD only) |
+| 19 | ATX PS_ON# transistor | as today |
+| 13 | ATX button | as today |
+| 36 | PWR_OK via divider (input only; GPIO39 is the alternative) | new, proposed |
 
-Other 165 pins: VCC16 → 3.3 V, GND8 → GND, CLK INH15 → GND,
-SER10 → 3.3 V. Inverted output /QH7 is unused.
-With four FDDs, unused inputs D4–D7 are held HIGH.
+A GPIO shared by both branches drives each ribbon through its own series
+resistor. GPIO34–39 have no internal pull resistors.
 
-<a id="dvdhdd--addresses-and-595-outputs"></a>
+### Default levels on the mainboard
 
-## LSM/HDD — addresses and 595 outputs
+Pull resistors on the mainboard keep register control lines inactive while the
+ESP32 boots or a GPIO is high impedance:
 
-LSM channels retain the wiring addresses `SLED 1`…`SLED 4`. Each motor uses one DRV8833:
-AOUT1/AOUT2 → coil A, BOUT1/BOUT2 → coil B.
+| Signal | Resistor | Level without active drive |
+| --- | --- | --- |
+| /OE | 10 kΩ pull-up to 3.3 V | HIGH: 595 outputs high impedance |
+| /PL | 10 kΩ pull-up | HIGH: parallel load inactive |
+| CLK, CLK165 | 10 kΩ pull-down | LOW |
+| LATCH (each branch) | 10 kΩ pull-down | LOW |
+| DATA (each branch) | 10 kΩ pull-down | LOW |
+| Q165 (each branch) | pull resistor, value not chosen | defined with no module connected |
 
-| Device / address | Register | AIN1 | AIN2 | BIN1 | BIN2 |
-| --- | --- | --- | --- | --- | --- |
-| LSM1 / SLED 1 | D1 | QA, pin 15 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
-| LSM2 / SLED 2 | D1 | QE, pin 4 | QF, pin 5 | QG, pin 6 | QH, pin 7 |
-| LSM3 / SLED 3 | D2 | QA, pin 15 | QB, pin 1 | QC, pin 2 | QD, pin 3 |
-| LSM4 / SLED 4 | D2 | QE, pin 4 | QF, pin 5 | QG, pin 6 | QH, pin 7 |
+### Power input
 
-Each HDD VCM coil uses one DRV8833 H-bridge:
+A pluggable (two-part) screw terminal brings +3V3, GND, PS_ON#, +5VSB and
+PWR_OK from the user's ATX distribution. +5 V on this terminal is not decided.
 
-| Address | Register | 595 outputs → DRV8833 inputs | Bridge outputs → VCM |
+- **+5VSB → ESP32.** The ATX standby rail powers the ESP32 board through a
+  Schottky diode and a removable jumper into the board's 5 V pin, so the ESP32
+  runs while ATX main rails are off. The diode stops USB 5 V from feeding the
+  standby rail; removing the jumper isolates the ESP32 from ATX for USB
+  flashing. The ESP32 board is assumed to have no USB VBUS diode (seller
+  warning); this is not verified.
+- **+3V3** from ATX feeds only mainboard pull resistors and, through a normally
+  open solder jumper, the ribbons for bench use. Never connect ATX +3.3 V to
+  the ESP32 board's 3V3 or 5 V pin.
+- **PWR_OK** (grey ATX wire, nominally 5 V logic) reaches GPIO36 through a
+  resistor divider to 3.3 V levels. It reports main rails up, unlike the GPIO19
+  request. Divider values are not chosen; firmware does not read it yet.
+
+### ATX power switch and button
+
+ATX starts OFF in firmware, and a maintenance lock forces OFF and rejects ON
+until the next ESP32 restart.
+
+```text
+ESP32 GPIO19 ── 2.2 kΩ ── S8050 base
+                              │
+                           47–100 kΩ
+                              │
+Common GND ────────────── S8050 emitter
+ATX PS_ON# ────────────── S8050 collector
+```
+
+GPIO19 HIGH turns the transistor on and requests ATX ON; LOW releases PS_ON#,
+requesting OFF. This is a command, not a rail measurement. PS_ON# is
+conventionally the green ATX wire; identify it by connector function and never
+connect it directly to a GPIO. Use the actual transistor's pinout.
+
+```text
+ESP32 GPIO13 ── normally-open momentary button ── ESP32 GND
+```
+
+GPIO13 uses the internal pull-up: released HIGH, pressed LOW. Each debounced
+press toggles the ATX request. A button held during startup must be released
+before it can request ON. It is a software input, not a power isolator. The
+button connects to the mainboard through a two-pin connector.
+
+### Standby power and module back-powering
+
+With the ESP32 on standby power, module logic is unpowered while ATX is off.
+Ribbon signals must not back-power modules through register inputs. Planned
+measures: a module input buffer with power-off protection (a 74LVC244A-class
+part with Ioff), series resistors on the mainboard, and firmware that drives
+branch lines LOW while ATX is off. Not designed or verified yet.
+
+## Module ribbon (16-pin)
+
+Both branches use the same proposed 2 × 8 IDC ribbon. Every signal runs next to
+a ground wire. Pin assignment is a proposal for the schematic:
+
+| Pin | Signal | Pin | Signal |
 | --- | --- | --- | --- |
-| HDD 1 | H1 | QA15 → AIN1, QB1 → AIN2 (DRV7) | AOUT1/AOUT2 |
-| HDD 2 | H1 | QC2 → BIN1, QD3 → BIN2 (DRV7) | BOUT1/BOUT2 |
-| HDD 3 | H1 | QE4 → AIN1, QF5 → AIN2 (DRV8) | AOUT1/AOUT2 |
-| HDD 4 | H1 | QG6 → BIN1, QH7 → BIN2 (DRV8) | BOUT1/BOUT2 |
+| 1 | DATA | 2 | GND |
+| 3 | CLK | 4 | GND |
+| 5 | LATCH | 6 | GND |
+| 7 | /OE | 8 | GND |
+| 9 | /PL | 10 | GND |
+| 11 | CLK165 | 12 | GND |
+| 13 | Q165 | 14 | GND |
+| 15 | +3V3 (bench only, solder jumper) | 16 | GND |
 
-## DRV8833 — driver connections
+On each module:
 
-Six driver modules are used: DRV1–4 for LSM1–4, DRV7 for HDD1–2 and DRV8
-for HDD3–4. These are module labels, not bus addresses. DRV5–6 are not used.
-There are no direct motor-control connections from ESP32 GPIOs to these modules;
-the 595 outputs drive AIN1/AIN2/BIN1/BIN2 as listed above.
+- DATA, CLK, LATCH, /OE, /PL and CLK165 from IN pass through the input buffer
+  to the module's registers and to OUT.
+- The last 595's QH′ drives DATA on OUT.
+- The 165's QH drives Q165 on IN; its serial input (SER, pin 10) takes Q165
+  from OUT, with a pull resistor so an open OUT reads a defined level.
+- Modules are powered locally; the ribbon +3V3 wire connects only when the
+  bench solder jumper is closed.
 
-### Power and control
+Series resistors on mainboard outputs and the buffer part are not chosen.
 
-| DRV8833 signal | Connection |
-| --- | --- |
-| VM (sometimes labelled VIN on a module) | ATX +5 V motor supply |
-| GND | Common GND shared with ATX, registers and ESP32 |
-| AIN1, AIN2 | Two 595 outputs controlling bridge A |
-| BIN1, BIN2 | Two 595 outputs controlling bridge B |
-| nSLEEP (sometimes SLP, `EEP` on the installed module) | HIGH enables the driver; the installed module pulls it up on board (J1 closed), so leave it unconnected |
-| nFAULT (sometimes FLT, `ULT` on the installed module) | Leave unconnected; open-drain, not read by this project |
-| AISEN, BISEN | Current-sense connections described below; not digital control inputs |
+## FDD module
 
-The bare DRV8833 has no separate 3.3 V logic-supply input. VM supplies the IC;
-the 3.3 V signals from the 595s connect to its logic inputs. VINT is an internal
-regulator output for its capacitor, not an external power input.
+Each module serves four drives with 3 × 74HC595 (24 outputs, six per drive) and
+1 × 74HC165 (8 inputs, two per drive). The exact register bit order is fixed
+during schematic design and recorded here then.
 
-### Installed module and header pinout
+### Outputs and inputs per drive
+
+All drive signals are active LOW. Select-line names differ between sources;
+this project uses FDD pin numbers.
+
+| Signal | FDD pin | Direction | Note |
+| --- | --- | --- | --- |
+| DS0 | 10 | 595 → drive | Shugart DS0; Amiga internal drives select here |
+| DS1 | 12 | 595 → drive | Typical PC drives select here |
+| DS2 | 14 | 595 → drive | Spare select for unusual jumper settings |
+| MOTOR | 16 | 595 → drive | Many 3.5" drives may not spin without a disk (unverified) |
+| DIR | 18 | 595 → drive | Head direction |
+| STEP | 20 | 595 → drive | Head step |
+| WRITE DATA | 22 | pull-up only | Never driven |
+| WRITE GATE | 24 | pull-up only | Never driven |
+| TRACK0 | 26 | drive → 165 | Open collector from the drive |
+| WRITE PROTECT | 28 | drive → 165 | Open collector from the drive |
+
+Odd FDD pins are GND. Firmware will choose the select line per drive, so PC and
+Amiga drives share the same cable without rewiring.
+
+WRITE DATA and WRITE GATE are not connected to registers: a software-shifted
+595 chain cannot produce floppy write timing, and a controllable WRITE GATE
+could erase a disk.
+
+### Default levels
+
+- Every line toward a drive (DS0–DS2, MOTOR, DIR, STEP, WRITE DATA, WRITE GATE)
+  has a pull-up to 3.3 V, so drives stay deselected and still while 595 outputs
+  are high impedance during startup.
+- TRACK0 and WRITE PROTECT have pull-ups to 3.3 V; the drive only pulls them LOW.
+  The hand-wired assembly uses 5.1 kΩ for TRACK0.
+- Pull-ups are resistor arrays. Values and the drives' own input terminations
+  are not verified.
+
+### Drive cable
+
+Each module has two 40-pin IDE headers; each serves two drives.
+
+- Use a **40-wire** IDE ribbon; 80-wire Ultra ATA ribbons cannot be split this way.
+- Split the ribbon lengthwise into two 20-wire halves. Crimp each half into a
+  34-pin IDC socket with its first wire on **FDD pin 10**, so it covers FDD pins
+  10–29. Socket positions 1–9 and 30–34 stay empty.
+- Ribbon wire *n* lands on IDE header pin *n*.
+
+| IDE header pins | Drive | FDD pin |
+| --- | --- | --- |
+| 1–20 | first drive of the pair | IDE pin + 9 |
+| 21–40 | second drive of the pair | IDE pin − 11 |
+
+IDE pin 20 is often blocked as a polarity key; it maps to FDD pin 29 (GND) of
+the first drive, so only one ground wire is lost. Mark the wire-1 position on
+each IDC socket, because wire 1 on FDD pin 1 shifts every signal.
+
+Drives keep their own power connectors from the ATX supply.
+
+## LSM/HDD module
+
+Each module carries up to four DRV8833 driver modules soldered on header pins,
+3 × 74HC595 (20 of 24 outputs used) and 1 × 74HC165 (4 of 8 inputs used).
+
+| Per DRV8833 | Count | Connection |
+| --- | --- | --- |
+| IN1–IN4 | 4 | 595 outputs |
+| EEP (nSLEEP) | 1 | 595 output |
+| ULT (nFAULT) | 1 | 165 input with pull-up to 3.3 V |
+
+All registers are always fitted; a module may carry only two or three drivers.
+Unused outputs drive nothing and empty FAULT inputs read HIGH (no fault), so the
+chain length stays constant without jumpers. Firmware configuration says which
+slots are used. The exact register bit order is fixed during schematic design.
+
+### Motor connections
+
+An LSM motor uses both bridges of one DRV8833; an HDD voice-coil (VCM) coil uses
+one bridge, so one DRV8833 serves two HDDs.
+
+```text
+595 → IN1/IN2 → bridge A → OUT1 ─ coil ─ OUT2
+595 → IN3/IN4 → bridge B → OUT3 ─ coil ─ OUT4
+```
+
+Each coil connects between the two outputs of its bridge. Never join outputs of
+different bridges or connect a coil terminal to GND or +5 V. The assignment of
+LSM1–4 and HDD1–4 to modules and slots is configuration, not fixed wiring.
+
+### Installed DRV8833 module and header pinout
 
 The installed modules are the common 12-pin "DRV8833 2 Channel DC Motor Driver
 Module" boards. Identification is from the vendor document (Rajguru Electronics)
@@ -165,167 +269,67 @@ Pins in top view (component side), numbered like a DIP package:
 | 6 | ULT | nFAULT | 7 | IN1 | AIN1 |
 
 Pins 1–6 run down the left row and 7–12 up the right row; the underside view is
-mirrored. With J1 closed (factory default) an on-board pull-up keeps nSLEEP HIGH;
-opening J1 leaves the chip's internal pull-down, disabling the driver.
-A KiCad footprint needs holes for 0.64 mm square header pins, not the 0.8 mm
-holes of standard DIP footprints.
+mirrored. The bare DRV8833 has no separate logic supply; 3.3 V inputs are
+compatible.
 
-<a id="dvd-motor-wiring"></a>
+- **EEP and J1.** With J1 closed (factory default) an on-board pull-up keeps the
+  driver awake. With J1 open the chip's internal pull-down keeps it asleep until
+  the 595 drives EEP HIGH, the safest power-up state. The supply of the J1
+  pull-up is not documented; check it before driving EEP from 3.3 V against it.
+- **ULT** is open-drain and needs the carrier board's pull-up to read correctly.
+- **Current sense.** According to the vendor document, no sense resistors are
+  fitted, so current regulation is inactive; only the IC's over-current,
+  over-temperature and under-voltage protection applies. Not electrically
+  verified. Vendor ratings are 1.2 A continuous and 2 A peak per bridge; LSM and
+  VCM coil currents are not measured.
+- **Capacitors.** Vendor photos show the VM, VCP and VINT capacitors on the module
+  (marked 10 µF tantalum, 0.01 µF and 2.2 µF), so they are not repeated on the
+  carrier board.
 
-### LSM motor wiring
+## Power
 
-Each LSM motor has two separate coil pairs and uses both bridges of one module:
+The ATX supply is used only through its 24-pin connector; the user distributes
++3.3 V (orange), +5 V (red), GND (black), +5VSB (purple), PS_ON# (green) and
+PWR_OK (grey) with their own wires and Wago-style splice nodes.
 
-```text
-595 → AIN1/AIN2 → DRV8833 bridge A → AOUT1 ─ coil A ─ AOUT2
-595 → BIN1/BIN2 → DRV8833 bridge B → BOUT1 ─ coil B ─ BOUT2
-```
-
-LSM1 uses DRV1, LSM2 uses DRV2, LSM3 uses DRV3 and LSM4 uses DRV4.
-Neither coil terminal connects to GND or directly to +5 V.
-
-### HDD VCM wiring
-
-| Module | Bridge A: AOUT1/AOUT2 | Bridge B: BOUT1/BOUT2 |
-| --- | --- | --- |
-| DRV7 | Two terminals of HDD1 VCM coil | Two terminals of HDD2 VCM coil |
-| DRV8 | Two terminals of HDD3 VCM coil | Two terminals of HDD4 VCM coil |
-
-Each VCM coil connects between the two outputs of its bridge. Do not join
-outputs of different bridges or connect a coil terminal directly to GND/+5 V.
-
-### Current sense and local components
-
-For a bare IC, AISEN connects to GND through the bridge A sense resistor;
-BISEN connects to GND through the bridge B sense resistor. The nominal current
-trip relationship is `I_trip = 0.2 V / R_sense`. Values depend on the motor and
-are not specified here. A direct GND connection disables current regulation;
-it is not a current-limiting resistor. Neither sense input should float.
-
-According to the vendor document, the installed module has no sense resistors
-fitted ("can be enabled by adding sense resistors"), so current regulation is
-inactive; only the IC's over-current, over-temperature and under-voltage
-protection applies. This is not electrically verified. Vendor ratings are
-1.2 A continuous and 2 A peak per bridge; VCM coil current is not measured.
-The local VM, VCP and VINT capacitors are listed in the passive-components section.
-
-## Power connections
-
-ESP32, registers, drivers and drives share GND. 595/165 logic uses ATX 3.3 V;
-FDD power and LSM/HDD driver VM use 5 V. ESP32 is powered by USB.
-Do not connect the positive ATX 3.3 V rail to ESP32 3V3/5V/VIN.
-
-## ATX power switch and button
-
-The ATX circuit uses **GPIO19 for ATX control** and **GPIO13 for the button**.
-GPIO18 is the shared 595 clock, not the button input.
-The firmware implements both functions. ATX starts OFF, and a maintenance lock
-forces OFF and rejects ON until the next ESP32 restart.
-
-### ESP32 → ATX PS_ON#
-
-Use a separate S8050 NPN transistor:
-
-```text
-ESP32 GPIO19 ── 2.2 kΩ ── S8050 base
-                              │
-                           47–100 kΩ
-                              │
-Common GND ────────────── S8050 emitter
-ATX PS_ON# ────────────── S8050 collector
-```
-
-| Connection | Purpose |
+| Board | Supply |
 | --- | --- |
-| GPIO19 → 2.2 kΩ → base | Base drive |
-| Base → 47–100 kΩ → emitter/GND | Holds the transistor off while GPIO19 is high impedance |
-| Emitter → common GND | Common reference with ATX and ESP32 |
-| Collector → ATX PS_ON# | Pulls the active-LOW power-enable signal to GND |
+| Mainboard | Screw terminal (see [Power input](#power-input)) |
+| FDD module | One male 4-pin Molex (+5 V, GND); an on-board 3.3 V LDO makes the logic supply |
+| LSM/HDD module | One or two male 4-pin Molex connectors for motor +5 V; the same LDO makes the logic supply |
 
-GPIO19 HIGH turns the transistor on and requests ATX ON. GPIO19 LOW turns it
-off and releases PS_ON#, requesting ATX OFF. This is a logical command, not a
-measurement of the supply rails. PS_ON# is conventionally the green ATX wire;
-identify it by connector function. Do not connect PS_ON# directly to an ESP32 GPIO.
-Use the actual transistor's base/collector/emitter pinout; S8050 lead order is
-not assumed here. No PWR_OK or voltage-measurement input is connected.
+- Each module takes power from exactly one local source. Logic current is
+  estimated at about 10 mA per module, mainly pull-ups; the LDO part is not chosen.
+- The Molex keeps the standard peripheral pinout: +5 V at the red position,
+  both middle pins GND, the +12 V (yellow) position unconnected and marked on
+  the silkscreen. A standard PSU Molex plugged in by mistake stays harmless;
+  +3.3 V is never carried on a Molex.
+- LSM/HDD worst case by DRV8833 rating is 4 × 2 × 1.2 A ≈ 9.6 A per module; the
+  second Molex is fitted only if measured current requires it. Wide copper and a
+  bulk capacitor at the input are planned.
 
-### Momentary push button
+## Passive components
 
-```text
-ESP32 GPIO13 ── normally-open momentary button ── ESP32 GND
-```
-
-The firmware configures GPIO13 with an internal pull-up: released = HIGH,
-pressed = LOW. No external pull-up or connection to 3.3 V is needed with that
-configuration. Each debounced press toggles the ATX request; releasing the
-button does not toggle it. A button held during startup must first be released
-before it can request ON. This is a software input, not a physical power isolator.
-
-Additional components: 1 × S8050 NPN, 1 × 2.2 kΩ, 1 × 47–100 kΩ and
-1 × normally-open momentary button. These are separate from the resistor counts
-for the registers and DRV8833 modules below.
-
-## Resistors and capacitors
-
-The table describes the intended components. The user confirmed 100 nF capacitors
-and 5.1 kΩ TRACK0 pull-ups. Other resistors are recommended additions, not a record
-of the current assembly. The 10 kΩ value is a project design choice.
-
-### Register supply decoupling
-
-| Component | Full-system quantity | Connection |
-| --- | --- | --- |
-| 100 nF ceramic capacitor, rated ≥ 6.3 V | 7 for the 595s + 1 for the 165 | VCC pin 16 to GND pin 8 of each IC, with short connections close to the pins |
-
-Each IC has its own capacitor. One shared rail capacitor does not replace these eight.
-
-### TRACK0 and default signal levels
-
-A pull-up connects the signal through a resistor to the register logic 3.3 V rail.
-A pull-down connects it through a resistor to GND. These are branches from the
-signal, not series resistors between the GPIO and the register.
-
-| Signal | Resistor | Connection | Level without active drive |
-| --- | --- | --- | --- |
-| TRACK0 FDD1–8 | 5.1 kΩ pull-up per line | 165 inputs A–H → logic 3.3 V | HIGH — TRACK0 inactive |
-| /OE, both 595 branches, GPIO21 | One shared 10 kΩ pull-up | Register pin 13 → logic 3.3 V | HIGH — 595 outputs in high impedance |
-| 165 /PL, GPIO33 | 10 kΩ pull-up | 165 pin 1 → logic 3.3 V | HIGH — parallel load inactive |
-| CLOCK165, GPIO32 | 10 kΩ pull-down | 165 pin 2 → GND | LOW |
-| CLOCK595, GPIO18 | One shared 10 kΩ pull-down | Register pin 11 → GND | LOW |
-| FDD LATCH, GPIO22 | 10 kΩ pull-down | FDD branch register pin 12 → GND | LOW |
-| LSM/HDD LATCH, GPIO16 | 10 kΩ pull-down | LSM/HDD branch register pin 12 → GND | LOW |
-| FDD DATA, GPIO23 | 10 kΩ pull-down | First 595 F1 SER pin 14 → GND | LOW |
-| LSM/HDD DATA, GPIO17 | 10 kΩ pull-down | First 595 D1 SER pin 14 → GND | LOW |
-
-Total: 8 × 5.1 kΩ and 8 × 10 kΩ. With four FDDs, only four TRACK0 pull-ups
-are needed; unused inputs E–H remain connected to 3.3 V.
-No additional resistors are specified on QA–QH outputs or QH/QH′ serial outputs.
-595 /SRCLR, 165 SER and 165 CLK INH retain the direct connections listed above.
-
-DATA165 at GPIO34 is driven by the 165 QH output. No extra pull-up is required
-for normal reads. Defining a level with the cable disconnected is a separate
-option, excluded from the resistor count above.
-
-These resistors do not isolate a powered ESP32 from unpowered registers.
-Power-domain isolation remains unspecified. High-impedance 595 outputs do not
-by themselves define the levels at the connected drive inputs.
-
-### DRV8833 modules
-
-Components already fitted to a module are not counted as extra board components.
-For the bare DRV8833 IC, the manufacturer specifies:
-
-| Component | Connection |
+| Component | Where |
 | --- | --- |
-| At least 10 µF ceramic capacitor, rated for VM | VM → GND, close to each driver |
-| 10 nF X7R ceramic capacitor, rated at least 16 V | VCP → VM |
-| 2.2 µF ceramic capacitor, rated at least 6.3 V | VINT → GND |
+| 100 nF ceramic, ≥ 6.3 V | One per register and buffer IC, close to its supply pins |
+| LDO input/output capacitors | Each module, per the chosen LDO datasheet |
+| Bulk capacitor | Molex input of each LSM/HDD module; value not chosen |
+| 10 kΩ pull resistors | Mainboard control lines (table above) |
+| Pull-up resistor arrays | FDD lines and inputs, DRV8833 FAULT inputs |
+| Series resistors | Mainboard ribbon outputs; value not chosen |
+| PWR_OK divider | Mainboard; values not chosen |
+| Schottky diode | Mainboard +5VSB path |
+| S8050, 2.2 kΩ, 47–100 kΩ | Mainboard ATX switch |
 
-Vendor photos of the installed module type show these three capacitors fitted
-on the module (marked 10 µF tantalum, 0.01 µF and 2.2 µF), so they are not added
-to the carrier board. Additional motor-rail bulk capacitance depends on the load
-and is not specified here. No external nSLEEP pull-ups are needed while J1 is closed.
+## Maintenance
 
-Sources: [TI SN74HC595 — decoupling and inputs](https://www.ti.com/lit/ds/symlink/sn74hc595.pdf),
+Before USB flashing or OTA, ATX stays OFF. For USB flashing also remove the
++5VSB jumper and disconnect both ribbons, so the ESP32 runs from USB only.
+Never power instruments during an upload.
+
+Sources: [TI SN74HC595](https://www.ti.com/lit/ds/symlink/sn74hc595.pdf),
 [TI SN74HC165](https://www.ti.com/lit/ds/symlink/sn74hc165.pdf),
-[TI DRV8833 — external components](https://www.ti.com/lit/ds/symlink/drv8833.pdf).
+[TI DRV8833](https://www.ti.com/lit/ds/symlink/drv8833.pdf),
+[Floppy disk drive interface](https://en.wikipedia.org/wiki/Floppy_disk_drive_interface),
+[PC floppy drive in Amiga](https://www.retrosix.wiki/pc-floppy-drive-in-amiga).
