@@ -44,22 +44,39 @@ for i, ref in enumerate(["RN10", "RN11", "RN12", "RN13", "RN14", "RN15", "RN16",
 
 
 # Silkscreen branding (board-only, not in the schematic)
-LOGO_AT = (87.0, 56.0)
+LOGO_AT = (91.0, 56.0)          # 8 mm logo, about 8 mm right of the drive headers
 BRAND_TEXT = [("SURRKLANK", 63.0, 1.3), ("FDD MODULE v0.1", 65.6, 1.0)]
+BY_TEXT = ("by", 86.6, 52.0, 3.0)   # italic Times New Roman at the logo's top-left corner
 
 
 def mm(v):
     return pcbnew.FromMM(v)
 
 
+def apply_rules(board):
+    """Rules on the in-memory board (used by this process)."""
+    board.GetDesignSettings().m_TrackMinWidth = mm(0.15)  # low-cost fab limit is 0.127 mm
+
+
+def set_project_rules(board_path):
+    """Write the rule into the .kicad_pro, which KiCad may have rewritten with defaults."""
+    import json
+    pro = os.path.splitext(board_path)[0] + ".kicad_pro"
+    with open(pro, encoding="utf-8") as f:
+        d = json.load(f)
+    d.setdefault("board", {}).setdefault("design_settings", {}).setdefault("rules", {})["min_track_width"] = 0.15
+    with open(pro, "w", encoding="utf-8") as f:
+        json.dump(d, f, indent=2)
+
+
 def brand(board):
     """Logo footprint and short text on the front silkscreen; replaces old ones."""
-    for fp in list(board.GetFootprints()):
-        if fp.GetReference() == "LOGO1":
-            board.Remove(fp)
-    for d in list(board.GetDrawings()):
-        if d.GetClass() == "PCB_TEXT" and d.GetText() in {t for t, _, _ in BRAND_TEXT}:
-            board.Remove(d)
+    # Collect first: SWIG item lists become unusable after a Remove() in this process.
+    texts = {t for t, _, _ in BRAND_TEXT} | {BY_TEXT[0]}
+    old = [fp for fp in board.GetFootprints() if fp.GetReference() == "LOGO1"]
+    old += [d for d in board.GetDrawings() if d.GetClass() == "PCB_TEXT" and d.GetText() in texts]
+    for item in old:
+        board.Remove(item)
     logo = load_footprint("surrklank:Surrklank_Logo_8mm")
     logo.SetReference("LOGO1")
     logo.SetPosition(pcbnew.VECTOR2I(mm(OX + LOGO_AT[0]), mm(OY + LOGO_AT[1])))
@@ -72,12 +89,37 @@ def brand(board):
         t.SetTextSize(pcbnew.VECTOR2I(mm(size), mm(size)))
         t.SetTextThickness(mm(size * 0.15))
         board.Add(t)
+    text, x, y, size = BY_TEXT
+    t = pcbnew.PCB_TEXT(board)
+    t.SetText(text)
+    t.SetLayer(pcbnew.F_SilkS)
+    t.SetUnresolvedFontName("Times New Roman")   # system TrueType font; outlined in Gerbers
+    t.SetItalic(True)
+    t.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_RIGHT)
+    t.SetPosition(pcbnew.VECTOR2I(mm(OX + x), mm(OY + y)))
+    t.SetTextSize(pcbnew.VECTOR2I(mm(size), mm(size)))
+    board.Add(t)
+
+
+def set_by_font(board_path):
+    """KiCad's Python API cannot set a TrueType face; add it to the saved file."""
+    with open(board_path, encoding="utf-8") as f:
+        text = f.read()
+    start = text.index(f'(gr_text "{BY_TEXT[0]}"')
+    font = text.index("(font", start)
+    if '(face "Times New Roman")' not in text[font:font + 200]:
+        text = text[:font + 5] + ' (face "Times New Roman")' + text[font + 5:]
+        with open(board_path, "w", encoding="utf-8") as f:
+            f.write(text)
 
 
 def brand_file(board_path, _unused):
     board = pcbnew.LoadBoard(board_path)
     brand(board)
+    apply_rules(board)
     pcbnew.SaveBoard(board_path, board)
+    set_by_font(board_path)
+    set_project_rules(board_path)
 
 
 def load_footprint(fpid):
@@ -156,7 +198,10 @@ def place(netlist, out):
     brand(board)
     add_zone(board, nets["GND"], pcbnew.F_Cu)
     add_zone(board, nets["GND"], pcbnew.B_Cu)
+    apply_rules(board)
     pcbnew.SaveBoard(out, board)
+    set_by_font(out)
+    set_project_rules(out)
 
 
 def dsn(board_path, out):
@@ -192,7 +237,9 @@ def finish(board_path, _unused):
     for t in narrow:
         t.SetWidth(pcbnew.FromMM(0.15))
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+    apply_rules(board)
     pcbnew.SaveBoard(board_path, board)
+    set_project_rules(board_path)
     vias = sum(t.GetClass() == "PCB_VIA" for t in board.GetTracks())
     print(f"tracks {len(board.GetTracks()) - vias}, vias {vias}, removed stubs {len(stubs)}, widened {len(narrow)}")
 
