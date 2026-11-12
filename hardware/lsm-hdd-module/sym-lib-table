@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "surrklank")(type "KiCad")(uri "${KIPRJMOD}/../lib/surrklank.kicad_sym")(options "")(descr "Surrklank custom symbols"))
+)

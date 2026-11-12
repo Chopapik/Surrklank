@@ -262,7 +262,34 @@ Each module carries up to four DRV8833 driver modules soldered on header pins,
 All registers are always fitted; a module may carry only two or three drivers.
 Unused outputs drive nothing and empty FAULT inputs read HIGH (no fault), so the
 chain length stays constant without jumpers. Firmware configuration says which
-slots are used. The exact register bit order is fixed during schematic design.
+slots are used. Schematic: `hardware/lsm-hdd-module/surrklank-lsm-hdd-module.kicad_sch`
+(generated, v0.1).
+
+### Register bit order
+
+U2 is first in the chain; U2 QH′ → U3 SER → U4 SER, and U4 QH′ drives OUT DATA.
+M1–M4 are the module's DRV8833 slots.
+
+| Register | QA | QB | QC | QD | QE | QF | QG | QH |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| U2 | M1 IN1 | M1 IN2 | M1 IN3 | M1 IN4 | M1 EEP | M2 IN1 | M2 IN2 | M2 IN3 |
+| U3 | M2 IN4 | M2 EEP | M3 IN1 | M3 IN2 | M3 IN3 | M3 IN4 | M3 EEP | M4 IN1 |
+| U4 | M4 IN2 | M4 IN3 | M4 IN4 | M4 EEP | — | — | — | — |
+
+| 165 input | D0 | D1 | D2 | D3 | D4–D7 |
+| --- | --- | --- | --- | --- | --- |
+| U5 | M1 ULT | M2 ULT | M3 ULT | M4 ULT | tied to GND |
+
+### Module circuit
+
+- Ribbon interface, input buffer, pull resistors and series resistors are the
+  same as on the FDD module.
+- EEP lines have 100 kΩ pull-downs (asleep at power-up when J1 on the DRV8833
+  module is open; with J1 closed the module's own pull-up wins). IN1–IN4 rely
+  on the DRV8833 internal pull-downs. ULT lines have 10 kΩ pull-ups to 3.3 V.
+- Each slot has a 4-way 3.5 mm screw terminal: pins 1–4 = OUT1–OUT4.
+- Power: Molex J5 (+5 V) and optional J10 (not fitted unless measured current
+  needs it), 470 µF bulk capacitor on +5 V, AMS1117-3.3 for logic.
 
 ### Motor connections
 

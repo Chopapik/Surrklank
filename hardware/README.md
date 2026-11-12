@@ -10,8 +10,9 @@ KiCad 10 projects:
 | Folder | Content |
 | --- | --- |
 | `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
+| `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic; PCB not started |
 | `surrklank-controller/` | Empty placeholder for the mainboard |
-| `lib/surrklank.pretty/` | Custom footprints (Molex 8981) |
+| `lib/` | Custom symbol (DRV8833 module) and footprints (Molex 8981, DRV8833 module) |
 | `tools/` | Generators, netlist check and build script |
 
 Boards are generated, not edited by hand. One command rebuilds the FDD module
@@ -19,6 +20,14 @@ Boards are generated, not edited by hand. One command rebuilds the FDD module
 
 ```sh
 hardware/tools/build_fdd_module.sh [work_dir]
+```
+
+The LSM/HDD schematic is generated and checked the same way:
+
+```sh
+python3 -I hardware/tools/gen_lsm_hdd_module.py hardware/lsm-hdd-module/surrklank-lsm-hdd-module.kicad_sch
+kicad-cli sch export netlist --format kicadxml -o /tmp/lsm.xml hardware/lsm-hdd-module/surrklank-lsm-hdd-module.kicad_sch
+python3 -I hardware/tools/check_lsm_hdd_module.py /tmp/lsm.xml
 ```
 
 Requirements: KiCad 10 (its bundled Python runs `gen_fdd_pcb.py`), Freerouting
@@ -76,7 +85,8 @@ pin order listed by the seller and matching the silkscreen photo.
 | Ribbon IN/OUT | 2 × 8 IDC box header, 2.54 mm |
 | FDD drive cable | Salvaged 40-pin IDE header; standard DIN 41651 2 × 20 footprint (2.54 mm pitch, 1.0 mm holes, body about 58.5 × 8.9 mm in KiCad) with extra clearance for a cut-down housing |
 | Molex power | Custom: Molex 8981 family, 5.08 mm pitch, slightly enlarged holes and a few millimetres of clearance for different salvaged housings; pin tail diameter (optional measurement) can refine holes |
-| DRV8833 module | Custom 2 × 6, 2.54 mm pitch, rows 15.24 mm apart, holes for 0.64 mm square header pins |
+| DRV8833 module | Custom `DRV8833_Module_2x6_W15.24mm`: 2 × 6, 2.54 mm pitch, rows 15.24 mm apart, 1.0 mm holes, DIP-style numbering |
+| Motor outputs | 4-way 3.5 mm screw terminal per DRV8833 slot (proposal) |
 | ESP32 board | Two 1 × 19 female headers, 2.54 mm pitch, rows 25.4 mm apart |
 
 Male Molex connectors may be salvaged from HDD controller boards, where they

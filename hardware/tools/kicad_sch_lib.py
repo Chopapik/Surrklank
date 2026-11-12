@@ -67,9 +67,13 @@ def child(e, key):
 _libs = {}
 
 
+CUSTOM_LIBS = {"surrklank": os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                          "..", "lib", "surrklank.kicad_sym")}
+
+
 def _lib(name):
     if name not in _libs:
-        with open(f"{LIBDIR}/{name}.kicad_sym", encoding="utf-8") as f:
+        with open(CUSTOM_LIBS.get(name, f"{LIBDIR}/{name}.kicad_sym"), encoding="utf-8") as f:
             _libs[name] = parse(f.read())
     return _libs[name]
 
@@ -124,7 +128,7 @@ class Sheet:
         self.n += 1
         return uid(f"{self.project}/{kind}/{self.n}")
 
-    def symbol(self, lib_id, ref, value, x, y, angle=0, footprint="", fields=None, mirror=None):
+    def symbol(self, lib_id, ref, value, x, y, angle=0, footprint="", fields=None, mirror=None, dnp=False):
         libname, name = lib_id.split(":")
         if lib_id not in self.lib_symbols:
             s = flatten(libname, name)
@@ -149,7 +153,7 @@ class Sheet:
 
         inst = ["symbol", ["lib_id", Q(lib_id)], ["at", x, y, angle], ["unit", 1],
                 ["exclude_from_sim", "no"], ["in_bom", flag("in_bom")],
-                ["on_board", flag("on_board")], ["dnp", "no"], ["uuid", self._id("sym")]]
+                ["on_board", flag("on_board")], ["dnp", "yes" if dnp else "no"], ["uuid", self._id("sym")]]
         values = {"Reference": ref, "Value": value}
         if footprint:
             values["Footprint"] = footprint
