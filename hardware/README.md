@@ -5,7 +5,26 @@ resistors and power wiring of the planned boards are defined in
 [WIRING.md](../docs/WIRING.md); this file covers board-level design only.
 Firmware does not support the module layout yet.
 
-The KiCad project in `surrklank-controller/` is an empty placeholder (KiCad 10.0).
+KiCad 10 projects:
+
+| Folder | Content |
+| --- | --- |
+| `fdd-module/` | FDD module schematic v0.1 (generated); PCB not started |
+| `surrklank-controller/` | Empty placeholder for the mainboard |
+| `lib/surrklank.pretty/` | Custom footprints (Molex 8981) |
+| `tools/` | Schematic generator and netlist check |
+
+Schematics are generated, not edited by hand:
+
+```sh
+python3 -I hardware/tools/gen_fdd_module.py hardware/fdd-module/surrklank-fdd-module.kicad_sch
+kicad-cli sch erc hardware/fdd-module/surrklank-fdd-module.kicad_sch
+kicad-cli sch export netlist --format kicadxml -o /tmp/fdd.xml hardware/fdd-module/surrklank-fdd-module.kicad_sch
+python3 -I hardware/tools/check_fdd_module.py /tmp/fdd.xml
+```
+
+The check verifies the netlist against WIRING.md rules written independently of
+the generator (drive header pins, pull-ups, register chain, ribbon, supplies).
 
 ## Board family
 
@@ -66,8 +85,8 @@ fees; costs are not estimated yet.
 ## Open items
 
 - +5 V on the mainboard terminal.
-- Values: pull resistors, series resistors, PWR_OK divider, bulk capacitors.
-- Parts: input buffer, LDO, Schottky diode; exact register bit order.
+- Values: mainboard series resistors, PWR_OK divider, LSM/HDD bulk capacitor.
+- Parts: Schottky diode; LCSC part numbers; LDO output capacitor type.
 - Drive input terminations and MOTOR behaviour on the installed drives.
 - Motor supply current per LSM/HDD module and wire gauge.
 - Firmware migration after assembly: six outputs per drive and a longer FDD

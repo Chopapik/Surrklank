@@ -160,8 +160,37 @@ Series resistors on mainboard outputs and the buffer part are not chosen.
 ## FDD module
 
 Each module serves four drives with 3 × 74HC595 (24 outputs, six per drive) and
-1 × 74HC165 (8 inputs, two per drive). The exact register bit order is fixed
-during schematic design and recorded here then.
+1 × 74HC165 (8 inputs, two per drive). Schematic:
+`hardware/fdd-module/surrklank-fdd-module.kicad_sch` (generated, v0.1).
+
+### Register bit order
+
+U2 is first in the chain (its SER takes buffered DATA); U2 QH′ → U3 SER →
+U4 SER, and U4 QH′ drives OUT DATA.
+
+| Register | QA | QB | QC | QD | QE | QF | QG | QH |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| U2 | D1 DS0 | D1 DS1 | D1 DS2 | D1 MOTOR | D1 DIR | D1 STEP | D2 DS0 | D2 DS1 |
+| U3 | D2 DS2 | D2 MOTOR | D2 DIR | D2 STEP | D3 DS0 | D3 DS1 | D3 DS2 | D3 MOTOR |
+| U4 | D3 DIR | D3 STEP | D4 DS0 | D4 DS1 | D4 DS2 | D4 MOTOR | D4 DIR | D4 STEP |
+
+| 165 input | D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| U5 | D1 TRACK0 | D1 WP | D2 TRACK0 | D2 WP | D3 TRACK0 | D3 WP | D4 TRACK0 | D4 WP |
+
+D1–D4 are the module's drive positions: J3 serves D1–D2, J4 serves D3–D4.
+U5 serial input (DS) takes Q165 from the OUT connector; U5 QH drives Q165 on IN
+through a 33 Ω resistor.
+
+### Module circuit
+
+- Input buffer U1 (74LVC244A, SOIC-20W, 74AHC244 symbol with the same pinout)
+  re-drives DATA, CLK, LATCH, /OE, /PL and CLK165; its enables are tied LOW.
+- Ribbon inputs have pull resistors (10 kΩ) on the module: DATA, CLK, LATCH and
+  CLK165 to GND; /OE, /PL and the chained Q165 to 3.3 V.
+- Buffered CLK, LATCH, /OE, /PL, CLK165 and U4 QH′ reach OUT through 33 Ω.
+- Power: Molex J5 (+5 V) → AMS1117-3.3 (10 µF in, 22 µF out); 100 nF per IC.
+- Parts are SMD (SOIC, 0805, 4 × 0603 resistor arrays) except connectors.
 
 ### Outputs and inputs per drive
 
@@ -195,8 +224,8 @@ could erase a disk.
   are high impedance during startup.
 - TRACK0 and WRITE PROTECT have pull-ups to 3.3 V; the drive only pulls them LOW.
   The hand-wired assembly uses 5.1 kΩ for TRACK0.
-- Pull-ups are resistor arrays. Values and the drives' own input terminations
-  are not verified.
+- Pull-ups are 4 × 0603 resistor arrays: 10 kΩ on drive inputs, 4.7 kΩ on
+  TRACK0 and WRITE PROTECT. The drives' own input terminations are not verified.
 
 ### Drive cable
 
