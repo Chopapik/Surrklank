@@ -1,5 +1,7 @@
 #include "fdd_control.cpp"
 #include <cassert>
+#include <cmath>
+#include <vector>
 
 bool atx_on = true, rails_up = true;
 namespace atx {
@@ -42,6 +44,50 @@ void slow_ble(int, fdd::State) {
 void one_iteration(void (*function)(void*)) {
     wakes = 0;
     try { function(nullptr); } catch (const EndIteration&) {}
+}
+// Drive 1 plays outward under 100 us alarm wakes with 0-19 us dispatch latency.
+// Pending alarms coalesce into an immediate wake; idle alarms long before a
+// deadline are skipped. Returns software latch times of falling STEP edges.
+std::vector<int64_t> cadence(uint32_t rate, unsigned steps) {
+    engine = fdd::Engine{};
+    auto &d = engine.drives[0];
+    d.state.phase = fdd::Phase::playing;
+    d.state.rate = rate;
+    d.state.duration = 60000;
+    d.state.left = true;
+    d.state.toward_zero = false;
+    d.startup_steps = 8; // Measure the constant-rate plateau after the startup ramp.
+    d.started = fake_now;
+    d.due = fake_now + 1234; // Deliberately off the alarm grid.
+    previous = engine.outputs();
+    write(previous);
+    std::vector<int64_t> edges;
+    uint32_t random = rate;
+    int64_t alarm = fake_now / 100 * 100;
+    while (edges.size() < steps) {
+        assert(d.state.phase == fdd::Phase::playing && d.state.error == fdd::Error::none);
+        random = random * 1103515245u + 12345u;
+        const int64_t latency = (random >> 16) % 20;
+        int64_t next = alarm + 100;
+        if (next <= fake_now) {
+            alarm = fake_now / 100 * 100;
+        } else {
+            if (d.due - next > 300)
+                next = (d.due - 200) / 100 * 100;
+            alarm = next;
+            fake_now = next + latency;
+        }
+        gpio_events.clear();
+        one_iteration(tasks.at("fdd"));
+        // Rebuild the shifted FDD frame; a latch with drive 1 STEP LOW is an edge.
+        fdd::Frame image;
+        const fdd::Frame step = fdd::output_mask(0, fdd::Line::step);
+        for (const auto &event : gpio_events) {
+            if (event.pin == 23) shift_in(image, event.level);
+            if (event.pin == 22 && event.level && !(image & step)) edges.push_back(event.at);
+        }
+    }
+    return edges;
 }
 int main() {
     assert(laboratory::init() == ESP_OK);
@@ -250,4 +296,18 @@ int main() {
     laboratory::command("LAB INFO 13", wide, sizeof(wide));
     assert(!strcmp(wide, "ERR LAB BUSY OR INVALID"));
     laboratory::command("LAB ABORT 12", wide, sizeof(wide));
+
+    // Every 1-300 Hz request and every equal-tempered note C1-D4 keeps equal
+    // STEP intervals: no alternation between the two neighbouring 100 us values.
+    std::vector<uint32_t> rates;
+    for (uint32_t hz = 1; hz <= 300; ++hz)
+        rates.push_back(hz * 1000);
+    for (int note = 24; note <= 62; ++note)
+        rates.push_back(uint32_t(std::lround(440000.0 * std::pow(2.0, (note - 69) / 12.0))));
+    for (uint32_t rate : rates) {
+        const auto edges = cadence(rate, rate < 5000 ? 6 : 40);
+        const int64_t period = 1000000000LL / rate;
+        for (size_t i = 1; i < edges.size(); ++i)
+            assert(edges[i] - edges[i - 1] == period);
+    }
 }

@@ -134,6 +134,8 @@ class Engine {
     void power_lost(int64_t now);
     // Accepted only while no drive is active; invalidates that drive's position.
     bool set_select(int device, Line line);
+    // Earliest STEP deadline of a moving drive, or INT64_MAX when none is scheduled.
+    int64_t next_step() const;
     void tick(int64_t now, DriveMask track0);
     void steps_latched(const Frame &before, const Frame &after, int64_t scheduled_at, int64_t latched_at);
     void finish_pulses();

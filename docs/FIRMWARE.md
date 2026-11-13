@@ -186,8 +186,31 @@ A GPTimer alarm wakes the motion task every 100 microseconds through an ISR
 notification. The motion task is pinned to CPU1 and creates/enables the timer
 on that core; Bluetooth remains on CPU0 in this configuration. The callback
 itself does not shift registers, acquire the engine mutex or send BLE data. STEP deadlines follow
-an absolute per-drive cadence, so small dispatch and register-transfer delays do
-not accumulate into a lower average rate. If dispatch is more than half a period
+an absolute per-drive cadence in whole microseconds (period = 10^9 / rate in
+mHz, truncated), so small dispatch and register-transfer delays do not
+accumulate into a lower average rate. The alarm only wakes the task: when the
+earliest STEP deadline is at most 150 microseconds ahead, the task busy-waits
+with the engine mutex held until that deadline, then reads sensors and latches
+the frame. A constant-rate STEP train therefore has equal software intervals
+instead of alternating between the two neighbouring multiples of 100
+microseconds, as with the alarm alone (firmware 0.1.7); the mean rate is unchanged.
+Measurements of earlier firmware include that alternation, so record the
+reported firmware version with every measurement. The wait costs up to
+150 microseconds of CPU1 time per STEP event and delays FFF1 laboratory
+commands by the same bound. One iteration serializes all drives: a STEP due
+while another drive's frame and 30-microsecond LOW hold are being written is
+emitted after them, so drives with nearby deadlines still shift each other.
+The wait sits before the sensor read and both frame writes, so every STEP
+gets the same fixed latch offset and intervals stay equal with three modules
+too. One STEP iteration, however, now takes about 0.3 ms of register work
+plus up to 0.15 ms of waiting (450 us from wake to end on the fake clock of
+`test_fdd_control.py`, counting only the configured delays), because 72-bit
+frames are shifted twice and 24 sensor bits read. CPU1 therefore serves
+roughly 2,000-3,000 separate STEP events per second: 12 drives at 300 Hz
+(3,600 events per second) would exceed it and fault on late work, while
+steps due together share one iteration. This is an estimate, not a
+measurement; a faster shift (for example the SPI peripheral) is not
+implemented. If dispatch is more than half a period
 late, a fresh full period is scheduled to avoid a catch-up burst; playing delays
 over two periods still fault. The LOW hold is referenced to the post-latch
 timestamp and pulses are completed in the same motion iteration.
@@ -263,8 +286,12 @@ test. It checks the serial data path only, not 595 outputs, pull-ups or the
 
 The host tests exercise the real scheduling engine with simulated sensors,
 missed head movement, unequal return counts, parallel batches and stop/fault
-paths. They do not verify electrical levels, SELECT jumper configuration,
+paths. The motion-task test runs every 1–300 Hz integer request and every
+equal-tempered note C1–D4 on one drive under simulated 100-microsecond alarms
+with dispatch latency and requires identical fake-clock latch intervals. They do not verify electrical levels, SELECT jumper configuration,
 actual motor movement, STEP/DIR timing under BLE load or playback pitch.
+The equal-interval wait arrived in firmware 0.1.8 on the hand-wired branch
+and is part of the PCB firmware from 0.2.1; 0.2.0 lacked it.
 Physical checks on FDD 1 and 2 of the hand-wired assembly confirm sensor
 transitions, concurrent playing, independent STOP, STOP ALL and final TRACK0
 parking at the tested frequencies (100, 110, 220 and 300 Hz). This is ESP32

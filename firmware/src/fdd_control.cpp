@@ -45,6 +45,11 @@ std::atomic<bool> bus_test{false};
 std::atomic<int> actuator_fault_mask{-1};
 unsigned bus_test_step = 0;
 int64_t bus_test_due = 0;
+// The periodic alarm only wakes the motion task. A STEP due before the next
+// wake is reached by waiting out the remainder, keeping the 1 us deadline grid
+// instead of rounding each STEP up to the next 100 us alarm.
+constexpr unsigned motion_tick_us = 100;
+constexpr int64_t precise_window_us = 150;
 // Temporary bench instrumentation. Captures software latch timestamps only;
 // printing happens in the report task after a drive reaches a terminal state.
 struct CadenceProbe {
@@ -203,7 +208,7 @@ void start_motion_timer() {
     callbacks.on_alarm = timer_alarm;
     ESP_ERROR_CHECK(gptimer_register_event_callbacks(handle, &callbacks, xTaskGetCurrentTaskHandle()));
     gptimer_alarm_config_t alarm = {};
-    alarm.alarm_count = 100;
+    alarm.alarm_count = motion_tick_us;
     alarm.flags.auto_reload_on_alarm = true;
     ESP_ERROR_CHECK(gptimer_set_alarm_action(handle, &alarm));
     // Enable on the motion core so the interrupt is allocated there.
@@ -237,6 +242,10 @@ void worker(void *) {
             engine.power_lost(now);
         }
         if (powered) {
+            const int64_t target = engine.next_step();
+            if (target - esp_timer_get_time() <= precise_window_us)
+                for (int64_t wait; (wait = target - esp_timer_get_time()) > 0;)
+                    esp_rom_delay_us(static_cast<uint32_t>(wait));
             const Inputs inputs = read();
             const fdd::DriveMask track0 = fdd::track0_inputs(inputs.fdd);
             actuator_fault_mask = actuator_faults(inputs.actuator);

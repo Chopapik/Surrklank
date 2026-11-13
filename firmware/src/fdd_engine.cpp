@@ -1,4 +1,5 @@
 #include "fdd_engine.h"
+#include <cstdint>
 
 namespace {
 bool active(fdd::Phase p) {
@@ -18,6 +19,13 @@ bool fdd::Engine::busy() const {
         if (active(d.state.phase))
             return true;
     return false;
+}
+int64_t fdd::Engine::next_step() const {
+    int64_t next = INT64_MAX;
+    for (const auto &d : drives)
+        if (moving(d.state.phase) && !d.step_low && d.due < next)
+            next = d.due;
+    return next;
 }
 void fdd::Engine::phase(Drive &d, Phase next, int64_t now) {
     d.state.phase = next;
