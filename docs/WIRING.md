@@ -57,6 +57,9 @@ mainboard ──16-pin ribbon── FDD module 1 ──ribbon── FDD module 2
 | 19 | ATX PS_ON# transistor | as today |
 | 13 | ATX button | as today |
 | 36 | PWR_OK via divider (input only; GPIO39 is the alternative) | new, proposed |
+| 25 | Remote panel I2C SDA | new, proposed |
+| 26 | Remote panel I2C SCL | new, proposed |
+| 27 | Remote panel expander INT (input, 10 kΩ pull-up) | new, proposed |
 
 A GPIO shared by both branches drives each ribbon through its own series
 resistor. GPIO34–39 have no internal pull resistors.
@@ -141,6 +144,32 @@ Ribbon signals must not back-power modules through register inputs. Planned
 measures: a module input buffer with power-off protection (a 74LVC244A-class
 part with Ioff), series resistors on the mainboard, and firmware that drives
 branch lines LOW while ATX is off. Not designed or verified yet.
+
+### Remote panel
+
+An optional panel on a cable of about 1–2 m brings the ATX button, status
+LEDs and later an I2C display and buttons closer to the user. Instruments stay
+on the 595/165 chains: I2C is too slow for STEP timing (100 µs motion tick,
+two frames per STEP) and is used only for this slow user interface. The panel
+board is not designed yet; the mainboard has its connector J6 (2 × 5 IDC):
+
+| Pin | Signal | Pin | Signal |
+| --- | --- | --- | --- |
+| 1 | ESP_3V3 (panel logic) | 2 | GND |
+| 3 | SDA (GPIO25) | 4 | GND |
+| 5 | SCL (GPIO26) | 6 | GND |
+| 7 | INT (GPIO27) | 8 | ATX button (GPIO13, parallel to J4) |
+| 9 | LED anode, 1 kΩ from +5VSB | 10 | LED anode, 470 Ω from ATX +3.3 V |
+
+- I2C runs at 100 kHz with 2.2 kΩ pull-ups to ESP_3V3 on the mainboard, which
+  keeps rise time within the standard-mode limit for about 2 m of ribbon; a
+  bus buffer is not planned. Planned panel parts: 0.96" SSD1306 OLED (I2C,
+  usually address 0x3C) and an MCP23017/PCF8574 expander for buttons and LEDs.
+- Pin 9 lights while +5VSB is present and pin 10 while ATX main rails are up
+  (measured rail, not the GPIO19 request); both work without firmware. Panel
+  LEDs connect to GND and should have Vf about 2 V (red, green or yellow).
+- ATX ON request and ESP32 activity LEDs are planned on the expander
+  (firmware-driven).
 
 ## Module ribbon (16-pin)
 

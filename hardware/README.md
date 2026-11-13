@@ -63,7 +63,7 @@ Freerouting 2.5.0 CLI build fails on board serialization and is not used.
 
 | Board | Contents |
 | --- | --- |
-| Mainboard | ESP32 board, ATX switch and button, PWR_OK input, 5VSB supply, one ribbon connector per branch |
+| Mainboard | ESP32 board, ATX switch and button, PWR_OK input, 5VSB supply, one ribbon connector per branch, remote panel connector |
 | FDD module | 3 × 74HC595, 1 × 74HC165, input buffer, LDO, two 40-pin IDE headers, IN/OUT ribbon connectors, one Molex |
 | LSM/HDD module | Four DRV8833 module positions, 3 × 74HC595, 1 × 74HC165, input buffer, LDO, IN/OUT ribbon connectors, one or two Molex |
 
@@ -89,7 +89,8 @@ pin order listed by the seller and matching the silkscreen photo.
   "REMOVE JP1 BEFORE USB") so the micro-USB plug clears the ATX terminal.
 - PCB v0.1 layout: register control resistor arrays in the middle, ribbon
   J2 (FDD) and J3 (LSM/HDD) on the right edge, ATX terminal J1 at the bottom
-  edge with the plug side outward, button J4 bottom right. Autorouted, not
+  edge with the plug side outward, button J4 bottom right, remote panel
+  connector J6 (2 × 5 IDC, see WIRING.md) at the top edge. Autorouted, not
   hand-optimised.
 - Power input: pluggable (two-part) screw terminal; ATX button on a two-pin connector.
 

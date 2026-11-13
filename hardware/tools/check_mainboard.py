@@ -10,14 +10,15 @@ import xml.etree.ElementTree as ET
 # ESP32 board header (seller pin order; pins 1-19 left, 20-38 right, from the antenna end)
 BOARD_PIN = {"GPIO23": "21", "GPIO22": "22", "GPIO34": "5", "GPIO17": "30", "GPIO16": "31",
              "GPIO35": "6", "GPIO18": "28", "GPIO21": "25", "GPIO33": "8", "GPIO32": "7",
-             "GPIO19": "27", "GPIO13": "15", "GPIO36": "3", "3V3": "1", "5V": "19"}
+             "GPIO19": "27", "GPIO13": "15", "GPIO36": "3", "3V3": "1", "5V": "19",
+             "GPIO25": "9", "GPIO26": "10", "GPIO27": "11"}
 # WIRING.md GPIO table: GPIO -> (branch connector or None, ribbon pin or role)
 SIGNALS = {"GPIO23": ("J2", 1), "GPIO22": ("J2", 5), "GPIO34": ("J2", 13),
            "GPIO17": ("J3", 1), "GPIO16": ("J3", 5), "GPIO35": ("J3", 13)}
 SHARED = {"GPIO18": 3, "GPIO21": 7, "GPIO33": 9, "GPIO32": 11}
 PULL = {"GPIO21": "ESP_3V3", "GPIO33": "ESP_3V3", "GPIO18": "GND", "GPIO32": "GND",
         "GPIO22": "GND", "GPIO16": "GND", "GPIO23": "GND", "GPIO17": "GND",
-        "GPIO34": "GND", "GPIO35": "GND", "GPIO13": "ESP_3V3"}
+        "GPIO34": "GND", "GPIO35": "GND", "GPIO13": "ESP_3V3", "GPIO27": "ESP_3V3"}
 errors = []
 
 
@@ -86,7 +87,10 @@ def main(path):
     j1 = {p: where.get(("J1", p)) for p in "12345"}
     if [j1[p] for p in "12345"] != ["+3V3", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]:
         errors.append(f"J1 order wrong: {j1}")
-    on_5vsb = nets.get("ATX_5VSB", set()) - {("J1", "4")}
+    # +5VSB may also feed the panel standby LED resistor (checked below)
+    on_5vsb = {(r, q) for r, q in nets.get("ATX_5VSB", set()) - {("J1", "4")}
+               if not (r.startswith("R") and where.get((r, "2" if q == "1" else "1"))
+                       == where.get(("J6", "9")))}
     if len(on_5vsb) != 1 or not next(iter(on_5vsb))[0].startswith("JP"):
         errors.append(f"+5VSB must go only to one removable jumper, got {sorted(on_5vsb)}")
     else:
@@ -115,6 +119,27 @@ def main(path):
     if not any(r.startswith("C") and "GND" in {where.get((r, x)) for x in ("1", "2")}
                for r, _ in peers("A1", BOARD_PIN["GPIO13"])):
         errors.append("button line needs a filter capacitor to GND")
+
+    # Remote panel J6 (2 x 5): 1 ESP_3V3, 2/4/6 GND, 3 SDA, 5 SCL, 7 INT, 8 button,
+    # 9 LED from +5VSB, 10 LED from ATX +3V3 (each through a resistor)
+    if where.get(("J6", "1")) != gpio_net("3V3"):
+        errors.append("J6.1 must be the ESP32 3V3")
+    for p in ("2", "4", "6"):
+        if where.get(("J6", p)) != "GND":
+            errors.append(f"J6.{p} should be GND")
+    for g, p in (("GPIO25", "3"), ("GPIO26", "5"), ("GPIO27", "7"), ("GPIO13", "8")):
+        if where.get(("J6", p)) != gpio_net(g):
+            errors.append(f"J6.{p} must connect directly to {g}")
+    for g in ("GPIO25", "GPIO26"):
+        ups = [r for r, q in peers("A1", BOARD_PIN[g]) if r.startswith("R") and not r.startswith("RN")
+               and where.get((r, "2" if q == "1" else "1")) == gpio_net("3V3")]
+        if len(ups) != 1:
+            errors.append(f"{g} (I2C) needs one pull-up to the ESP32 3V3")
+    for p, rail in (("9", "ATX_5VSB"), ("10", "+3V3")):
+        feed = [r for r, q in peers("J6", p) if r.startswith("R") and not r.startswith("RN")
+                and where.get((r, "2" if q == "1" else "1")) == rail]
+        if len(feed) != 1 or len(peers("J6", p)) != 1:
+            errors.append(f"J6.{p} must be fed only through one resistor from {rail}")
 
     if errors:
         print(f"{len(errors)} problem(s):")

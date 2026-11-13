@@ -16,12 +16,16 @@ FP_C = "Capacitor_SMD:C_0805_2012Metric"
 FP_TERM = "Connector_Phoenix_MSTB:PhoenixContact_MSTBA_2,5_5-G-5,08_1x05_P5.08mm_Horizontal"
 FP_JST2 = "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical"
 FP_JUMPER = "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
+FP_IDC10 = "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical"
 
 # ESP32 board pin -> net (pin numbers of surrklank:ESP32_DevKitC_38); others not connected
 ESP = {"1": "ESP_3V3", "3": "PWR_OK_IN", "5": "FDD_Q165", "6": "LSM_Q165", "7": "CLK165",
-       "8": "PL", "14": "GND", "15": "BUTTON", "19": "ESP_5V",
+       "8": "PL", "9": "PANEL_SDA", "10": "PANEL_SCL", "11": "PANEL_INT", "14": "GND", "15": "BUTTON", "19": "ESP_5V",
        "20": "GND", "21": "FDD_DATA", "22": "FDD_LATCH", "25": "OE", "26": "GND",
        "27": "ATX_EN", "28": "CLK", "30": "LSM_DATA", "31": "LSM_LATCH"}
+# Remote panel cable (2 x 5 IDC): I2C with a GND between SDA and SCL
+PANEL = {1: "ESP_3V3", 2: "GND", 3: "PANEL_SDA", 4: "GND", 5: "PANEL_SCL", 6: "GND",
+         7: "PANEL_INT", 8: "BUTTON", 9: "PANEL_LED_SB", 10: "PANEL_LED_ON"}
 RIBBON = {1: "DATA", 3: "CLK", 5: "LATCH", 7: "OE", 9: "PL", 11: "CLK165", 13: "Q165", 15: "3V3"}
 
 
@@ -57,7 +61,7 @@ def build(path):
             (50.8, 63.5))
 
     # Default levels on the GPIO side (ESP32 boot / high impedance)
-    mc.pack(sh, "RN1", "10k", 127.0, 50.8, ["OE", "PL", "BUTTON", None], rail="ESP_3V3")
+    mc.pack(sh, "RN1", "10k", 127.0, 50.8, ["OE", "PL", "BUTTON", "PANEL_INT"], rail="ESP_3V3")
     mc.pack(sh, "RN2", "10k", 142.24, 50.8, ["CLK", "CLK165", "FDD_LATCH", "LSM_LATCH"], rail="GND")
     mc.pack(sh, "RN3", "10k", 157.48, 50.8, ["FDD_DATA", "LSM_DATA", "FDD_Q165", "LSM_Q165"], rail="GND")
 
@@ -135,6 +139,22 @@ def build(path):
     sh.connect(c3, "2", "GND")
     sh.text("J4: normally-open button to GND. RN1 10k pull-up to ESP_3V3 and C3\n"
             "filter noise picked up by the button cable near the motors.", (195.58, 246.38))
+
+    # Remote panel: I2C (OLED, I/O expander), expander INT, ATX button in
+    # parallel with J4, and two hardware status LEDs (LEDs sit on the panel).
+    j6 = sh.symbol("Connector_Generic:Conn_02x05_Odd_Even", "J6", "PANEL", 320.04, 101.6,
+                   footprint=FP_IDC10)
+    for p, n in PANEL.items():
+        sh.connect(j6, str(p), n)
+    resistor(sh, "R7", "2.2k", 279.4, 81.28, "PANEL_SDA", "ESP_3V3")
+    resistor(sh, "R8", "2.2k", 289.56, 81.28, "PANEL_SCL", "ESP_3V3")
+    resistor(sh, "R9", "1k", 279.4, 127.0, "ATX_5VSB", "PANEL_LED_SB")
+    resistor(sh, "R10", "470", 289.56, 127.0, "+3V3", "PANEL_LED_ON")
+    sh.text("J6: remote panel, cable up to about 2 m. I2C at 100 kHz with 2.2k\n"
+            "pull-ups (GPIO25 SDA, GPIO26 SCL); GPIO27 = expander INT (RN1 pull-up).\n"
+            "Pin 9: LED anode via R9 from +5VSB (standby present).\n"
+            "Pin 10: LED anode via R10 from ATX +3V3 (main rails up).\n"
+            "Panel LEDs to GND; use red/green/yellow (Vf about 2 V).", (264.16, 147.32))
 
     mc.mounting_holes(sh, 236.22, 279.4)
     sh.save(path)
