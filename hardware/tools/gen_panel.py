@@ -17,8 +17,9 @@ FP_IDC10 = "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical"
 FP_SW = "Button_Switch_THT:SW_PUSH_6mm"
 FP_LED = "LED_THT:LED_D3.0mm"
 FP_SOCKET4 = "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
-FP_HDR4 = "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
-FP_HDR6 = "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical"
+# Expansion connectors: keyed JST-XH like the LSM/HDD motor outputs
+FP_XH4 = "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
+FP_XH6 = "Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical"
 
 # Cable from mainboard J6 (straight-through ribbon). Pin 1 is the ESP32 3V3.
 CABLE = {1: "+3V3", 2: "GND", 3: "SDA", 4: "GND", 5: "SCL", 6: "GND",
@@ -108,10 +109,10 @@ def build(path):
         sh.connect(oled, p, n)
     sh.text("J4: 0.96 inch SSD1306 OLED module (I2C 0x3C), pin order GND VCC SCL SDA.\n"
             "Check the module's pin labels: some modules swap GND and VCC.", (20.32, 167.64))
-    j3 = sh.symbol("Connector_Generic:Conn_01x04", "J3", "I2C_EXT", 106.68, 152.4, footprint=FP_HDR4)
+    j3 = sh.symbol("Connector_Generic:Conn_01x04", "J3", "I2C_EXT", 106.68, 152.4, footprint=FP_XH4)
     for p, n in zip("1234", ("GND", "+3V3", "SCL", "SDA")):
         sh.connect(j3, p, n)
-    j2 = sh.symbol("Connector_Generic:Conn_01x06", "J2", "EXP_SPARE", 307.34, 88.9, footprint=FP_HDR6)
+    j2 = sh.symbol("Connector_Generic:Conn_01x06", "J2", "EXP_SPARE", 307.34, 88.9, footprint=FP_XH6)
     for p, n in zip(range(1, 7), ["+3V3", "GND"] + [f"EXP_{g}" for g in SPARE]):
         sh.connect(j2, str(p), n)
     sh.text("J2: GPA4-GPA7 for four more buttons (to GND). GPB2-GPB7 are unused.\n"

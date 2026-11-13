@@ -12,7 +12,7 @@ KiCad 10 projects:
 | `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
 | `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic and autorouted 120 × 80 mm 2-layer PCB |
 | `mainboard/` | Mainboard v0.1: generated schematic and autorouted 110 × 72 mm 2-layer PCB |
-| `panel/` | Remote panel v0.1: generated schematic and autorouted 100 × 56 mm 2-layer PCB |
+| `panel/` | Remote panel v0.1: generated schematic and autorouted 100 × 59 mm 2-layer PCB |
 | `surrklank-controller/` | Empty first KiCad project, superseded by `mainboard/` |
 | `lib/` | Custom symbols (DRV8833 module, ESP32 38-pin board) and footprints (Molex 8981, DRV8833 module, Surrklank logo) |
 | `tools/` | Generators, netlist check and build script |
@@ -107,8 +107,9 @@ everything on the front side:
   and ESP (firmware via the expander).
 - MCP23017 expander (address 0x20) with 330 Ω LED resistors; 6 mm tactile
   buttons POWER (straight to GPIO13), PREV, PLAY, STOP, NEXT (expander GPA0–3).
-- J2: +3V3, GND and GPA4–GPA7 for four more buttons; J3: I2C extension (GND,
-  VCC, SCL, SDA) for another expander or sensor. GPB2–GPB7 are unused: routing
+- J2 (JST-XH 6-pin): +3V3, GND and GPA4–GPA7 for four more buttons; J3
+  (JST-XH 4-pin): I2C extension (GND, VCC, SCL, SDA) for another expander or
+  sensor. Keyed JST-XH as on the LSM/HDD motor outputs, at the bottom edge. GPB2–GPB7 are unused: routing
   them to a header blocked the autorouter.
 - All panel nets use the Default 0.25 mm class; the panel draws tens of mA
   and GND is poured on both layers. With 0.6 mm Power tracks Freerouting
