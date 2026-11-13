@@ -82,11 +82,13 @@ A pluggable (two-part) screw terminal brings +3V3, GND, PS_ON#, +5VSB and
 PWR_OK from the user's ATX distribution. +5 V on this terminal is not decided.
 
 - **+5VSB → ESP32.** The ATX standby rail powers the ESP32 board through a
-  Schottky diode and a removable jumper into the board's 5 V pin, so the ESP32
-  runs while ATX main rails are off. The diode stops USB 5 V from feeding the
-  standby rail; removing the jumper isolates the ESP32 from ATX for USB
-  flashing. The ESP32 board is assumed to have no USB VBUS diode (seller
-  warning); this is not verified.
+  removable jumper (JP1) into the board's 5 V pin, so the ESP32 runs while ATX
+  main rails are off. There is no diode: it would only block one direction
+  and its 0.3–0.45 V drop would leave the ESP32 board's 3.3 V regulator
+  (likely AMS1117, about 1.1 V dropout) near its limit. **Remove JP1 before
+  plugging in USB**, also with ATX unplugged from the mains: it is the only
+  isolation between USB 5 V and the ATX standby rail. The ESP32 board is
+  assumed to have no USB VBUS diode (seller warning); this is not verified.
 - **+3V3** from ATX reaches only the ribbons, through normally open solder
   jumpers (JP2/JP3) for bench use. Never connect ATX +3.3 V to
   the ESP32 board's 3V3 or 5 V pin.
@@ -379,7 +381,6 @@ PWR_OK (grey) with their own wires and Wago-style splice nodes.
 | Pull-up resistor arrays | FDD lines and inputs, DRV8833 FAULT inputs |
 | Series resistors | Mainboard ribbon outputs; value not chosen |
 | PWR_OK divider | Mainboard; values not chosen |
-| Schottky diode | Mainboard +5VSB path |
 | S8050, 2.2 kΩ, 47–100 kΩ | Mainboard ATX switch |
 
 ## Maintenance

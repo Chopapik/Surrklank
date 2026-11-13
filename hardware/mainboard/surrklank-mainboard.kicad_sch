@@ -2657,181 +2657,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Diode:SS34"
-			(property "Reference" "D"
-				(at 0 2.54 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "SS34"
-				(at 0 -2.54 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "Diode_SMD:D_SMA"
-				(at 0 -4.445 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Datasheet" "https://www.vishay.com/docs/88751/ss32.pdf"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Description" "40V 3A Schottky Diode, SMA"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_keywords" "diode Schottky"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_fp_filters" "D*SMA*"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 1.016)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(in_pos_files yes)
-			(duplicate_pin_numbers_are_jumpers no)
-			(symbol "SS34_0_1"
-				(polyline
-					(pts
-						(xy -1.905 0.635)
-						(xy -1.905 1.27)
-						(xy -1.27 1.27)
-						(xy -1.27 -1.27)
-						(xy -0.635 -1.27)
-						(xy -0.635 -0.635)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 1.27)
-						(xy 1.27 -1.27)
-						(xy -1.27 0)
-						(xy 1.27 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 0)
-						(xy -1.27 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "SS34_1_1"
-				(pin passive line
-					(at -3.81 0 0)
-					(length 2.54)
-					(name "K"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 2.54)
-					(name "A"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Jumper:Jumper_2_Open"
 			(pin_numbers
 				(hide yes)
@@ -9434,125 +9259,6 @@
 		(uuid eb4cb141-776d-5e6a-8a2a-cec5853b4bcb)
 	)
 	(symbol
-		(lib_id "Diode:SS34")
-		(at 101.6 190.5 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid 7b006599-64bf-5a57-b735-61e6dc0bd0da)
-		(property "Reference" "D1"
-			(at 101.6 193.04 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "SS34"
-			(at 101.6 187.96 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Diode_SMD:D_SMA"
-			(at 101.6 186.055 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" "https://www.vishay.com/docs/88751/ss32.pdf"
-			(at 101.6 190.5 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "40V 3A Schottky Diode, SMA"
-			(at 101.6 190.5 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid 488f7261-de71-575a-be28-cf316959ce77)
-		)
-		(pin "2"
-			(uuid b48bedbe-696e-586d-9f9c-8f937b54c2b7)
-		)
-		(instances
-			(project "surrklank-mainboard"
-				(path "/c4b122e0-e5c8-54a3-8a62-0f8a25d92335"
-					(reference "D1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 97.79 190.5)
-			(xy 95.25 190.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid 7d97ec75-f290-5473-b62d-fed3c3260ef2)
-	)
-	(label "ATX_5VSB"
-		(at 95.25 190.5 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid b18ecd21-d694-57c3-8cf1-ca30b22b951a)
-	)
-	(wire
-		(pts
-			(xy 105.41 190.5)
-			(xy 107.95 190.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid 879cf167-3949-5f1c-a71c-031db1c59a1a)
-	)
-	(label "5VSB_D"
-		(at 107.95 190.5 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid 0dd3d8b2-bbd0-5f49-b548-51bd791bbeef)
-	)
-	(symbol
 		(lib_id "Jumper:Jumper_2_Open")
 		(at 134.62 190.5 0)
 		(unit 1)
@@ -9560,7 +9266,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 837fe81c-6017-5878-906d-9cd412328636)
+		(uuid 7b006599-64bf-5a57-b735-61e6dc0bd0da)
 		(property "Reference" "JP1"
 			(at 134.62 187.706 0)
 			(show_name no)
@@ -9615,10 +9321,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 47455711-547b-5a60-9f12-17d55b0215c9)
+			(uuid 488f7261-de71-575a-be28-cf316959ce77)
 		)
 		(pin "2"
-			(uuid 35b6d94c-34e8-5d8e-a357-133cf1a4aa28)
+			(uuid b48bedbe-696e-586d-9f9c-8f937b54c2b7)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -9638,9 +9344,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 1012e59f-83c9-5970-94a9-b960cb5340fe)
+		(uuid 7d97ec75-f290-5473-b62d-fed3c3260ef2)
 	)
-	(label "5VSB_D"
+	(label "ATX_5VSB"
 		(at 127 190.5 180)
 		(effects
 			(font
@@ -9648,7 +9354,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 7139e0db-d518-5ed0-b0f6-ba1ec2c76730)
+		(uuid b18ecd21-d694-57c3-8cf1-ca30b22b951a)
 	)
 	(wire
 		(pts
@@ -9659,7 +9365,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 1284d2d5-4362-57c2-9e23-259b274be22d)
+		(uuid 879cf167-3949-5f1c-a71c-031db1c59a1a)
 	)
 	(label "ESP_5V"
 		(at 142.24 190.5 0)
@@ -9669,7 +9375,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 4dc3ad80-440d-5554-8348-745c3f45160b)
+		(uuid 0dd3d8b2-bbd0-5f49-b548-51bd791bbeef)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -9679,7 +9385,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid a467e969-d091-5ab8-8f2a-77033d6ea694)
+		(uuid 837fe81c-6017-5878-906d-9cd412328636)
 		(property "Reference" "C1"
 			(at 147.955 195.58 0)
 			(show_name no)
@@ -9736,10 +9442,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 4db87c14-5441-5af8-92a9-b2d29a7ee338)
+			(uuid 47455711-547b-5a60-9f12-17d55b0215c9)
 		)
 		(pin "2"
-			(uuid b21b7c33-b02e-5fd1-b548-6e8927fd58fe)
+			(uuid 35b6d94c-34e8-5d8e-a357-133cf1a4aa28)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -9759,7 +9465,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 744763e6-332e-524c-a4b6-0f2d21462920)
+		(uuid 1012e59f-83c9-5970-94a9-b960cb5340fe)
 	)
 	(label "ESP_5V"
 		(at 147.32 191.77 90)
@@ -9769,7 +9475,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 7aaee504-18d0-5da5-b31a-a806ee759270)
+		(uuid 7139e0db-d518-5ed0-b0f6-ba1ec2c76730)
 	)
 	(wire
 		(pts
@@ -9780,7 +9486,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 922af308-b789-57c1-90ee-c4438d457672)
+		(uuid 1284d2d5-4362-57c2-9e23-259b274be22d)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -9790,7 +9496,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 51bbeb10-2dbb-544c-8b16-15ac0e35a295)
+		(uuid 8724b6f6-8226-56fb-9a2b-b56e75d92d52)
 		(property "Reference" "#PWR030"
 			(at 147.32 210.82 0)
 			(show_name no)
@@ -9846,7 +9552,7 @@
 			)
 		)
 		(pin "1"
-			(uuid ab4f7417-2494-5fdd-bc88-034666507a13)
+			(uuid c988e5ea-1c12-5969-990d-6dc02becb819)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -9865,8 +9571,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 0732661e-c255-5c17-a510-50b69c9e4279)
-		(property "Reference" "#FLG271"
+		(uuid 031a1817-98cb-5449-8728-fe6b73dc98c6)
+		(property "Reference" "#FLG266"
 			(at 160.02 183.515 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9921,12 +9627,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 3c685800-8f67-5914-8347-e15e3eb49f9a)
+			(uuid b21b7c33-b02e-5fd1-b548-6e8927fd58fe)
 		)
 		(instances
 			(project "surrklank-mainboard"
 				(path "/c4b122e0-e5c8-54a3-8a62-0f8a25d92335"
-					(reference "#FLG271")
+					(reference "#FLG266")
 					(unit 1)
 				)
 			)
@@ -9941,7 +9647,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid a2e79a11-6b4d-520b-b56e-193b6afc6dcf)
+		(uuid 744763e6-332e-524c-a4b6-0f2d21462920)
 	)
 	(label "ESP_5V"
 		(at 160.02 190.5 270)
@@ -9951,9 +9657,9 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 635485ce-215d-52f9-8b2c-64f652c200ae)
+		(uuid 7aaee504-18d0-5da5-b31a-a806ee759270)
 	)
-	(text "JP1 removed = ESP32 isolated from ATX for USB flashing.\nD1 keeps USB 5 V out of the ATX standby rail."
+	(text "Remove JP1 BEFORE plugging in USB: it is the only thing\nkeeping USB 5 V out of the ATX standby rail (and +5VSB out of USB)."
 		(exclude_from_sim no)
 		(at 93.98 205.74 0)
 		(effects
@@ -9962,7 +9668,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 50b36ce7-6eb2-55ec-9de4-6173cc3167a7)
+		(uuid 74fc1856-6ada-5a29-9ea0-b25fadc94529)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -9972,7 +9678,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 9fd7f36b-d2c1-5fec-8c49-fcd061b50ea7)
+		(uuid 51bbeb10-2dbb-544c-8b16-15ac0e35a295)
 		(property "Reference" "C2"
 			(at 173.355 195.58 0)
 			(show_name no)
@@ -10029,10 +9735,10 @@
 			)
 		)
 		(pin "1"
-			(uuid c1e84f56-362c-5098-b341-65effb28a4f2)
+			(uuid ab4f7417-2494-5fdd-bc88-034666507a13)
 		)
 		(pin "2"
-			(uuid 5d3694e4-bf6f-5a4a-a356-4ad56145889d)
+			(uuid 9cd26218-7178-523d-93a0-7af68a01443b)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10052,7 +9758,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 35391575-304d-5c0c-87ba-337ec42f792a)
+		(uuid 8aba9bd5-403f-5e17-837b-e2c2c0b4cf92)
 	)
 	(label "ESP_3V3"
 		(at 172.72 191.77 90)
@@ -10062,7 +9768,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 115e36fe-c4a4-573e-bd06-2999442a5ba7)
+		(uuid ed3cf0f1-59eb-5065-a086-f8777372bb9e)
 	)
 	(wire
 		(pts
@@ -10073,7 +9779,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid ae6aae12-3ca8-5225-9be4-aea889ab69ca)
+		(uuid 935991e5-c073-5b79-9f08-4067490d566e)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10083,7 +9789,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 726c333a-f021-59e9-81da-552448db5e9e)
+		(uuid 6ab65527-1807-591c-865b-cfc1b7cc8ea1)
 		(property "Reference" "#PWR031"
 			(at 172.72 210.82 0)
 			(show_name no)
@@ -10139,7 +9845,7 @@
 			)
 		)
 		(pin "1"
-			(uuid 4db8a84b-70d9-5f6d-93b5-98b59144d901)
+			(uuid 0dedd8fb-a567-5fc2-a272-48e712d0aaa7)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10158,7 +9864,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 1c9f767a-67d7-5e53-9781-a4c62d63d2f4)
+		(uuid d6f939f0-b8c7-5e47-b245-831c9a468ec4)
 		(property "Reference" "R1"
 			(at 103.632 233.68 90)
 			(show_name no)
@@ -10213,10 +9919,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 75ed9731-06bd-5c59-bb83-ca2e79ae2fc2)
+			(uuid 5d3694e4-bf6f-5a4a-a356-4ad56145889d)
 		)
 		(pin "2"
-			(uuid dd548966-68f4-5550-88ed-d04fcf58e3b0)
+			(uuid a17a470e-9382-598f-bd2f-69e3545fad71)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10236,7 +9942,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 65727090-ccc4-5561-8dc9-37fb7ac93ca6)
+		(uuid 5f7c73ac-806f-51b3-b20b-7509d00939ba)
 	)
 	(label "PWR_OK"
 		(at 101.6 227.33 90)
@@ -10246,7 +9952,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid b6e2ae79-607b-5f62-ae34-73db79babad5)
+		(uuid bbd73115-b392-5738-8d95-0254b1718716)
 	)
 	(wire
 		(pts
@@ -10257,7 +9963,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 3ff6974e-fa65-5b4d-9e38-2931b7414b44)
+		(uuid e2b20e80-9cae-5cfa-a07c-e67a28ddd251)
 	)
 	(label "PWR_OK_IN"
 		(at 101.6 240.03 270)
@@ -10267,7 +9973,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 901993e7-9353-5b5e-aa54-e278f87d68c1)
+		(uuid 74f9e98a-4ada-55ee-a6aa-f489d1db8dd5)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -10277,7 +9983,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 574f4e99-ca5d-53e3-80b4-10f85a8ff278)
+		(uuid 1c9f767a-67d7-5e53-9781-a4c62d63d2f4)
 		(property "Reference" "R2"
 			(at 118.872 233.68 90)
 			(show_name no)
@@ -10332,10 +10038,10 @@
 			)
 		)
 		(pin "1"
-			(uuid dde15f0b-d52d-5410-982a-71ec448de527)
+			(uuid 75ed9731-06bd-5c59-bb83-ca2e79ae2fc2)
 		)
 		(pin "2"
-			(uuid c2fc371b-f88e-5779-b5bb-0315ebb40e24)
+			(uuid dd548966-68f4-5550-88ed-d04fcf58e3b0)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10355,7 +10061,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 792b7b2e-2426-592b-812e-9c495b44b668)
+		(uuid 65727090-ccc4-5561-8dc9-37fb7ac93ca6)
 	)
 	(label "PWR_OK_IN"
 		(at 116.84 227.33 90)
@@ -10365,7 +10071,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 457de417-0af1-5915-b218-06462cd49224)
+		(uuid b6e2ae79-607b-5f62-ae34-73db79babad5)
 	)
 	(wire
 		(pts
@@ -10376,7 +10082,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 772447f8-b7ad-5a0e-9271-b0b6c28dcf65)
+		(uuid 3ff6974e-fa65-5b4d-9e38-2931b7414b44)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10386,7 +10092,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid fe39bfb0-c0a2-54f7-864f-126fc2bf13f1)
+		(uuid d7a8e9f3-c8b6-5998-9b99-8b8ff14755ce)
 		(property "Reference" "#PWR032"
 			(at 116.84 246.38 0)
 			(show_name no)
@@ -10442,7 +10148,7 @@
 			)
 		)
 		(pin "1"
-			(uuid c29351af-da5d-5629-a4ba-a3b02bb87a47)
+			(uuid 85697e11-a848-5c88-82b3-7670fecddb6e)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10461,7 +10167,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid e9238788-9999-54ba-97c8-87d816ae32fa)
+		(uuid bcc558d8-f7f8-59ec-8a88-7d3655b2522f)
 		(property "Sim.Device" "NPN"
 			(at 167.64 233.68 0)
 			(show_name no)
@@ -10543,13 +10249,13 @@
 			)
 		)
 		(pin "1"
-			(uuid 528b69ff-e7d4-5b09-8648-114599a3b2a2)
+			(uuid c2fc371b-f88e-5779-b5bb-0315ebb40e24)
 		)
 		(pin "2"
-			(uuid 9052a289-2ddf-5141-9929-a2f2a74dc613)
+			(uuid 16e1bc44-d513-5703-aed7-23b176da7bcc)
 		)
 		(pin "3"
-			(uuid dc0b8244-edf0-558c-a497-dd908c00f546)
+			(uuid 2f2c7b98-f7d2-5a11-8c1c-c7b71859b7c4)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10569,7 +10275,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 7082971d-1418-5486-bef6-d18f4a49b231)
+		(uuid 772447f8-b7ad-5a0e-9271-b0b6c28dcf65)
 	)
 	(label "Q1_B"
 		(at 160.02 233.68 180)
@@ -10579,7 +10285,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 0f0f8f4f-bcb2-5ba1-bf4e-7e847984f762)
+		(uuid 85b6f9ef-6b2a-5f93-b075-33256b516ba1)
 	)
 	(wire
 		(pts
@@ -10590,7 +10296,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid c382a749-2c4a-5bf4-96ed-997906e1eb92)
+		(uuid 0d3ac36b-cd39-59ae-ad1b-9c436e7e060a)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10600,7 +10306,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid dbecfd9d-e53f-5225-8dc9-6950802d1691)
+		(uuid e9238788-9999-54ba-97c8-87d816ae32fa)
 		(property "Reference" "#PWR033"
 			(at 170.18 247.65 0)
 			(show_name no)
@@ -10656,7 +10362,7 @@
 			)
 		)
 		(pin "1"
-			(uuid 9257a32b-3f50-5657-aa90-c306a257222f)
+			(uuid 528b69ff-e7d4-5b09-8648-114599a3b2a2)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10676,7 +10382,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid e417c04e-6ca0-5b3d-97d1-8d464ce216a1)
+		(uuid baec1456-a7f1-5c26-9fb6-36c784ec5036)
 	)
 	(label "PS_ON#"
 		(at 170.18 226.06 90)
@@ -10686,7 +10392,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid befd8fa2-461b-5de7-b4ad-ce52a339d4c1)
+		(uuid 5fc5f9aa-60fc-5340-a475-e30458b0a59e)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -10696,7 +10402,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid d47f6906-8fa4-5713-8104-5d9e4d0b82d9)
+		(uuid 1b88f587-ea96-5315-be99-2f0d3817a570)
 		(property "Reference" "R3"
 			(at 144.272 233.68 90)
 			(show_name no)
@@ -10751,10 +10457,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 776331e6-9575-5c79-b1ba-7358f6abebdf)
+			(uuid 42afd6e2-7b90-5e55-beeb-339b10842a2f)
 		)
 		(pin "2"
-			(uuid 6708f2fd-1da6-5d65-921a-03da4da61c25)
+			(uuid 05e77bc4-5bbd-5829-89c5-e963da0dc742)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10774,7 +10480,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid f73acb4e-a646-5f93-b899-39cff9531ab0)
+		(uuid c5fd9f48-7b53-593f-8e18-0216f52ef6a4)
 	)
 	(label "ATX_EN"
 		(at 142.24 227.33 90)
@@ -10784,7 +10490,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 5e63c599-0c2e-5971-a39e-4a738af35c63)
+		(uuid 6a9411e1-217a-58b4-b628-19d8b1b27aa1)
 	)
 	(wire
 		(pts
@@ -10795,7 +10501,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 5b792904-51c1-513e-b41b-ce76ad7a9ee2)
+		(uuid e417c04e-6ca0-5b3d-97d1-8d464ce216a1)
 	)
 	(label "Q1_B"
 		(at 142.24 240.03 270)
@@ -10805,7 +10511,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 845a7ed3-da69-535e-818c-5f1d029a34db)
+		(uuid befd8fa2-461b-5de7-b4ad-ce52a339d4c1)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -10815,7 +10521,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 35e5f91e-3d89-5666-ae44-478700bc0b7f)
+		(uuid d47f6906-8fa4-5713-8104-5d9e4d0b82d9)
 		(property "Reference" "R4"
 			(at 154.432 233.68 90)
 			(show_name no)
@@ -10870,10 +10576,10 @@
 			)
 		)
 		(pin "1"
-			(uuid c94aa28e-51d7-5bb6-ad90-84c2b2c9b405)
+			(uuid 776331e6-9575-5c79-b1ba-7358f6abebdf)
 		)
 		(pin "2"
-			(uuid c1c12161-6995-5ad0-83a0-2309fe3b15db)
+			(uuid 6708f2fd-1da6-5d65-921a-03da4da61c25)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10893,7 +10599,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 66c396d4-a592-53d3-8d1b-d1dea68c7278)
+		(uuid f73acb4e-a646-5f93-b899-39cff9531ab0)
 	)
 	(label "Q1_B"
 		(at 152.4 227.33 90)
@@ -10903,7 +10609,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 32c18917-a381-573b-a21d-6d89d803b724)
+		(uuid 5e63c599-0c2e-5971-a39e-4a738af35c63)
 	)
 	(wire
 		(pts
@@ -10914,7 +10620,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 4fe52879-c769-5b62-b745-eb814ba3a066)
+		(uuid 5b792904-51c1-513e-b41b-ce76ad7a9ee2)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10924,7 +10630,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 683abd29-eada-5a96-9bd6-234c091f21fd)
+		(uuid f7decb9e-5c09-5af2-95b5-816379e368fb)
 		(property "Reference" "#PWR034"
 			(at 152.4 246.38 0)
 			(show_name no)
@@ -10980,7 +10686,7 @@
 			)
 		)
 		(pin "1"
-			(uuid f3d63164-6a99-57d9-8c36-dddd3d7d27bb)
+			(uuid e18094d2-5048-5c6e-aa78-4e09b524b4f5)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -10999,7 +10705,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 45438335-2a78-57e7-9eaf-2c735ba72873)
+		(uuid 91011776-357d-5970-a7f0-8fad4a1b72ac)
 		(property "Reference" "J4"
 			(at 210.82 231.14 0)
 			(show_name no)
@@ -11054,10 +10760,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 6641eb3b-f2af-5f48-ac4f-70caff031c47)
+			(uuid c1c12161-6995-5ad0-83a0-2309fe3b15db)
 		)
 		(pin "2"
-			(uuid 52c39c43-b119-57c6-9e64-b62a337d11e4)
+			(uuid 4684a786-ef50-5ddf-876e-e6f497838663)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -11077,7 +10783,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid b274d773-3729-5ce5-8b47-cc2247b0ea09)
+		(uuid f3bc59ec-a67d-55ba-b44c-5b5becc55613)
 	)
 	(label "BUTTON"
 		(at 203.2 233.68 180)
@@ -11087,7 +10793,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid cee1eae1-acfc-5bf1-a8c0-6451de4a156d)
+		(uuid e6290dde-b3bc-59d3-a816-e8bbe272f57f)
 	)
 	(wire
 		(pts
@@ -11098,7 +10804,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 614dd290-a745-5ff6-9fcf-6322aa36fbc0)
+		(uuid b00d0ac8-90c3-5fbc-b116-5b06736347e3)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -11108,7 +10814,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid ab911987-f4f3-5e40-98b6-22491db7fbc0)
+		(uuid 3deb3812-eb17-5e5b-807f-13df3d05fc33)
 		(property "Reference" "#PWR035"
 			(at 196.85 236.22 90)
 			(show_name no)
@@ -11164,7 +10870,7 @@
 			)
 		)
 		(pin "1"
-			(uuid df3c08bb-4380-58db-bebe-16ea4386e742)
+			(uuid d2fccffb-5554-5fd0-816e-b72379a33036)
 		)
 		(instances
 			(project "surrklank-mainboard"
@@ -11184,7 +10890,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 648844aa-afa3-57ec-8a42-493ed6c4c5d5)
+		(uuid 45ddc048-1183-59fe-bcb7-469a21f49669)
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
@@ -11194,7 +10900,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid ff3bfb46-8f07-5667-9232-d380ad87bb4b)
+		(uuid 5cd24ccb-ccd5-5ddb-bddc-210254ecd7c7)
 		(property "Reference" "H1"
 			(at 236.22 274.32 0)
 			(show_name no)
@@ -11265,7 +10971,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 2bf379cb-03a1-55c8-a5fb-9938011fe443)
+		(uuid 4080b864-5687-591b-adcf-28ee17780aad)
 		(property "Reference" "H2"
 			(at 246.38 274.32 0)
 			(show_name no)
@@ -11336,7 +11042,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 52aed87d-4350-53a5-8dda-8addedf6d9f1)
+		(uuid 989f7a1d-429f-507c-8869-56769cbcff25)
 		(property "Reference" "H3"
 			(at 256.54 274.32 0)
 			(show_name no)
@@ -11407,7 +11113,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid f378659c-9ff0-524e-a812-f9fa3c720655)
+		(uuid 9795f873-b8b3-5c40-8c1c-802cd4b14790)
 		(property "Reference" "H4"
 			(at 266.7 274.32 0)
 			(show_name no)

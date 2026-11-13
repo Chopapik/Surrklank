@@ -127,7 +127,7 @@ fees; costs are not estimated yet.
 
 - +5 V on the mainboard terminal.
 - Values: mainboard series resistors, PWR_OK divider, LSM/HDD bulk capacitor.
-- Parts: Schottky diode; LCSC part numbers; LDO output capacitor type.
+- Parts: LCSC part numbers; LDO output capacitor type.
 - Drive input terminations and MOTOR behaviour on the installed drives.
 - Motor supply current per LSM/HDD module and wire gauge.
 - Firmware migration after assembly: six outputs per drive and a longer FDD

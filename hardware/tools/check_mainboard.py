@@ -73,18 +73,17 @@ def main(path):
 
     if gpio_net("3V3") != "ESP_3V3" or "+3V3" == gpio_net("3V3"):
         errors.append("ESP32 3V3 must stay separate from ATX +3V3")
-    # +5VSB path: terminal pin 4 -> diode anode, cathode -> jumper -> ESP32 5V
+    # +5VSB path: terminal pin 4 -> removable jumper -> ESP32 5V, nothing else
     j1 = {p: where.get(("J1", p)) for p in "12345"}
     if [j1[p] for p in "12345"] != ["+3V3", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]:
         errors.append(f"J1 order wrong: {j1}")
-    d = [(r, q) for r, q in nets.get("ATX_5VSB", set()) if r.startswith("D")]
-    if len(d) != 1 or func[d[0]] != "A":
-        errors.append(f"+5VSB must enter a diode anode, got {d}")
+    on_5vsb = nets.get("ATX_5VSB", set()) - {("J1", "4")}
+    if len(on_5vsb) != 1 or not next(iter(on_5vsb))[0].startswith("JP"):
+        errors.append(f"+5VSB must go only to one removable jumper, got {sorted(on_5vsb)}")
     else:
-        cathode = where[(d[0][0], "1" if d[0][1] == "2" else "2")]
-        jp = [r for r, _ in nets[cathode] if r.startswith("JP")]
-        if len(jp) != 1 or "ESP_5V" not in {where.get((jp[0], q)) for q in ("1", "2")}:
-            errors.append("diode cathode must reach ESP32 5V through a removable jumper")
+        jp = next(iter(on_5vsb))[0]
+        if "ESP_5V" not in {where.get((jp, q)) for q in ("1", "2")}:
+            errors.append("+5VSB jumper must lead to ESP32 5V")
     if gpio_net("5V") != "ESP_5V":
         errors.append("ESP32 5V pin must be on ESP_5V")
     # PWR_OK divider into GPIO36

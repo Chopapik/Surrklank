@@ -97,19 +97,17 @@ def build(path):
     sh.flag("GND", (38.1, 241.3))
     label_flag(sh, "ATX_5VSB", (50.8, 233.68))
 
-    # +5VSB -> Schottky -> removable jumper -> ESP32 5 V pin
-    d1 = sh.symbol("Diode:SS34", "D1", "SS34", 101.6, 190.5, angle=180, footprint="Diode_SMD:D_SMA")
-    sh.connect(d1, "2", "ATX_5VSB")   # anode
-    sh.connect(d1, "1", "5VSB_D")     # cathode
+    # +5VSB -> removable jumper -> ESP32 5 V pin (no diode: full 5 V for the
+    # ESP32 board's regulator; JP1 is the only isolation from USB)
     jp1 = sh.symbol("Jumper:Jumper_2_Open", "JP1", "5VSB_EN", 134.62, 190.5, footprint=FP_JUMPER)
-    sh.connect(jp1, "1", "5VSB_D")
+    sh.connect(jp1, "1", "ATX_5VSB")
     sh.connect(jp1, "2", "ESP_5V")
     c1 = sh.symbol("Device:C", "C1", "10u", 147.32, 198.12, footprint=FP_C)
     sh.connect(c1, "1", "ESP_5V")
     sh.connect(c1, "2", "GND")
     label_flag(sh, "ESP_5V", (160.02, 185.42))
-    sh.text("JP1 removed = ESP32 isolated from ATX for USB flashing.\n"
-            "D1 keeps USB 5 V out of the ATX standby rail.", (93.98, 205.74))
+    sh.text("Remove JP1 BEFORE plugging in USB: it is the only thing\n"
+            "keeping USB 5 V out of the ATX standby rail (and +5VSB out of USB).", (93.98, 205.74))
     c2 = sh.symbol("Device:C", "C2", "100n", 172.72, 198.12, footprint=FP_C)
     sh.connect(c2, "1", "ESP_3V3")
     sh.connect(c2, "2", "GND")
