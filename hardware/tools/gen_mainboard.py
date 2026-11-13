@@ -57,7 +57,7 @@ def build(path):
             (50.8, 63.5))
 
     # Default levels on the GPIO side (ESP32 boot / high impedance)
-    mc.pack(sh, "RN1", "10k", 127.0, 50.8, ["OE", "PL", None, None], rail="ESP_3V3")
+    mc.pack(sh, "RN1", "10k", 127.0, 50.8, ["OE", "PL", "BUTTON", None], rail="ESP_3V3")
     mc.pack(sh, "RN2", "10k", 142.24, 50.8, ["CLK", "CLK165", "FDD_LATCH", "LSM_LATCH"], rail="GND")
     mc.pack(sh, "RN3", "10k", 157.48, 50.8, ["FDD_DATA", "LSM_DATA", "FDD_Q165", "LSM_Q165"], rail="GND")
 
@@ -74,11 +74,13 @@ def build(path):
             if p % 2 == 0:
                 sh.connect(j, str(p), "GND")
             elif RIBBON[p] == "Q165":
-                sh.connect(j, str(p), f"{name}_Q165")
+                sh.connect(j, str(p), f"{pre}_Q165")
             elif RIBBON[p] == "3V3":
                 sh.connect(j, str(p), f"{pre}_RIB3V3")
             else:
                 sh.connect(j, str(p), f"{pre}_{RIBBON[p]}")
+        # Q165 return: 1k limits current if a powered module drives an unpowered ESP32
+        resistor(sh, f"R{5 + k}", "1k", 172.72, y - 12.7, f"{pre}_Q165", f"{name}_Q165")
         jp = sh.symbol("Jumper:SolderJumper_2_Open", f"JP{2 + k}", "BENCH_3V3", 241.3, y + 10.16,
                        footprint=mc.FP_JP)
         sh.connect(jp, "1", f"{pre}_RIB3V3")
@@ -128,7 +130,11 @@ def build(path):
     j4 = sh.symbol("Connector_Generic:Conn_01x02", "J4", "ATX_BUTTON", 210.82, 233.68, footprint=FP_JST2)
     sh.connect(j4, "1", "BUTTON")
     sh.connect(j4, "2", "GND")
-    sh.text("J4: normally-open button to GND (GPIO13 internal pull-up).", (195.58, 246.38))
+    c3 = sh.symbol("Device:C", "C3", "100n", 223.52, 233.68, footprint=FP_C)
+    sh.connect(c3, "1", "BUTTON")
+    sh.connect(c3, "2", "GND")
+    sh.text("J4: normally-open button to GND. RN1 10k pull-up to ESP_3V3 and C3\n"
+            "filter noise picked up by the button cable near the motors.", (195.58, 246.38))
 
     mc.mounting_holes(sh, 236.22, 279.4)
     sh.save(path)

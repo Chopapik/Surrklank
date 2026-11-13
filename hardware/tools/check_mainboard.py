@@ -17,7 +17,7 @@ SIGNALS = {"GPIO23": ("J2", 1), "GPIO22": ("J2", 5), "GPIO34": ("J2", 13),
 SHARED = {"GPIO18": 3, "GPIO21": 7, "GPIO33": 9, "GPIO32": 11}
 PULL = {"GPIO21": "ESP_3V3", "GPIO33": "ESP_3V3", "GPIO18": "GND", "GPIO32": "GND",
         "GPIO22": "GND", "GPIO16": "GND", "GPIO23": "GND", "GPIO17": "GND",
-        "GPIO34": "GND", "GPIO35": "GND"}
+        "GPIO34": "GND", "GPIO35": "GND", "GPIO13": "ESP_3V3"}
 errors = []
 
 
@@ -48,10 +48,19 @@ def main(path):
                 return True
         return False
 
+    def reaches_via_resistor(g, conn, rpin):
+        """Single resistor between the GPIO and the connector pin (Q165 return)."""
+        target = where.get((conn, str(rpin)))
+        for r, q in peers("A1", BOARD_PIN[g]):
+            if r.startswith("R") and not r.startswith("RN") \
+                    and where.get((r, "2" if q == "1" else "1")) == target:
+                return True
+        return False
+
     for g, (conn, rpin) in SIGNALS.items():
         if rpin == 13:
-            if ("A1", BOARD_PIN[g]) not in nets.get(where.get((conn, "13")), set()):
-                errors.append(f"{g} must connect directly to {conn}.13 (Q165)")
+            if not reaches_via_resistor(g, conn, rpin):
+                errors.append(f"{g} must reach {conn}.13 (Q165) through a series resistor")
         elif not reaches_via_series(g, conn, rpin):
             errors.append(f"{g} must reach {conn}.{rpin} through a series resistor")
     for g, rpin in SHARED.items():
@@ -103,6 +112,9 @@ def main(path):
         errors.append("base needs a resistor to GND")
     if {where.get(("J4", "1")), where.get(("J4", "2"))} != {gpio_net("GPIO13"), "GND"}:
         errors.append("button J4 must connect GPIO13 to GND")
+    if not any(r.startswith("C") and "GND" in {where.get((r, x)) for x in ("1", "2")}
+               for r, _ in peers("A1", BOARD_PIN["GPIO13"])):
+        errors.append("button line needs a filter capacitor to GND")
 
     if errors:
         print(f"{len(errors)} problem(s):")

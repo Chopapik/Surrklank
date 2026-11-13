@@ -75,6 +75,11 @@ ESP32 boots or a GPIO is high impedance. They use the ESP32 board's own 3.3 V
 | LATCH (each branch) | 10 kΩ pull-down | LOW |
 | DATA (each branch) | 10 kΩ pull-down | LOW |
 | Q165 (each branch) | 10 kΩ pull-down | LOW with no module connected |
+| Button (GPIO13) | 10 kΩ pull-up to ESP_3V3, 100 nF to GND | HIGH: released |
+
+Q165 returns from each ribbon through a 1 kΩ series resistor, which limits
+current if a powered module drives an unpowered ESP32 (bench jumper, JP1
+removed). With the pull-down on the GPIO side a module HIGH reads about 3.0 V.
 
 ### Power input
 
@@ -122,7 +127,9 @@ connect it directly to a GPIO. Use the actual transistor's pinout.
 ESP32 GPIO13 ── normally-open momentary button ── ESP32 GND
 ```
 
-GPIO13 uses the internal pull-up: released HIGH, pressed LOW. Each debounced
+GPIO13 has a 10 kΩ external pull-up and 100 nF to GND on the mainboard (the
+internal pull-up alone is weak for a cable near the motors): released HIGH,
+pressed LOW. Each debounced
 press toggles the ATX request. A button held during startup must be released
 before it can request ON. It is a software input, not a power isolator. The
 button connects to the mainboard through a two-pin connector.
