@@ -7,7 +7,7 @@
   $KIPY gen_module_pcb.py <board> import <x.kicad_pcb> <in.ses>       # import routes, fill zones
   $KIPY gen_module_pcb.py <board> brand  <x.kicad_pcb> -              # (re)place logo and text only
 
-<board> is `fdd` or `lsm-hdd`. Routing itself is done by Freerouting between
+<board> is `fdd`, `lsm-hdd` or `mainboard`. Routing itself is done by Freerouting between
 `dsn` and `import` (see hardware/README.md). This script never draws tracks.
 """
 import json
@@ -51,7 +51,7 @@ def fdd_board():
         "by_text": ("by", 86.6, 52.0, 3.0),  # italic Times New Roman at the logo's top-left corner
         "ref_at": {},
         "power_zones": [],
-        "keepout_b": None,
+        "keepouts": [],
     }
 
 
@@ -115,11 +115,43 @@ def lsm_hdd_board():
         "by_text": ("by", 35.6, 2.0, 3.0),
         "ref_at": {"C8": (20.5, 60.0)},       # keep the label off the M1 outline
         "power_zones": lsm_hdd_zones(),
-        "keepout_b": LSM_HDD_KEEPOUT,
+        "keepouts": [((pcbnew.B_Cu,), LSM_HDD_KEEPOUT, True)],
     }
 
 
-BOARDS = {"fdd": fdd_board, "lsm-hdd": lsm_hdd_board}
+# ---------------------------------------------------------------- mainboard
+def mainboard_board():
+    # ESP32 board with its antenna end flush with the top edge (pin 1 at y 5);
+    # no copper on either layer under the antenna end.
+    place = {
+        "A1": (8.0, 5.0, 0),
+        "J1": (44.0, 59.5, 0),                    # ATX terminal, plug side to the bottom edge
+        "J2": (100.0, 8.0, 0), "J3": (100.0, 40.0, 0),
+        "C2": (48.0, 5.0, 0),
+        "RN1": (46.0, 12.0, 0), "RN2": (54.0, 12.0, 0), "RN3": (62.0, 12.0, 0),
+        "RN4": (74.0, 14.0, 0), "RN5": (82.0, 14.0, 0), "R5": (84.0, 26.0, 0), "JP2": (84.0, 30.0, 0),
+        "RN6": (74.0, 46.0, 0), "RN7": (82.0, 46.0, 0), "R6": (84.0, 58.0, 0), "JP3": (84.0, 62.0, 0),
+        "C1": (44.0, 50.0, 0), "JP1": (40.0, 49.0, 0),
+        "R1": (50.0, 50.0, 0), "R2": (50.0, 55.0, 0),
+        "R3": (56.0, 50.0, 0), "R4": (56.0, 55.0, 0), "Q1": (64.0, 53.0, 0),
+        "J4": (76.0, 66.0, 0), "C3": (84.0, 66.0, 0),
+        "H1": (40.0, 4.0, 0), "H2": (88.0, 4.0, 0), "H3": (4.0, 68.0, 0), "H4": (106.0, 68.0, 0),
+    }
+    return {
+        "size": (110.0, 72.0),
+        "place": place,
+        "logo": (62.0, 30.0),
+        "brand_text": [("SURRKLANK", 37.0, 1.3), ("MAINBOARD v0.1", 39.6, 1.0)],
+        "by_text": ("by", 57.6, 26.0, 3.0),
+        "ref_at": {},
+        "power_zones": [],
+        # Below the USB end (y > 56, x 6-36) stays free for the USB plug.
+        "notes": [("REMOVE JP1 BEFORE USB", 20.7, 62.0, 1.0)],
+        "keepouts": [((pcbnew.F_Cu, pcbnew.B_Cu), (5.0, 0.0, 37.0, 3.6), False)],
+    }
+
+
+BOARDS = {"fdd": fdd_board, "lsm-hdd": lsm_hdd_board, "mainboard": mainboard_board}
 B = None   # selected board configuration
 
 
@@ -157,9 +189,9 @@ def add_text(board, text, x, y, size):
 
 
 def brand(board):
-    """Logo footprint and short text on the front silkscreen; replaces old ones."""
+    """Logo footprint, short text and notes on the front silkscreen; replaces old ones."""
     # Collect first: SWIG item lists become unusable after a Remove() in this process.
-    texts = {t for t, *_ in B["brand_text"]} | {B["by_text"][0]}
+    texts = {t for t, *_ in B["brand_text"]} | {t for t, *_ in B.get("notes", [])} | {B["by_text"][0]}
     old = [fp for fp in board.GetFootprints() if fp.GetReference() == "LOGO1"]
     old += [d for d in board.GetDrawings() if d.GetClass() == "PCB_TEXT" and d.GetText() in texts]
     for item in old:
@@ -170,6 +202,8 @@ def brand(board):
     board.Add(logo)
     for text, y, size in B["brand_text"]:
         add_text(board, text, B["logo"][0], y, size)
+    for text, x, y, size in B.get("notes", []):
+        add_text(board, text, x, y, size)
     text, x, y, size = B["by_text"]
     t = pcbnew.PCB_TEXT(board)
     t.SetText(text)
@@ -246,17 +280,21 @@ def add_zone(board, net, layer, points, priority=0, name=""):
     board.Add(z)
 
 
-def add_keepout(board, layer, x1, y1, x2, y2):
-    """Rule area forbidding tracks and vias; pads and copper pours stay allowed."""
+def add_keepout(board, layers, rect, allow_pours):
+    """Rule area forbidding tracks and vias (and pours unless allowed); pads stay allowed."""
+    x1, y1, x2, y2 = rect
     z = pcbnew.ZONE(board)
     z.SetIsRuleArea(True)
-    z.SetLayer(layer)
+    ls = pcbnew.LSET()
+    for layer in layers:
+        ls.AddLayer(layer)
+    z.SetLayerSet(ls)
     z.SetDoNotAllowTracks(True)
     z.SetDoNotAllowVias(True)
     z.SetDoNotAllowPads(False)
-    z.SetDoNotAllowZoneFills(False)
+    z.SetDoNotAllowZoneFills(not allow_pours)
     z.SetDoNotAllowFootprints(False)
-    z.SetZoneName("no-b-routing")
+    z.SetZoneName("keepout")
     outline = z.Outline()
     outline.NewOutline()
     for x, y in ((x1, y1), (x2, y1), (x2, y2), (x1, y2)):
@@ -289,8 +327,12 @@ def place(netlist, out):
         fp.SetField("Description", comp.findtext("description") or "")
         stamp = (comp.findtext("tstamps") or "").split()[0]
         fp.SetPath(pcbnew.KIID_PATH("/" + stamp))
-        if any(p.get("name") == "dnp" for p in comp.iter("property")):
-            fp.SetDNP(True)
+        for prop in comp.iter("property"):
+            if prop.get("name") == "dnp":
+                fp.SetDNP(True)
+            elif prop.get("name").startswith("Sim."):   # schematic parity checks these
+                fp.SetField(prop.get("name"), prop.get("value") or "")
+                fp.GetField(prop.get("name")).SetVisible(False)
         if ref.startswith("H"):
             fp.Reference().SetVisible(False)
         x, y, rot = B["place"][ref]
@@ -309,8 +351,8 @@ def place(netlist, out):
     brand(board)
     for net, layer, points, priority in B["power_zones"]:
         add_zone(board, nets[net], layer, points, priority, PLANE)
-    if B["keepout_b"]:
-        add_keepout(board, pcbnew.B_Cu, *B["keepout_b"])
+    for layers, rect, allow_pours in B["keepouts"]:
+        add_keepout(board, layers, rect, allow_pours)
     full = [(0.5, 0.5), (w - 0.5, 0.5), (w - 0.5, h - 0.5), (0.5, h - 0.5)]
     add_zone(board, nets["GND"], pcbnew.F_Cu, full)
     add_zone(board, nets["GND"], pcbnew.B_Cu, full)

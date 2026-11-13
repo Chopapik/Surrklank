@@ -11,22 +11,24 @@ KiCad 10 projects:
 | --- | --- |
 | `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
 | `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic and autorouted 120 × 80 mm 2-layer PCB |
-| `mainboard/` | Mainboard v0.1: generated schematic; PCB not started |
+| `mainboard/` | Mainboard v0.1: generated schematic and autorouted 110 × 72 mm 2-layer PCB |
 | `surrklank-controller/` | Empty first KiCad project, superseded by `mainboard/` |
 | `lib/` | Custom symbols (DRV8833 module, ESP32 38-pin board) and footprints (Molex 8981, DRV8833 module, Surrklank logo) |
 | `tools/` | Generators, netlist check and build script |
 
-Boards are generated, not edited by hand. One command rebuilds a module
+Boards are generated, not edited by hand. One command rebuilds a board
 (schematic, ERC, netlist check, placement, autorouting, zone fill, DRC with
 schematic parity and all severities):
 
 ```sh
 hardware/tools/build_fdd_module.sh [work_dir]
 hardware/tools/build_lsm_hdd_module.sh [work_dir]
+hardware/tools/build_mainboard.sh [work_dir]
 ```
 
-Both wrap `build_module.sh fdd|lsm-hdd`. Placement, zones and branding of
-both boards live in `gen_module_pcb.py`.
+All wrap `build_module.sh fdd|lsm-hdd|mainboard`, which stops at the first
+failing step. Placement, zones and branding of all boards live in
+`gen_module_pcb.py`.
 
 Requirements: KiCad 10 (its bundled Python runs `gen_module_pcb.py`), Freerouting
 2.5.0 jar in `~/.local/share/freerouting/bin/` (official GitHub release,
@@ -78,10 +80,17 @@ pin order listed by the seller and matching the silkscreen photo.
   use 22.86 mm). Measured by the user with a caliper on pin outer edges: 46.0 mm
   across 18 pitches along a row (45.72 mm nominal) and 25.5 mm across the rows,
   giving about 25.2 mm centre to centre; the nearest standard spacing is 25.4 mm.
-- The board plugs into two 1 × 19 female headers; the USB end faces a board edge
-  with clearance.
-- The WROOM antenna (end opposite USB) gets no copper underneath and should
-  overhang the mainboard edge, because Surrklank uses BLE.
+- The board plugs into two 1 × 19 female headers on the left of the PCB. Its
+  antenna end is flush with the top edge and the top 3.6 mm under it carries
+  no copper on either layer (Surrklank uses BLE). It does not overhang: the
+  body outline in the footprint is approximate, so the antenna position on
+  the real board is not checked.
+- Below the USB end the PCB is left free (only the silkscreen note
+  "REMOVE JP1 BEFORE USB") so the micro-USB plug clears the ATX terminal.
+- PCB v0.1 layout: register control resistor arrays in the middle, ribbon
+  J2 (FDD) and J3 (LSM/HDD) on the right edge, ATX terminal J1 at the bottom
+  edge with the plug side outward, button J4 bottom right. Autorouted, not
+  hand-optimised.
 - Power input: pluggable (two-part) screw terminal; ATX button on a two-pin connector.
 
 ## Connectors and footprints
