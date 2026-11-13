@@ -150,8 +150,9 @@ branch lines LOW while ATX is off. Not designed or verified yet.
 An optional panel on a cable of about 1–2 m brings the ATX button, status
 LEDs and later an I2C display and buttons closer to the user. Instruments stay
 on the 595/165 chains: I2C is too slow for STEP timing (100 µs motion tick,
-two frames per STEP) and is used only for this slow user interface. The panel
-board is not designed yet; the mainboard has its connector J6 (2 × 5 IDC):
+two frames per STEP) and is used only for this slow user interface. Panel
+schematic: `hardware/panel/surrklank-panel.kicad_sch` (generated, v0.1); the
+mainboard connector is J6 (2 × 5 IDC, straight-through ribbon to panel J1):
 
 | Pin | Signal | Pin | Signal |
 | --- | --- | --- | --- |
@@ -168,8 +169,15 @@ board is not designed yet; the mainboard has its connector J6 (2 × 5 IDC):
 - Pin 9 lights while +5VSB is present and pin 10 while ATX main rails are up
   (measured rail, not the GPIO19 request); both work without firmware. Panel
   LEDs connect to GND and should have Vf about 2 V (red, green or yellow).
-- ATX ON request and ESP32 activity LEDs are planned on the expander
-  (firmware-driven).
+- Panel expander U1 (MCP23017, address 0x20, INTA on the INT line with
+  IOCON.MIRROR, internal pull-ups for buttons): GPA0 PREV, GPA1 PLAY, GPA2 STOP,
+  GPA3 NEXT (buttons to GND, active LOW), GPA4–GPA7 spare on J2, GPB0 ATX ON
+  request LED, GPB1 ESP32 activity LED (through 330 Ω), GPB2–GPB7 unused.
+- The POWER button on the panel is wired straight to GPIO13, parallel to J4,
+  so it works without I2C.
+- OLED socket J4 and I2C extension J3: GND, VCC, SCL, SDA. Some SSD1306
+  modules swap GND and VCC; check the module before plugging it in.
+- Firmware does not support the panel yet.
 
 ## Module ribbon (16-pin)
 

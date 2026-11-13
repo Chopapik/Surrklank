@@ -1,7 +1,7 @@
 #!/bin/sh
 # Rebuild one module board: schematic -> ERC -> netlist check -> placement ->
 # autoroute -> zone fill -> DRC.
-# Usage: hardware/tools/build_module.sh fdd|lsm-hdd|mainboard [work_dir]
+# Usage: hardware/tools/build_module.sh fdd|lsm-hdd|mainboard|panel [work_dir]
 # Needs KiCad 10, Freerouting 2.5.0 (jar) and Java 25 (see hardware/README.md).
 set -eu
 # A failing step must stop the build even though its output is filtered.
@@ -11,6 +11,7 @@ case $BOARD in
     fdd) NAME=fdd; DIR=fdd-module; GEN=gen_fdd_module.py; CHECK=check_fdd_module.py ;;
     lsm-hdd) NAME=lsm_hdd; DIR=lsm-hdd-module; GEN=gen_lsm_hdd_module.py; CHECK=check_lsm_hdd_module.py ;;
     mainboard) NAME=mainboard; DIR=mainboard; GEN=gen_mainboard.py; CHECK=check_mainboard.py ;;
+    panel) NAME=panel; DIR=panel; GEN=gen_panel.py; CHECK=check_panel.py ;;
     *) echo "unknown board: $BOARD" >&2; exit 2 ;;
 esac
 HW=$(cd "$(dirname "$0")/.." && pwd)

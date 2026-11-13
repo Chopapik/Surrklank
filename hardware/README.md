@@ -12,6 +12,7 @@ KiCad 10 projects:
 | `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
 | `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic and autorouted 120 × 80 mm 2-layer PCB |
 | `mainboard/` | Mainboard v0.1: generated schematic and autorouted 110 × 72 mm 2-layer PCB |
+| `panel/` | Remote panel v0.1: generated schematic and autorouted 100 × 56 mm 2-layer PCB |
 | `surrklank-controller/` | Empty first KiCad project, superseded by `mainboard/` |
 | `lib/` | Custom symbols (DRV8833 module, ESP32 38-pin board) and footprints (Molex 8981, DRV8833 module, Surrklank logo) |
 | `tools/` | Generators, netlist check and build script |
@@ -24,9 +25,10 @@ schematic parity and all severities):
 hardware/tools/build_fdd_module.sh [work_dir]
 hardware/tools/build_lsm_hdd_module.sh [work_dir]
 hardware/tools/build_mainboard.sh [work_dir]
+hardware/tools/build_panel.sh [work_dir]
 ```
 
-All wrap `build_module.sh fdd|lsm-hdd|mainboard`, which stops at the first
+All wrap `build_module.sh fdd|lsm-hdd|mainboard|panel`, which stops at the first
 failing step. Placement, zones and branding of all boards live in
 `gen_module_pcb.py`.
 
@@ -93,6 +95,27 @@ pin order listed by the seller and matching the silkscreen photo.
   connector J6 (2 × 5 IDC, see WIRING.md) at the top edge. Autorouted, not
   hand-optimised.
 - Power input: pluggable (two-part) screw terminal; ATX button on a two-pin connector.
+
+## Remote panel
+
+Front panel on a cable to mainboard J6 (pinout in WIRING.md). PCB v0.1,
+everything on the front side:
+
+- J1 cable header top left; socket J4 for a 0.96" SSD1306 OLED module (the
+  module's 27 × 27 mm body covers the area below the socket, which carries
+  only tracks); four 3 mm LEDs top right: STBY and RAILS (hardware), ATX ON
+  and ESP (firmware via the expander).
+- MCP23017 expander (address 0x20) with 330 Ω LED resistors; 6 mm tactile
+  buttons POWER (straight to GPIO13), PREV, PLAY, STOP, NEXT (expander GPA0–3).
+- J2: +3V3, GND and GPA4–GPA7 for four more buttons; J3: I2C extension (GND,
+  VCC, SCL, SDA) for another expander or sensor. GPB2–GPB7 are unused: routing
+  them to a header blocked the autorouter.
+- All panel nets use the Default 0.25 mm class; the panel draws tens of mA
+  and GND is poured on both layers. With 0.6 mm Power tracks Freerouting
+  could not route GND between the expander and header pins and left +3V3
+  unrouted as well.
+- Not decided: mounting in an enclosure, front-panel cutouts, LED colours
+  (Vf about 2 V needed for the hardware LEDs).
 
 ## Connectors and footprints
 

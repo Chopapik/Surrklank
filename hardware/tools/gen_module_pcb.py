@@ -7,7 +7,7 @@
   $KIPY gen_module_pcb.py <board> import <x.kicad_pcb> <in.ses>       # import routes, fill zones
   $KIPY gen_module_pcb.py <board> brand  <x.kicad_pcb> -              # (re)place logo and text only
 
-<board> is `fdd`, `lsm-hdd` or `mainboard`. Routing itself is done by Freerouting between
+<board> is `fdd`, `lsm-hdd`, `mainboard` or `panel`. Routing itself is done by Freerouting between
 `dsn` and `import` (see hardware/README.md). This script never draws tracks.
 """
 import json
@@ -153,7 +153,44 @@ def mainboard_board():
     }
 
 
-BOARDS = {"fdd": fdd_board, "lsm-hdd": lsm_hdd_board, "mainboard": mainboard_board}
+# -------------------------------------------------------------- remote panel
+def panel_board():
+    # U1 is rotated so GPA (buttons) faces down and GPB/I2C faces up.
+    # Everything on the front: cable header top left, OLED module on a socket
+    # top middle (its 27 x 27 mm body covers the area below the socket),
+    # LEDs top right, buttons in a row near the bottom.
+    sw_y = 42.0
+    place = {
+        "J1": (16.0, 6.5, 90),
+        "J4": (44.0, 6.0, 90),                    # OLED module x 34-61, y 3-31
+        "D1": (64.0, 8.0, 0), "D2": (71.0, 8.0, 0), "D3": (78.0, 8.0, 0), "D4": (85.0, 8.0, 0),
+        "R1": (79.3, 16.0, 0), "R2": (86.3, 16.0, 0),
+        "U1": (80.0, 28.0, 270), "C1": (66.0, 22.0, 0), "C2": (66.0, 34.0, 0), "R3": (95.0, 28.0, 90),
+        "SW1": (8.0, sw_y, 0),
+        "SW2": (36.0, sw_y, 0), "SW3": (48.0, sw_y, 0), "SW4": (60.0, sw_y, 0), "SW5": (72.0, sw_y, 0),
+        "J3": (20.0, 53.5, 90), "J2": (66.0, 53.5, 90),
+        "H1": (4.0, 4.0, 0), "H2": (96.0, 4.0, 0), "H3": (4.0, 52.0, 0), "H4": (96.0, 52.0, 0),
+    }
+    label_y = sw_y + 8.2
+    notes = [(t, x + 3.25, label_y, 1.0) for t, x in
+             (("POWER", 8.0), ("PREV", 36.0), ("PLAY", 48.0), ("STOP", 60.0), ("NEXT", 72.0))]
+    notes += [(t, x + 1.27, 11.6, 0.8) for t, x in
+              (("STBY", 64.0), ("RAILS", 71.0), ("ATX ON", 78.0), ("ESP", 85.0))]
+    notes += [("OLED GND VCC SCL SDA", 47.8, 9.4, 0.8)]
+    return {
+        "size": (100.0, 56.0),
+        "place": place,
+        "logo": (16.0, 23.0),
+        "brand_text": [("SURRKLANK", 30.0, 1.3), ("PANEL v0.1", 32.6, 1.0)],
+        "by_text": ("by", 11.6, 19.0, 3.0),
+        "ref_at": {},
+        "power_zones": [],
+        "notes": notes,
+        "keepouts": [],
+    }
+
+
+BOARDS = {"fdd": fdd_board, "lsm-hdd": lsm_hdd_board, "mainboard": mainboard_board, "panel": panel_board}
 B = None   # selected board configuration
 
 
