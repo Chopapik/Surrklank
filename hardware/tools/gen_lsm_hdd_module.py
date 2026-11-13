@@ -12,8 +12,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from kicad_sch_lib import Sheet  # noqa: E402
 import module_common as mc  # noqa: E402
 
-FP_TERM = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-4-3.5-H_1x04_P3.50mm_Horizontal"
-FP_BULK = "Capacitor_SMD:CP_Elec_10x10"
+FP_MOTOR = "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
+FP_BULK = "Capacitor_THT:CP_Radial_D10.0mm_P5.00mm"  # THT pins reach the B_Cu power copper
 SLOT_OUTPUTS = ["IN1", "IN2", "IN3", "IN4", "EEP"]   # 595 outputs per DRV8833 slot
 DRV_PIN = {"EEP": "1", "OUT1": "2", "OUT2": "3", "OUT3": "4", "OUT4": "5", "ULT": "6",
            "IN1": "7", "IN2": "8", "VCC": "9", "GND": "10", "IN3": "11", "IN4": "12"}
@@ -41,7 +41,7 @@ def build(path):
     mc.register(sh, "U4", 200.66, 172.72, "SR2", "SR_LAST", o4)
     mc.input_register(sh, "U5", 200.66, 241.3, [net(m, "ULT") for m in range(1, 5)] + ["GND"] * 4)
 
-    # DRV8833 slots and motor terminals
+    # DRV8833 slots and JST-XH motor connectors
     for m in range(1, 5):
         y = 45.72 + (m - 1) * 58.42
         drv = sh.symbol("surrklank:DRV8833_Module", f"M{m}", "DRV8833_Module", 292.1, y,
@@ -50,8 +50,8 @@ def build(path):
             sh.connect(drv, DRV_PIN[sig], net(m, sig))
         sh.connect(drv, DRV_PIN["VCC"], "+5V")
         sh.connect(drv, DRV_PIN["GND"], "GND")
-        term = sh.symbol("Connector:Screw_Terminal_01x04", f"J{5 + m}", f"MOTOR_M{m}", 342.9, y,
-                         footprint=FP_TERM)
+        term = sh.symbol("Connector_Generic:Conn_01x04", f"J{5 + m}", f"MOTOR_M{m}", 342.9, y,
+                         footprint=FP_MOTOR)
         for i in range(4):
             sh.connect(term, str(i + 1), net(m, f"OUT{i + 1}"))
     sh.text("Bridge A: OUT1/OUT2 (LSM coil A or one HDD VCM).\n"

@@ -287,7 +287,7 @@ M1–M4 are the module's DRV8833 slots.
 - EEP lines have 100 kΩ pull-downs (asleep at power-up when J1 on the DRV8833
   module is open; with J1 closed the module's own pull-up wins). IN1–IN4 rely
   on the DRV8833 internal pull-downs. ULT lines have 10 kΩ pull-ups to 3.3 V.
-- Each slot has a 4-way 3.5 mm screw terminal: pins 1–4 = OUT1–OUT4.
+- Each slot has a 4-pin JST-XH connector (2.5 mm): pins 1–4 = OUT1–OUT4.
 - Power: Molex J5 (+5 V) and optional J10 (not fitted unless measured current
   needs it), 470 µF bulk capacitor on +5 V, AMS1117-3.3 for logic.
 

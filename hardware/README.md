@@ -10,36 +10,34 @@ KiCad 10 projects:
 | Folder | Content |
 | --- | --- |
 | `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
-| `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic; PCB not started |
+| `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic and autorouted 120 × 80 mm 2-layer PCB |
 | `surrklank-controller/` | Empty placeholder for the mainboard |
 | `lib/` | Custom symbol (DRV8833 module) and footprints (Molex 8981, DRV8833 module, Surrklank logo) |
 | `tools/` | Generators, netlist check and build script |
 
-Boards are generated, not edited by hand. One command rebuilds the FDD module
-(schematic, ERC, netlist check, placement, autorouting, zone fill, DRC):
+Boards are generated, not edited by hand. One command rebuilds a module
+(schematic, ERC, netlist check, placement, autorouting, zone fill, DRC with
+schematic parity and all severities):
 
 ```sh
 hardware/tools/build_fdd_module.sh [work_dir]
+hardware/tools/build_lsm_hdd_module.sh [work_dir]
 ```
 
-The LSM/HDD schematic is generated and checked the same way:
+Both wrap `build_module.sh fdd|lsm-hdd`. Placement, zones and branding of
+both boards live in `gen_module_pcb.py`.
 
-```sh
-python3 -I hardware/tools/gen_lsm_hdd_module.py hardware/lsm-hdd-module/surrklank-lsm-hdd-module.kicad_sch
-kicad-cli sch export netlist --format kicadxml -o /tmp/lsm.xml hardware/lsm-hdd-module/surrklank-lsm-hdd-module.kicad_sch
-python3 -I hardware/tools/check_lsm_hdd_module.py /tmp/lsm.xml
-```
-
-Requirements: KiCad 10 (its bundled Python runs `gen_fdd_pcb.py`), Freerouting
+Requirements: KiCad 10 (its bundled Python runs `gen_module_pcb.py`), Freerouting
 2.5.0 jar in `~/.local/share/freerouting/bin/` (official GitHub release,
 SHA-256 `f6f51bb0…5de3c7`) and Java 25 (`brew install openjdk@25`). The script
 runs Freerouting headless with analytics and telemetry disabled. The native
 Freerouting 2.5.0 CLI build fails on board serialization and is not used.
 
-- `check_fdd_module.py` verifies the netlist against WIRING.md rules written
+- `check_fdd_module.py` and `check_lsm_hdd_module.py` verify the netlist against WIRING.md rules written
   independently of the generator (drive header pins, pull-ups, register chain,
   ribbon, supplies).
-- Routing is not deterministic: each run gives different tracks. The build
+- Routing is not deterministic: each run gives different tracks, and a run
+  occasionally leaves a connection unrouted; rerun the build then. The build
   passes only with zero DRC violations and zero unconnected pads.
 - Design rules: Default class 0.25 mm tracks / 0.2 mm clearance, Power class
   (+5V, +3V3, GND) 0.6 mm / 0.25 mm, vias 0.6/0.3 mm, minimum track 0.15 mm
@@ -47,6 +45,13 @@ Freerouting 2.5.0 CLI build fails on board serialization and is not used.
   any remaining track under 0.15 mm is widened and re-checked by DRC.
 - GND is poured on both layers with solid pad connections; dense IDE header
   pins left no room for thermal spokes.
+- LSM/HDD motor supply: an 8 mm wide +5V band on B_Cu runs from Molex J5 pin 4
+  past C8 (+) and the VCC pins of all four DRV8833 slots to J10 pin 4. Below it
+  B_Cu is a solid GND plane reaching each slot's GND pin through a notch in the
+  band, plus the Molex GND pins and C8 (−). Both zones are passed to Freerouting
+  as planes, and a rule area forbids B_Cu tracks and vias there, so signals
+  cross on F_Cu only. The band's current capacity for the theoretical 9.6 A is
+  estimated, not calculated or measured; the LDO is fed by a 0.6 mm track.
 - The autorouted layout is electrically complete but not hand-optimised
   (long detours, signals near edges). It has not been reviewed for signal
   integrity or checked with a 1:1 paper print.
@@ -86,7 +91,8 @@ pin order listed by the seller and matching the silkscreen photo.
 | FDD drive cable | Salvaged 40-pin IDE header; standard DIN 41651 2 × 20 footprint (2.54 mm pitch, 1.0 mm holes, body about 58.5 × 8.9 mm in KiCad) with extra clearance for a cut-down housing |
 | Molex power | Custom: Molex 8981 family, 5.08 mm pitch, slightly enlarged holes and a few millimetres of clearance for different salvaged housings; pin tail diameter (optional measurement) can refine holes |
 | DRV8833 module | Custom `DRV8833_Module_2x6_W15.24mm`: 2 × 6, 2.54 mm pitch, rows 15.24 mm apart, 1.0 mm holes, DIP-style numbering |
-| Motor outputs | 4-way 3.5 mm screw terminal per DRV8833 slot (proposal) |
+| Motor outputs | JST-XH 4-pin vertical (B4B-XH-A, 2.5 mm) per DRV8833 slot; crimped plugs |
+| LSM/HDD bulk capacitor | 470 µF 16 V radial THT, 10 mm diameter, 5 mm pitch |
 | ESP32 board | Two 1 × 19 female headers, 2.54 mm pitch, rows 25.4 mm apart |
 
 Male Molex connectors may be salvaged from HDD controller boards, where they
@@ -99,10 +105,13 @@ module header.
 - Front silkscreen branding: the Surrklank logo (square ring, 8 mm, drawn
   geometrically in the proportions of the user's image) with "SURRKLANK" and
   the board name and revision, in white. It is a board-only footprint, not in
-  the schematic; `gen_fdd_pcb.py brand` re-applies it without rerouting.
-
-- LSM/HDD modules: wide copper from the Molex to the DRV8833 positions and a
-  bulk capacitor at the input; mark the unconnected +12 V Molex position.
+  the schematic; `gen_module_pcb.py <board> brand` re-applies it without rerouting.
+- LSM/HDD module: ribbon IN/OUT on the left and right edges, registers in a
+  row above four DRV8833 slots (rotated so OUT1–OUT4 face the bottom edge),
+  JST-XH motor connectors at the bottom edge, J5 bottom left with C8 beside it,
+  optional J10 bottom right. The Molex footprint marks the +12 V position NC.
+  The board is 120 mm wide: the Molex clearance, C8 and four 18.6 mm slots do
+  not fit in 100 mm.
 - Ribbon signals keep the signal/ground order of the 16-pin assignment.
 - Optional test points on DATA, CLK, LATCH, /OE, +3V3 and GND are proposed for
   debugging; not decided.
