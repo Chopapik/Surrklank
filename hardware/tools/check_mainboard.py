@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+"""Check an exported mainboard netlist against docs/WIRING.md (Mainboard).
+
+Usage: python3 -I check_mainboard.py <netlist.xml>
+Rules are written out here independently of the generator.
+"""
+import sys
+import xml.etree.ElementTree as ET
+
+# ESP32 board header (seller pin order; pins 1-19 left, 20-38 right, from the antenna end)
+BOARD_PIN = {"GPIO23": "21", "GPIO22": "22", "GPIO34": "5", "GPIO17": "30", "GPIO16": "31",
+             "GPIO35": "6", "GPIO18": "28", "GPIO21": "25", "GPIO33": "8", "GPIO32": "7",
+             "GPIO19": "27", "GPIO13": "15", "GPIO36": "3", "3V3": "1", "5V": "19"}
+# WIRING.md GPIO table: GPIO -> (branch connector or None, ribbon pin or role)
+SIGNALS = {"GPIO23": ("J2", 1), "GPIO22": ("J2", 5), "GPIO34": ("J2", 13),
+           "GPIO17": ("J3", 1), "GPIO16": ("J3", 5), "GPIO35": ("J3", 13)}
+SHARED = {"GPIO18": 3, "GPIO21": 7, "GPIO33": 9, "GPIO32": 11}
+PULL = {"GPIO21": "ESP_3V3", "GPIO33": "ESP_3V3", "GPIO18": "GND", "GPIO32": "GND",
+        "GPIO22": "GND", "GPIO16": "GND", "GPIO23": "GND", "GPIO17": "GND",
+        "GPIO34": "GND", "GPIO35": "GND"}
+errors = []
+
+
+def main(path):
+    root = ET.parse(path).getroot()
+    nets, where, func = {}, {}, {}
+    for n in root.iter("net"):
+        name = n.get("name").lstrip("/")  # local labels are exported as "/NAME"
+        nodes = {(x.get("ref"), x.get("pin")) for x in n.iter("node")}
+        nets[name] = nodes
+        for x in n.iter("node"):
+            where[(x.get("ref"), x.get("pin"))] = name
+            func[(x.get("ref"), x.get("pin"))] = (x.get("pinfunction") or "").split("_")[0]
+
+    def peers(ref, pin):
+        return nets.get(where.get((ref, pin)), set()) - {(ref, pin)}
+
+    def through(rn, pin):
+        """Net on the other side of a resistor-array element."""
+        return where.get((rn, str(9 - int(pin))))
+
+    def gpio_net(g):
+        return where.get(("A1", BOARD_PIN[g]))
+
+    def reaches_via_series(g, conn, rpin):
+        for r, q in peers("A1", BOARD_PIN[g]):
+            if r.startswith("RN") and through(r, q) == where.get((conn, str(rpin))):
+                return True
+        return False
+
+    for g, (conn, rpin) in SIGNALS.items():
+        if rpin == 13:
+            if ("A1", BOARD_PIN[g]) not in nets.get(where.get((conn, "13")), set()):
+                errors.append(f"{g} must connect directly to {conn}.13 (Q165)")
+        elif not reaches_via_series(g, conn, rpin):
+            errors.append(f"{g} must reach {conn}.{rpin} through a series resistor")
+    for g, rpin in SHARED.items():
+        for conn in ("J2", "J3"):
+            if not reaches_via_series(g, conn, rpin):
+                errors.append(f"{g} must reach {conn}.{rpin} through its own series resistor")
+    for g, rail in PULL.items():
+        rails = [through(r, q) for r, q in peers("A1", BOARD_PIN[g])
+                 if r.startswith("RN") and through(r, q) in ("ESP_3V3", "GND")]
+        if rails != [rail]:
+            errors.append(f"{g}: expected one pull to {rail}, got {rails}")
+    for conn in ("J2", "J3"):
+        for p in range(2, 17, 2):
+            if where.get((conn, str(p))) != "GND":
+                errors.append(f"{conn}.{p} should be GND")
+        jp = [r for r, _ in peers(conn, "15") if r.startswith("JP")]
+        if len(jp) != 1 or "+3V3" not in {where.get((jp[0], q)) for q in ("1", "2")}:
+            errors.append(f"{conn}.15 must reach ATX +3V3 only through a solder jumper")
+
+    if gpio_net("3V3") != "ESP_3V3" or "+3V3" == gpio_net("3V3"):
+        errors.append("ESP32 3V3 must stay separate from ATX +3V3")
+    # +5VSB path: terminal pin 4 -> diode anode, cathode -> jumper -> ESP32 5V
+    j1 = {p: where.get(("J1", p)) for p in "12345"}
+    if [j1[p] for p in "12345"] != ["+3V3", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]:
+        errors.append(f"J1 order wrong: {j1}")
+    d = [(r, q) for r, q in nets.get("ATX_5VSB", set()) if r.startswith("D")]
+    if len(d) != 1 or func[d[0]] != "A":
+        errors.append(f"+5VSB must enter a diode anode, got {d}")
+    else:
+        cathode = where[(d[0][0], "1" if d[0][1] == "2" else "2")]
+        jp = [r for r, _ in nets[cathode] if r.startswith("JP")]
+        if len(jp) != 1 or "ESP_5V" not in {where.get((jp[0], q)) for q in ("1", "2")}:
+            errors.append("diode cathode must reach ESP32 5V through a removable jumper")
+    if gpio_net("5V") != "ESP_5V":
+        errors.append("ESP32 5V pin must be on ESP_5V")
+    # PWR_OK divider into GPIO36
+    rs = [r for r, _ in nets.get("PWR_OK", set()) if r.startswith("R")]
+    if len(rs) != 1 or gpio_net("GPIO36") not in {where.get((rs[0], q)) for q in ("1", "2")}:
+        errors.append("PWR_OK must reach GPIO36 through a series resistor")
+    # ATX switch: GPIO19 -> R -> base, base -> R -> GND, emitter GND, collector PS_ON#
+    q = next(r for r, _ in nets["PS_ON#"] if r.startswith("Q"))
+    pins = {func[(q, p)]: where[(q, p)] for p in ("1", "2", "3")}
+    if pins.get("C") != "PS_ON#" or pins.get("E") != "GND":
+        errors.append(f"transistor pins wrong: {pins}")
+    base = nets[pins["B"]]
+    if not any(r.startswith("R") and gpio_net("GPIO19") in {where.get((r, x)) for x in ("1", "2")}
+               for r, _ in base):
+        errors.append("GPIO19 must drive the base through a resistor")
+    if not any(r.startswith("R") and "GND" in {where.get((r, x)) for x in ("1", "2")} for r, _ in base):
+        errors.append("base needs a resistor to GND")
+    if {where.get(("J4", "1")), where.get(("J4", "2"))} != {gpio_net("GPIO13"), "GND"}:
+        errors.append("button J4 must connect GPIO13 to GND")
+
+    if errors:
+        print(f"{len(errors)} problem(s):")
+        for e in errors:
+            print("  -", e)
+        sys.exit(1)
+    print("OK: netlist matches WIRING.md rules")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])

@@ -11,8 +11,9 @@ KiCad 10 projects:
 | --- | --- |
 | `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
 | `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic and autorouted 120 × 80 mm 2-layer PCB |
-| `surrklank-controller/` | Empty placeholder for the mainboard |
-| `lib/` | Custom symbol (DRV8833 module) and footprints (Molex 8981, DRV8833 module, Surrklank logo) |
+| `mainboard/` | Mainboard v0.1: generated schematic; PCB not started |
+| `surrklank-controller/` | Empty first KiCad project, superseded by `mainboard/` |
+| `lib/` | Custom symbols (DRV8833 module, ESP32 38-pin board) and footprints (Molex 8981, DRV8833 module, Surrklank logo) |
 | `tools/` | Generators, netlist check and build script |
 
 Boards are generated, not edited by hand. One command rebuilds a module

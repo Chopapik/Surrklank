@@ -64,16 +64,17 @@ resistor. GPIO34–39 have no internal pull resistors.
 ### Default levels on the mainboard
 
 Pull resistors on the mainboard keep register control lines inactive while the
-ESP32 boots or a GPIO is high impedance:
+ESP32 boots or a GPIO is high impedance. They use the ESP32 board's own 3.3 V
+(`ESP_3V3`), which is powered whenever the ESP32 runs, not ATX +3.3 V:
 
 | Signal | Resistor | Level without active drive |
 | --- | --- | --- |
-| /OE | 10 kΩ pull-up to 3.3 V | HIGH: 595 outputs high impedance |
+| /OE | 10 kΩ pull-up to ESP_3V3 | HIGH: 595 outputs high impedance |
 | /PL | 10 kΩ pull-up | HIGH: parallel load inactive |
 | CLK, CLK165 | 10 kΩ pull-down | LOW |
 | LATCH (each branch) | 10 kΩ pull-down | LOW |
 | DATA (each branch) | 10 kΩ pull-down | LOW |
-| Q165 (each branch) | pull resistor, value not chosen | defined with no module connected |
+| Q165 (each branch) | 10 kΩ pull-down | LOW with no module connected |
 
 ### Power input
 
@@ -86,17 +87,20 @@ PWR_OK from the user's ATX distribution. +5 V on this terminal is not decided.
   standby rail; removing the jumper isolates the ESP32 from ATX for USB
   flashing. The ESP32 board is assumed to have no USB VBUS diode (seller
   warning); this is not verified.
-- **+3V3** from ATX feeds only mainboard pull resistors and, through a normally
-  open solder jumper, the ribbons for bench use. Never connect ATX +3.3 V to
+- **+3V3** from ATX reaches only the ribbons, through normally open solder
+  jumpers (JP2/JP3) for bench use. Never connect ATX +3.3 V to
   the ESP32 board's 3V3 or 5 V pin.
 - **PWR_OK** (grey ATX wire, nominally 5 V logic) reaches GPIO36 through a
-  resistor divider to 3.3 V levels. It reports main rails up, unlike the GPIO19
-  request. Divider values are not chosen; firmware does not read it yet.
+  10 kΩ / 20 kΩ divider (about 3.3 V from 5 V). It reports main rails up,
+  unlike the GPIO19 request; firmware does not read it yet.
 
 ### ATX power switch and button
 
 ATX starts OFF in firmware, and a maintenance lock forces OFF and rejects ON
 until the next ESP32 restart.
+
+Schematic: `hardware/mainboard/surrklank-mainboard.kicad_sch` (generated, v0.1).
+The PCB uses an MMBT3904 (SOT-23) in place of the hand-wired S8050.
 
 ```text
 ESP32 GPIO19 ── 2.2 kΩ ── S8050 base
