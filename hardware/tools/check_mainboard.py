@@ -77,15 +77,16 @@ def main(path):
         for p in range(2, 17, 2):
             if where.get((conn, str(p))) != "GND":
                 errors.append(f"{conn}.{p} should be GND")
-        jp = [r for r, _ in peers(conn, "15") if r.startswith("JP")]
-        if len(jp) != 1 or "+3V3" not in {where.get((jp[0], q)) for q in ("1", "2")}:
-            errors.append(f"{conn}.15 must reach ATX +3V3 only through a solder jumper")
+        if peers(conn, "15"):
+            errors.append(f"{conn}.15 is a spare wire and must stay unconnected")
 
-    if gpio_net("3V3") != "ESP_3V3" or "+3V3" == gpio_net("3V3"):
-        errors.append("ESP32 3V3 must stay separate from ATX +3V3")
+    if "+3V3" in nets or any(r.startswith("JP") and r != "JP1" for r, _ in where):
+        errors.append("ATX +3V3 and the bench jumpers are removed")
+    if gpio_net("3V3") != "ESP_3V3" or gpio_net("3V3") in ("+5V", "ATX_5VSB"):
+        errors.append("ESP32 3V3 must stay separate from ATX +5V and +5VSB")
     # +5VSB path: terminal pin 4 -> removable jumper -> ESP32 5V, nothing else
     j1 = {p: where.get(("J1", p)) for p in "12345"}
-    if [j1[p] for p in "12345"] != ["+3V3", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]:
+    if [j1[p] for p in "12345"] != ["+5V", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]:
         errors.append(f"J1 order wrong: {j1}")
     # +5VSB may also feed the panel standby LED resistor (checked below)
     on_5vsb = {(r, q) for r, q in nets.get("ATX_5VSB", set()) - {("J1", "4")}
@@ -121,7 +122,7 @@ def main(path):
         errors.append("button line needs a filter capacitor to GND")
 
     # Remote panel J6 (2 x 5): 1 ESP_3V3, 2/4/6 GND, 3 SDA, 5 SCL, 7 INT, 8 button,
-    # 9 LED from +5VSB, 10 LED from ATX +3V3 (each through a resistor)
+    # 9 LED from +5VSB, 10 LED from ATX +5V (each through a resistor)
     if where.get(("J6", "1")) != gpio_net("3V3"):
         errors.append("J6.1 must be the ESP32 3V3")
     for p in ("2", "4", "6"):
@@ -135,7 +136,7 @@ def main(path):
                and where.get((r, "2" if q == "1" else "1")) == gpio_net("3V3")]
         if len(ups) != 1:
             errors.append(f"{g} (I2C) needs one pull-up to the ESP32 3V3")
-    for p, rail in (("9", "ATX_5VSB"), ("10", "+3V3")):
+    for p, rail in (("9", "ATX_5VSB"), ("10", "+5V")):
         feed = [r for r, q in peers("J6", p) if r.startswith("R") and not r.startswith("RN")
                 and where.get((r, "2" if q == "1" else "1")) == rail]
         if len(feed) != 1 or len(peers("J6", p)) != 1:

@@ -89,9 +89,7 @@ removed). With the pull-down on the GPIO side a module HIGH reads about 3.0 V.
 A pluggable (two-part) screw terminal brings +5V, GND, PS_ON#, +5VSB and
 PWR_OK from the user's ATX distribution. ATX +3.3 V is not used anywhere:
 modules make their own 3.3 V from +5 V. The mainboard uses terminal +5 V only
-for the panel's "main rails up" LED. PCB v0.1 still carries +3V3 on this
-terminal and the bench jumpers JP2/JP3 until the next rebuild (see Open items
-in [hardware/README.md](../hardware/README.md)).
+for the panel's "main rails up" LED.
 
 - **+5VSB → ESP32.** The ATX standby rail powers the ESP32 board through a
   removable jumper (JP1) into the board's 5 V pin, so the ESP32 runs while ATX
@@ -207,8 +205,8 @@ On each module:
 - The 165's QH drives Q165 on IN; its serial input (SER, pin 10) takes Q165
   from OUT, with a pull resistor so an open OUT reads a defined level.
 - Modules are powered locally from their own Molex; no power runs on the
-  ribbon. Pin 15 is a spare wire that passes straight through each module (PCB
-  v0.1 still routes it to the bench jumper JP1 until the next rebuild).
+  ribbon. Pin 15 is a spare wire that passes straight through each module and
+  is unconnected on the mainboard.
 
 Mainboard outputs and module OUT outputs have 33 Ω series resistors (mainboard
 RN4–RN7, module RN3/RN4); the module input buffer is a 74LVC244A (U1). The

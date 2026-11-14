@@ -12,12 +12,11 @@ FP_C1206 = "Capacitor_SMD:C_1206_3216Metric"
 FP_RN = "Resistor_SMD:R_Array_Convex_4x0603"
 FP_IDC16 = "Connector_IDC:IDC-Header_2x08_P2.54mm_Vertical"
 FP_MOLEX = "surrklank:Molex_8981_1x04_P5.08mm_Vertical"
-FP_JP = "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 FP_HOLE = "MountingHole:MountingHole_3.2mm_M3"
 
 QPINS = ["15", "1", "2", "3", "4", "5", "6", "7"]   # 595 QA..QH
 D165 = ["11", "12", "13", "14", "3", "4", "5", "6"]  # 165 D0..D7
-RIBBON = {1: "DATA", 3: "CLK", 5: "LATCH", 7: "OE", 9: "PL", 11: "CLK165", 13: "Q165", 15: "3V3_RIB"}
+RIBBON = {1: "DATA", 3: "CLK", 5: "LATCH", 7: "OE", 9: "PL", 11: "CLK165", 13: "Q165", 15: "SPARE"}
 
 
 def pack(sh, ref, value, x, y, bottom, top=None, rail=None):
@@ -42,7 +41,7 @@ def pack(sh, ref, value, x, y, bottom, top=None, rail=None):
 
 
 def ribbon_and_buffer(sh):
-    """J1 IN, J2 OUT, JP1, buffer U1, pulls RN1/RN2, series RN3/RN4.
+    """J1 IN, J2 OUT, buffer U1, pulls RN1/RN2, series RN3/RN4.
 
     Exposes buffered nets B_DATA, B_CLK, B_LATCH, B_OE, B_PL, B_CLK165 and
     expects the module to provide SR_LAST (last 595 QH'), Q165_LOCAL (165 QH)
@@ -54,16 +53,14 @@ def ribbon_and_buffer(sh):
         for p in range(1, 17):
             if p % 2 == 0:
                 sh.connect(j, str(p), "GND")
-            elif RIBBON[p] == "3V3_RIB":
-                sh.connect(j, str(p), "+3V3_RIB")
+            elif RIBBON[p] == "SPARE":
+                sh.connect(j, str(p), "RIB_SPARE")   # unused wire, passes IN -> OUT
             elif RIBBON[p] == "Q165":
                 sh.connect(j, str(p), "Q165" if side == "IN" else "Q165_NEXT")
             else:
                 sh.connect(j, str(p), f"{side}_{RIBBON[p]}")
-    jp = sh.symbol("Jumper:SolderJumper_2_Open", "JP1", "BENCH_3V3", 38.1, 139.7, footprint=FP_JP)
-    sh.connect(jp, "1", "+3V3_RIB")
-    sh.connect(jp, "2", "+3V3")
-    sh.text("JP1: close only to power this module\nfrom the ribbon on the bench.", (25.4, 148.59))
+    sh.text("Ribbon pin 15 is a spare wire: IN and OUT are joined, nothing else.\n"
+            "No power runs on the ribbon.", (25.4, 148.59))
 
     u1 = sh.symbol("74xx:74AHC244", "U1", "74LVC244A", 111.76, 63.5, footprint=FP_SOIC20W)
     for a, y_, s in (("2", "18", "DATA"), ("4", "16", "CLK"), ("6", "14", "LATCH"), ("8", "12", "OE"),

@@ -26,7 +26,7 @@ ESP = {"1": "ESP_3V3", "3": "PWR_OK_IN", "5": "FDD_Q165", "6": "LSM_Q165", "7": 
 # Remote panel cable (2 x 5 IDC): I2C with a GND between SDA and SCL
 PANEL = {1: "ESP_3V3", 2: "GND", 3: "PANEL_SDA", 4: "GND", 5: "PANEL_SCL", 6: "GND",
          7: "PANEL_INT", 8: "BUTTON", 9: "PANEL_LED_SB", 10: "PANEL_LED_ON"}
-RIBBON = {1: "DATA", 3: "CLK", 5: "LATCH", 7: "OE", 9: "PL", 11: "CLK165", 13: "Q165", 15: "3V3"}
+RIBBON = {1: "DATA", 3: "CLK", 5: "LATCH", 7: "OE", 9: "PL", 11: "CLK165", 13: "Q165", 15: "SPARE"}
 
 
 def label_flag(sh, net, p):
@@ -57,7 +57,7 @@ def build(path):
         else:
             sh.connect(esp, str(pin), n)
     sh.text("A1 pins 1/20 at the antenna end. ESP32 3V3 is the board's own regulator:\n"
-            "never connect ATX +3V3 to it. Mainboard pull resistors use ESP_3V3.",
+            "never connect ATX +5V to it. Mainboard pull resistors use ESP_3V3.",
             (50.8, 63.5))
 
     # Default levels on the GPIO side (ESP32 boot / high impedance)
@@ -79,27 +79,23 @@ def build(path):
                 sh.connect(j, str(p), "GND")
             elif RIBBON[p] == "Q165":
                 sh.connect(j, str(p), f"{pre}_Q165")
-            elif RIBBON[p] == "3V3":
-                sh.connect(j, str(p), f"{pre}_RIB3V3")
+            elif RIBBON[p] == "SPARE":
+                sh.no_connect(j, str(p))   # spare wire, passes through the modules
             else:
                 sh.connect(j, str(p), f"{pre}_{RIBBON[p]}")
         # Q165 return: 1k limits current if a powered module drives an unpowered ESP32
         resistor(sh, f"R{5 + k}", "1k", 172.72, y - 12.7, f"{pre}_Q165", f"{name}_Q165")
-        jp = sh.symbol("Jumper:SolderJumper_2_Open", f"JP{2 + k}", "BENCH_3V3", 241.3, y + 10.16,
-                       footprint=mc.FP_JP)
-        sh.connect(jp, "1", f"{pre}_RIB3V3")
-        sh.connect(jp, "2", "+3V3")
     sh.text("J2: FDD branch, J3: LSM/HDD branch (same 16-pin ribbon).\n"
-            "JP2/JP3: close only to power one module from ATX +3V3 on the bench.", (190.5, 66.04))
+            "Pin 15 is a spare wire; no power runs on the ribbons.", (190.5, 66.04))
 
     # ATX power terminal
     j1 = sh.symbol("Connector:Screw_Terminal_01x05", "J1", "ATX_IN", 38.1, 190.5, footprint=FP_TERM)
-    for pin, n in zip("12345", ["+3V3", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]):
+    for pin, n in zip("12345", ["+5V", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]):
         sh.connect(j1, pin, n)
     sh.text("J1: pluggable terminal from the ATX 24-pin distribution:\n"
-            "1 +3V3 (orange), 2 GND, 3 PS_ON# (green), 4 +5VSB (purple), 5 PWR_OK (grey).",
+            "1 +5V (red), 2 GND, 3 PS_ON# (green), 4 +5VSB (purple), 5 PWR_OK (grey).",
             (20.32, 213.36))
-    sh.flag("+3V3", (25.4, 233.68))
+    sh.flag("+5V", (25.4, 233.68))
     sh.flag("GND", (38.1, 241.3))
     label_flag(sh, "ATX_5VSB", (50.8, 233.68))
 
@@ -149,11 +145,11 @@ def build(path):
     resistor(sh, "R7", "2.2k", 279.4, 81.28, "PANEL_SDA", "ESP_3V3")
     resistor(sh, "R8", "2.2k", 289.56, 81.28, "PANEL_SCL", "ESP_3V3")
     resistor(sh, "R9", "1k", 279.4, 127.0, "ATX_5VSB", "PANEL_LED_SB")
-    resistor(sh, "R10", "470", 289.56, 127.0, "+3V3", "PANEL_LED_ON")
+    resistor(sh, "R10", "470", 289.56, 127.0, "+5V", "PANEL_LED_ON")
     sh.text("J6: remote panel, cable up to about 2 m. I2C at 100 kHz with 2.2k\n"
             "pull-ups (GPIO25 SDA, GPIO26 SCL); GPIO27 = expander INT (RN1 pull-up).\n"
             "Pin 9: LED anode via R9 from +5VSB (standby present).\n"
-            "Pin 10: LED anode via R10 from ATX +3V3 (main rails up).\n"
+            "Pin 10: LED anode via R10 from ATX +5V (main rails up).\n"
             "Panel LEDs to GND; use red/green/yellow (Vf about 2 V).", (264.16, 147.32))
 
     mc.mounting_holes(sh, 236.22, 279.4)

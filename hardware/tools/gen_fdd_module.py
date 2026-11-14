@@ -20,7 +20,6 @@ FP_RN = "Resistor_SMD:R_Array_Convex_4x0603"
 FP_IDC16 = "Connector_IDC:IDC-Header_2x08_P2.54mm_Vertical"
 FP_IDE40 = "Connector_IDC:IDC-Header_2x20_P2.54mm_Vertical"
 FP_MOLEX = "surrklank:Molex_8981_1x04_P5.08mm_Vertical"
-FP_JP = "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 FP_HOLE = "MountingHole:MountingHole_3.2mm_M3"
 
 DRIVE_OUTPUTS = ["DS0", "DS1", "DS2", "MOTOR", "DIR", "STEP"]   # 595 outputs per drive
@@ -31,7 +30,7 @@ QPINS = ["15", "1", "2", "3", "4", "5", "6", "7"]                 # 595 QA..QH
 D165 = ["11", "12", "13", "14", "3", "4", "5", "6"]               # 165 D0..D7
 
 # Ribbon (IN and OUT identical): pin -> signal; even pins are GND.
-RIBBON = {1: "DATA", 3: "CLK", 5: "LATCH", 7: "OE", 9: "PL", 11: "CLK165", 13: "Q165", 15: "3V3_RIB"}
+RIBBON = {1: "DATA", 3: "CLK", 5: "LATCH", 7: "OE", 9: "PL", 11: "CLK165", 13: "Q165", 15: "SPARE"}
 
 
 def net(d, sig):
@@ -87,16 +86,14 @@ def build(path):
         for p in range(1, 17):
             if p % 2 == 0:
                 sh.connect(j, str(p), "GND")
-            elif RIBBON[p] == "3V3_RIB":
-                sh.connect(j, str(p), "+3V3_RIB")
+            elif RIBBON[p] == "SPARE":
+                sh.connect(j, str(p), "RIB_SPARE")   # unused wire, passes IN -> OUT
             elif RIBBON[p] == "Q165":
                 sh.connect(j, str(p), "Q165" if side == "IN" else "Q165_NEXT")
             else:
                 sh.connect(j, str(p), f"{side}_{RIBBON[p]}")
-    jp = sh.symbol("Jumper:SolderJumper_2_Open", "JP1", "BENCH_3V3", 38.1, 139.7, footprint=FP_JP)
-    sh.connect(jp, "1", "+3V3_RIB")
-    sh.connect(jp, "2", "+3V3")
-    sh.text("JP1: close only to power this module\nfrom the ribbon on the bench.", (25.4, 148.59))
+    sh.text("Ribbon pin 15 is a spare wire: IN and OUT are joined, nothing else.\n"
+            "No power runs on the ribbon.", (25.4, 148.59))
 
     # Input buffer: IN_x -> B_x
     u1 = sh.symbol("74xx:74AHC244", "U1", "74LVC244A", 111.76, 63.5, footprint=FP_SOIC20W)

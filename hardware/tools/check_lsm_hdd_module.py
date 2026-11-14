@@ -74,6 +74,10 @@ def main(path):
         for pin in range(2, 17, 2):
             if where.get((j, str(pin))) != "GND":
                 errors.append(f"{j}.{pin} should be GND")
+    if nets.get(where.get(("J1", "15"))) != {("J1", "15"), ("J2", "15")}:
+        errors.append("ribbon pin 15 must only pass IN->OUT")
+    if any(r.startswith("JP") for r, _ in where):
+        errors.append("bench jumpers are removed; no JP parts expected")
     if ("U3", "14") not in peers("U2", "9") or ("U4", "14") not in peers("U3", "9"):
         errors.append("595 chain U2->U3->U4 broken")
     if ("U5", "10") not in peers("J2", "13"):

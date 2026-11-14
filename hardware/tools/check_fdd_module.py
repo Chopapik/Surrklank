@@ -12,7 +12,7 @@ FDD_SIGNALS = {10: "DS0", 12: "DS1", 14: "DS2", 16: "MOTOR", 18: "DIR", 20: "STE
                22: "WD", 24: "WG", 26: "TRK0", 28: "WP"}
 OUTPUTS = {"DS0", "DS1", "DS2", "MOTOR", "DIR", "STEP"}
 INPUTS = {"TRK0", "WP"}
-RIBBON = {1: "DATA", 3: "CLK", 5: "LATCH", 7: "OE", 9: "PL", 11: "CLK165", 13: "Q165", 15: "+3V3 bench"}
+RIBBON = {1: "DATA", 3: "CLK", 5: "LATCH", 7: "OE", 9: "PL", 11: "CLK165", 13: "Q165", 15: "spare"}
 
 errors = []
 
@@ -78,8 +78,10 @@ def main(path):
                 fail(f"{j}.{pin} should be GND, is {net}")
     if "U1" not in refs(peers("J1", "1"), "U") or "U1" not in refs(peers("J1", "3"), "U"):
         fail("IN DATA/CLK must reach the buffer U1")
-    if where[("J1", "15")] != where[("J2", "15")] or "JP1" not in refs(nets[where[("J1", "15")]], "JP"):
-        fail("ribbon +3V3 must pass IN->OUT and reach JP1")
+    if nets.get(where.get(("J1", "15"))) != {("J1", "15"), ("J2", "15")}:
+        fail("ribbon pin 15 must only pass IN->OUT")
+    if any(r.startswith("JP") for r, _ in where):
+        fail("bench jumpers are removed; no JP parts expected")
     if ("U5", "9") not in {n for r, q in peers("J1", "13") for n in nets[where[(r, str(9 - int(q)))]]}:
         fail("IN Q165 must come from U5 QH through a series resistor")
     if ("U5", "10") not in peers("J2", "13"):

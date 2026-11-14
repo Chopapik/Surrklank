@@ -184,10 +184,6 @@ modules stay hand-soldered.
 
 ## Open items
 
-- Pending rebuild, decided: remove ATX +3.3 V. Mainboard J1 pin 1 becomes
-  +5 V, R10 (panel LED) feeds from it, JP2/JP3 on the mainboard and JP1 on both
-  modules go away, ribbon pin 15 becomes a pass-through, and `check_*.py` follow.
-  The v0.1 PCB files still contain +3V3 on these parts.
 - Before ordering: dry-fit the 1:1 print (`export_review.py`) with the real ESP32
   board, salvaged IDE header and Molex, terminal, buttons and OLED; measure the
   DRV8833 module J1 and EEP pull-up supply with a multimeter; compare every
