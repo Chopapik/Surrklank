@@ -8100,7 +8100,7 @@
 		)
 		(uuid 0ad2c6c1-3a26-57bd-b515-99f9275bd0d6)
 	)
-	(text "J2: GPA4-GPA7 for four more buttons (to GND). GPB2-GPB7 are unused.\nJ3: more I2C devices (another MCP23017 needs a different address)."
+	(text "J2: GPA4-GPA6 for buttons (to GND); GPA7 is output only. GPB2-GPB7 unused.\nJ3: more I2C devices (another MCP23017 needs a different address)."
 		(exclude_from_sim no)
 		(at 281.94 124.46 0)
 		(effects

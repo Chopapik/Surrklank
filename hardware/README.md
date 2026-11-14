@@ -38,7 +38,8 @@ SHA-256 `f6f51bb0…5de3c7`) and Java 25 (`brew install openjdk@25`). The script
 runs Freerouting headless with analytics and telemetry disabled. The native
 Freerouting 2.5.0 CLI build fails on board serialization and is not used.
 
-- `check_fdd_module.py` and `check_lsm_hdd_module.py` verify the netlist against WIRING.md rules written
+- `check_fdd_module.py`, `check_lsm_hdd_module.py`, `check_mainboard.py` and
+  `check_panel.py` verify the netlist against WIRING.md rules written
   independently of the generator (drive header pins, pull-ups, register chain,
   ribbon, supplies).
 - Routing is not deterministic: each run gives different tracks, and a run
@@ -50,7 +51,9 @@ Freerouting 2.5.0 CLI build fails on board serialization and is not used.
   any remaining track under 0.15 mm is widened and re-checked by DRC.
 - GND is poured on both layers with solid pad connections; dense IDE header
   pins left no room for thermal spokes.
-- LSM/HDD motor supply: an 8 mm wide +5V band on B_Cu runs from Molex J5 pin 4
+- LSM/HDD motor supply: a +5V band on B_Cu (7.9 mm at its widest, 4.7 mm at the
+  four GND notches, about 10 A at +20 K for 1 oz copper by an IPC-2221 estimate;
+  the Molex pin and the PSU wire limit first, so consider 2 oz copper) runs from Molex J5 pin 4
   past C8 (+) and the VCC pins of all four DRV8833 slots to J10 pin 4. Below it
   B_Cu is a solid GND plane reaching each slot's GND pin through a notch in the
   band, plus the Molex GND pins and C8 (−). Both zones are passed to Freerouting
@@ -107,7 +110,8 @@ everything on the front side:
   and ESP (firmware via the expander).
 - MCP23017 expander (address 0x20) with 330 Ω LED resistors; 6 mm tactile
   buttons POWER (straight to GPIO13), PREV, PLAY, STOP, NEXT (expander GPA0–3).
-- J2 (JST-XH 6-pin): +3V3, GND and GPA4–GPA7 for four more buttons; J3
+- J2 (JST-XH 6-pin): +3V3, GND and GPA4–GPA7 (GPA7 is output only, so three
+  more buttons); J3
   (JST-XH 4-pin): I2C extension (GND, VCC, SCL, SDA) for another expander or
   sensor. Keyed JST-XH as on the LSM/HDD motor outputs, at the bottom edge. GPB2–GPB7 are unused: routing
   them to a header blocked the autorouter.
@@ -188,12 +192,16 @@ modules stay hand-soldered.
   board, salvaged IDE header and Molex, terminal, buttons and OLED; measure the
   DRV8833 module J1 and EEP pull-up supply with a multimeter; compare every
   pin-1 marker in the JLCPCB placement preview.
-- Parts: LCSC numbers for mainboard and panel; AMS1117 output-capacitor ESR
-  requirement against the fitted 22 µF 1206 ceramic; SMD or THT assembly.
+- Parts: LCSC numbers for the mainboard Q1 and resistors and the panel parts;
+  AMS1117 with the 22 µF 1206 ceramic is untested (datasheet silent on
+  ceramics; scope the 3.3 V rail of the first module); CPL rotation of the
+  resistor arrays and Q1; SMD or THT assembly.
+- Molex footprint key side (silk chamfers) against the real salvaged header.
 - MOTOR behaviour on the installed drives (the hand-wired assembly works with
   TRACK0 pulled up and no 595 output pull-ups).
 - Motor supply current per LSM/HDD module and wire gauge.
 - Firmware migration after assembly: six outputs per drive and a longer FDD
   chain (48 output bits for two modules), 165 chains with WRITE PROTECT and
   FAULT bits, configurable select line, EEP control, PWR_OK input on GPIO36,
-  LSM/HDD Q165 on GPIO35, branch lines held LOW while ATX is off.
+  LSM/HDD Q165 on GPIO35, DATA, CLK, LATCH and CLK165 held LOW (and /OE and
+  /PL HIGH) while ATX is off.

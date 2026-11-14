@@ -144,8 +144,12 @@ button connects to the mainboard through a two-pin connector.
 With the ESP32 on standby power, module logic is unpowered while ATX is off.
 Ribbon signals must not back-power modules through register inputs. Planned
 measures: a module input buffer with power-off protection (a 74LVC244A-class
-part with Ioff), series resistors on the mainboard, and firmware that drives
-branch lines LOW while ATX is off. Not designed or verified yet.
+part with Ioff) and 33 Ω series resistors on the mainboard outputs are in the
+design. Open: the mainboard pull-ups on /OE and /PL reach the module's own
+10 kΩ pull-ups (module RN2) through the 33 Ω resistors and can lift the
+unpowered module's 3.3 V rail; the level reached is not measured. Firmware must
+drive DATA, CLK, LATCH and CLK165 LOW while ATX is off, and must keep /OE and
+/PL HIGH: /OE LOW would enable the 595 outputs of a module that is powering up.
 
 ### Remote panel
 
@@ -173,7 +177,8 @@ mainboard connector is J6 (2 × 5 IDC, straight-through ribbon to panel J1):
   LEDs connect to GND and should have Vf about 2 V (red, green or yellow).
 - Panel expander U1 (MCP23017, address 0x20, INTA on the INT line with
   IOCON.MIRROR, internal pull-ups for buttons): GPA0 PREV, GPA1 PLAY, GPA2 STOP,
-  GPA3 NEXT (buttons to GND, active LOW), GPA4–GPA7 spare on J2, GPB0 ATX ON
+  GPA3 NEXT (buttons to GND, active LOW), GPA4–GPA7 spare on J2 (GPA7 is
+  output only on the MCP23017, so only GPA4–GPA6 can be buttons), GPB0 ATX ON
   request LED, GPB1 ESP32 activity LED (through 330 Ω), GPB2–GPB7 unused.
 - The POWER button on the panel is wired straight to GPIO13, parallel to J4,
   so it works without I2C.
@@ -183,8 +188,10 @@ mainboard connector is J6 (2 × 5 IDC, straight-through ribbon to panel J1):
 
 ## Module ribbon (16-pin)
 
-Both branches use the same proposed 2 × 8 IDC ribbon. Every signal runs next to
-a ground wire. Pin assignment is a proposal for the schematic:
+Both branches use the same 2 × 8 IDC ribbon. Every signal runs next to a ground
+wire. Use shrouded (keyed) box headers only: unkeyed pin strips allow a plug
+turned 180° or crimped on the wrong face, which puts GPIO outputs on GND (and,
+on the panel cable, the ESP32 3.3 V rail on GND). Pin assignment:
 
 | Pin | Signal | Pin | Signal |
 | --- | --- | --- | --- |
@@ -211,8 +218,11 @@ On each module:
 Mainboard outputs and module OUT outputs have 33 Ω series resistors (mainboard
 RN4–RN7, module RN3/RN4); the module input buffer is a 74LVC244A (U1). The
 buffer re-drives every signal, so each ribbon hop is an independent
-point-to-point link and lengths do not add up. It has no hysteresis, so it
-repeats ringing that crosses its input threshold instead of filtering it.
+point-to-point link and lengths do not add up. Whether its inputs have
+hysteresis depends on the maker: the fitted Nexperia part (LCSC C548504) states
+Schmitt-trigger action without giving a hysteresis value, and the TI part has
+standard CMOS inputs. Treat it as a repeater, not a filter, for ringing that
+crosses its input threshold.
 
 ### Crimping the ribbon
 
@@ -453,13 +463,20 @@ their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
 
 - Each module takes power from exactly one local source. Logic current is
   estimated at about 10 mA per module, mainly pull-ups. The LDO is an
-  AMS1117-3.3 (SOT-223, 10 µF in, 22 µF out). Some AMS1117 variants need a
-  minimum output-capacitor ESR that a low-ESR ceramic does not give; check the
-  datasheet of the fitted part.
+  AMS1117-3.3 (SOT-223, 10 µF in, 22 µF out). The AMS datasheet recommends
+  22 µF solid tantalum on the output and says nothing about ceramics, so the
+  1206 ceramic (C7) is untested. If the 3.3 V rail misbehaves on the first
+  board, hand-fit a 22 µF tantalum or polymer capacitor (EIA 3216-18) on the
+  same pads and drop C7 from the JLCPCB BOM.
 - The Molex keeps the standard peripheral pinout: +5 V at the red position,
   both middle pins GND, the +12 V (yellow) position unconnected and marked on
-  the silkscreen. A standard PSU Molex plugged in by mistake stays harmless;
-  +3.3 V is never carried on a Molex.
+  the silkscreen. The footprint is symmetric under a 180° rotation of the
+  holes, so polarity depends on the silkscreen body, whose two chamfered
+  corners (KEY SIDE) must match the housing key of the real header; confirm it
+  on the 1:1 print before soldering. A salvaged header soldered the wrong way
+  round puts a PSU plug's +12 V on the +5 V net, so measure +5 V on pin 4 with a
+  real PSU plug before fitting the DRV8833 modules. +3.3 V is never carried on a
+  Molex.
 - LSM/HDD worst case by DRV8833 rating is 4 × 2 × 1.2 A ≈ 9.6 A per module; the
   second Molex is fitted only if measured current requires it. Both feed the
   same +5 V band, and the ATX +5 V rail and the wire gauge limit the current as

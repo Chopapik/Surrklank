@@ -115,7 +115,7 @@ def build(path):
     j2 = sh.symbol("Connector_Generic:Conn_01x06", "J2", "EXP_SPARE", 307.34, 88.9, footprint=FP_XH6)
     for p, n in zip(range(1, 7), ["+3V3", "GND"] + [f"EXP_{g}" for g in SPARE]):
         sh.connect(j2, str(p), n)
-    sh.text("J2: GPA4-GPA7 for four more buttons (to GND). GPB2-GPB7 are unused.\n"
+    sh.text("J2: GPA4-GPA6 for buttons (to GND); GPA7 is output only. GPB2-GPB7 unused.\n"
             "J3: more I2C devices (another MCP23017 needs a different address).", (281.94, 124.46))
 
     mc.mounting_holes(sh, 236.22, 279.4)
