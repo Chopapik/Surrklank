@@ -117,7 +117,7 @@ def lsm_hdd_board():
     return {
         "size": (120.0, 80.0),
         "place": place,
-        "mark": (38.0, 1.5), "name": "LSM/HDD MODULE v0.1",
+        "mark": (38.0, 1.5), "name": "ACTUATOR MODULE v0.1",
         "author": (92.0, 10.0, "B"),
         "ref_at": {"C8": (20.5, 60.0)},       # keep the label off the M1 outline
         "power_zones": lsm_hdd_zones(),
