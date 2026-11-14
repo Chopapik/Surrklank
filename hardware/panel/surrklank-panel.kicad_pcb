@@ -801,6 +801,105 @@
 			)
 		)
 	)
+	(footprint "surrklank:Surrklank_Logo_8mm"
+		(layer "F.Cu")
+		(uuid "13b0fd70-59a5-4f82-9e39-fcc0860cd8e0")
+		(at 128 124)
+		(descr "Surrklank logo: square ring, 8 mm, front silkscreen. Proportions from the user-supplied image (outer 150 px, hole 80 px).")
+		(property "Reference" "LOGO1"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "089df07b-9877-4da4-9d41-bddb4d683068")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Value" "Surrklank_Logo"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "ecd76ff6-7d87-4a04-a0ca-b69671b1173f")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "17b73d08-ee81-4bbc-ac50-5efb1d896905")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "e6bc7935-046b-4fce-9f81-4e24c070cc69")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr board_only exclude_from_pos_files exclude_from_bom)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_rect
+			(start -4 -4)
+			(end 4 -2.133)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "f94591e9-2751-4cff-aa1a-9c8b21123e24")
+		)
+		(fp_rect
+			(start -4 -2.133)
+			(end -2.133 2.133)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "679d7c11-99ea-4dc5-9f36-e7b5aa5050ee")
+		)
+		(fp_rect
+			(start -4 2.133)
+			(end 4 4)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "1590706b-8a6a-4bbd-9029-8241be061408")
+		)
+		(fp_rect
+			(start 2.133 -2.133)
+			(end 4 2.133)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "1b71bcfb-3d29-46a6-80fa-2b4e8b63e1dd")
+		)
+		(embedded_fonts no)
+	)
 	(footprint "Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical"
 		(layer "F.Cu")
 		(uuid "1bed01d3-2e5f-41bf-bc86-95c3efbe25a3")
@@ -2377,105 +2476,6 @@
 			)
 		)
 	)
-	(footprint "surrklank:Surrklank_Logo_8mm"
-		(layer "F.Cu")
-		(uuid "5c6713a7-e0cb-4750-aa40-e5a7ff7a6fc8")
-		(at 116 123)
-		(descr "Surrklank logo: square ring, 8 mm, front silkscreen. Proportions from the user-supplied image (outer 150 px, hole 80 px).")
-		(property "Reference" "LOGO1"
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "0a07b8f2-1b7a-4606-9ce2-348ab0ecdbf1")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Value" "Surrklank_Logo"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "509e3741-6f76-4b56-9e78-6be8c07e2414")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "ecb421f6-d41d-4b42-ae85-986e29560b73")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "fbe68adb-f734-4951-ad43-ed1058bddf4d")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(attr board_only exclude_from_pos_files exclude_from_bom)
-		(duplicate_pad_numbers_are_jumpers no)
-		(fp_rect
-			(start -4 -4)
-			(end 4 -2.133)
-			(stroke
-				(width 0)
-				(type solid)
-			)
-			(fill yes)
-			(layer "F.SilkS")
-			(uuid "ca00e881-048c-42be-bf82-930651bcdf0e")
-		)
-		(fp_rect
-			(start -4 -2.133)
-			(end -2.133 2.133)
-			(stroke
-				(width 0)
-				(type solid)
-			)
-			(fill yes)
-			(layer "F.SilkS")
-			(uuid "ee4e3464-1d47-40db-acb8-047c210cc605")
-		)
-		(fp_rect
-			(start -4 2.133)
-			(end 4 4)
-			(stroke
-				(width 0)
-				(type solid)
-			)
-			(fill yes)
-			(layer "F.SilkS")
-			(uuid "1a3684cb-c1a8-407c-941b-19463b8b3bf2")
-		)
-		(fp_rect
-			(start 2.133 -2.133)
-			(end 4 2.133)
-			(stroke
-				(width 0)
-				(type solid)
-			)
-			(fill yes)
-			(layer "F.SilkS")
-			(uuid "4f8d40b8-cf93-4132-9633-b5f274306338")
-		)
-		(embedded_fonts no)
-	)
 	(footprint "Button_Switch_THT:SW_PUSH_6mm"
 		(layer "F.Cu")
 		(uuid "62fbfc23-327e-45a7-8432-e35780669b92")
@@ -3438,6 +3438,118 @@
 				(xyz 0 0 0)
 			)
 		)
+	)
+	(footprint "surrklank:Surrklank_Mark_10mm"
+		(layer "F.Cu")
+		(uuid "7d48295f-911a-4cf4-be19-f00e3004aae6")
+		(at 112 120)
+		(descr "Surrklank mark: 10 mm square frame with the beamed-notes glyph (55 % of the frame height), front silkscreen.")
+		(property "Reference" "LOGO2"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "094c9eb3-cee3-4b5f-8b1f-c33fc3ebd73c")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Value" "Surrklank_Mark"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "d99a646c-4c40-44f4-b315-04b779e4668a")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "3d43a5d2-43c8-46d1-81f3-ec56872c516c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "11578d57-2e23-4c3f-bab9-59bcadde149e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr board_only exclude_from_pos_files exclude_from_bom)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_rect
+			(start -4.65 -4.65)
+			(end 4.65 4.65)
+			(stroke
+				(width 0.7)
+				(type solid)
+			)
+			(fill no)
+			(layer "F.SilkS")
+			(uuid "14d33393-d086-4653-8155-ef0dd3477e42")
+		)
+		(fp_poly
+			(pts
+				(xy 2.238 -2.084) (xy 2.238 1.049) (xy 2.238 1.069) (xy 2.235 1.112) (xy 2.23 1.156) (xy 2.223 1.2)
+				(xy 2.212 1.243) (xy 2.2 1.287) (xy 2.185 1.331) (xy 2.167 1.375) (xy 2.147 1.418) (xy 2.125 1.461)
+				(xy 2.1 1.503) (xy 2.074 1.544) (xy 2.045 1.584) (xy 2.014 1.624) (xy 1.981 1.663) (xy 1.947 1.7)
+				(xy 1.91 1.737) (xy 1.872 1.771) (xy 1.832 1.805) (xy 1.791 1.837) (xy 1.748 1.867) (xy 1.705 1.896)
+				(xy 1.66 1.922) (xy 1.614 1.947) (xy 1.567 1.97) (xy 1.519 1.991) (xy 1.471 2.011) (xy 1.423 2.027)
+				(xy 1.374 2.042) (xy 1.325 2.055) (xy 1.276 2.065) (xy 1.227 2.073) (xy 1.178 2.079) (xy 1.129 2.083)
+				(xy 1.081 2.084) (xy 1.033 2.083) (xy 0.987 2.08) (xy 0.941 2.074) (xy 0.896 2.066) (xy 0.852 2.056)
+				(xy 0.809 2.044) (xy 0.768 2.029) (xy 0.728 2.013) (xy 0.69 1.994) (xy 0.653 1.973) (xy 0.618 1.95)
+				(xy 0.585 1.925) (xy 0.554 1.899) (xy 0.525 1.871) (xy 0.498 1.841) (xy 0.474 1.809) (xy 0.451 1.776)
+				(xy 0.431 1.741) (xy 0.414 1.705) (xy 0.398 1.667) (xy 0.385 1.629) (xy 0.375 1.589) (xy 0.367 1.549)
+				(xy 0.362 1.508) (xy 0.359 1.466) (xy 0.359 1.423) (xy 0.362 1.38) (xy 0.367 1.336) (xy 0.375 1.293)
+				(xy 0.385 1.249) (xy 0.397 1.205) (xy 0.412 1.161) (xy 0.43 1.118) (xy 0.45 1.075) (xy 0.472 1.032)
+				(xy 0.497 0.99) (xy 0.524 0.948) (xy 0.552 0.908) (xy 0.583 0.868) (xy 0.616 0.83) (xy 0.651 0.792)
+				(xy 0.687 0.756) (xy 0.725 0.721) (xy 0.765 0.687) (xy 0.806 0.655) (xy 0.849 0.625) (xy 0.893 0.596)
+				(xy 0.938 0.57) (xy 0.984 0.545) (xy 1.03 0.522) (xy 1.078 0.501) (xy 1.126 0.482) (xy 1.174 0.465)
+				(xy 1.223 0.45) (xy 1.273 0.438) (xy 1.322 0.427) (xy 1.371 0.419) (xy 1.42 0.413) (xy 1.468 0.41)
+				(xy 1.516 0.408) (xy 1.564 0.409) (xy 1.611 0.413) (xy 1.657 0.418) (xy 1.702 0.426) (xy 1.745 0.436)
+				(xy 1.772 0.444) (xy 1.772 -1.486) (xy -0.359 -0.884) (xy -0.359 1.715) (xy -0.36 1.715) (xy -0.36 1.735)
+				(xy -0.362 1.778) (xy -0.367 1.822) (xy -0.375 1.866) (xy -0.385 1.909) (xy -0.398 1.953) (xy -0.413 1.997)
+				(xy -0.43 2.041) (xy -0.45 2.084) (xy -0.472 2.127) (xy -0.497 2.169) (xy -0.524 2.21) (xy -0.553 2.25)
+				(xy -0.584 2.29) (xy -0.616 2.329) (xy -0.651 2.366) (xy -0.688 2.403) (xy -0.726 2.437) (xy -0.765 2.471)
+				(xy -0.807 2.503) (xy -0.849 2.533) (xy -0.893 2.562) (xy -0.938 2.588) (xy -0.984 2.613) (xy -1.031 2.636)
+				(xy -1.078 2.657) (xy -1.126 2.677) (xy -1.175 2.693) (xy -1.224 2.708) (xy -1.273 2.721) (xy -1.322 2.731)
+				(xy -1.371 2.739) (xy -1.42 2.745) (xy -1.468 2.749) (xy -1.517 2.75) (xy -1.564 2.749) (xy -1.611 2.746)
+				(xy -1.657 2.74) (xy -1.702 2.732) (xy -1.746 2.722) (xy -1.788 2.71) (xy -1.83 2.695) (xy -1.869 2.679)
+				(xy -1.908 2.66) (xy -1.944 2.639) (xy -1.979 2.616) (xy -2.012 2.591) (xy -2.043 2.565) (xy -2.072 2.537)
+				(xy -2.099 2.507) (xy -2.124 2.475) (xy -2.146 2.442) (xy -2.166 2.407) (xy -2.184 2.371) (xy -2.199 2.333)
+				(xy -2.212 2.295) (xy -2.222 2.255) (xy -2.23 2.215) (xy -2.235 2.174) (xy -2.238 2.132) (xy -2.238 2.089)
+				(xy -2.236 2.046) (xy -2.23 2.002) (xy -2.223 1.959) (xy -2.213 1.915) (xy -2.2 1.871) (xy -2.185 1.827)
+				(xy -2.167 1.784) (xy -2.147 1.741) (xy -2.125 1.698) (xy -2.101 1.656) (xy -2.074 1.614) (xy -2.045 1.574)
+				(xy -2.014 1.534) (xy -1.981 1.496) (xy -1.947 1.458) (xy -1.91 1.422) (xy -1.872 1.387) (xy -1.832 1.353)
+				(xy -1.791 1.321) (xy -1.748 1.291) (xy -1.705 1.262) (xy -1.66 1.236) (xy -1.614 1.211) (xy -1.567 1.188)
+				(xy -1.52 1.167) (xy -1.472 1.148) (xy -1.423 1.131) (xy -1.374 1.116) (xy -1.325 1.104) (xy -1.276 1.093)
+				(xy -1.227 1.085) (xy -1.178 1.079) (xy -1.129 1.076) (xy -1.081 1.074) (xy -1.033 1.075) (xy -0.987 1.079)
+				(xy -0.941 1.084) (xy -0.896 1.092) (xy -0.852 1.102) (xy -0.826 1.11) (xy -0.826 -1.884) (xy 2.238 -2.75)
+			)
+			(stroke
+				(width 0.01)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "864c8ddd-8ff7-4f89-8cfc-20bec365da2a")
+		)
+		(embedded_fonts no)
 	)
 	(footprint "Resistor_SMD:R_0805_2012Metric"
 		(layer "F.Cu")
@@ -5859,7 +5971,7 @@
 	(gr_text "GND"
 		(at 144 109.4 0)
 		(layer "F.SilkS")
-		(uuid "97fc114e-7b70-41fd-9c4d-f9a436fa7468")
+		(uuid "52cb466c-4730-4d9f-ad58-b9d4e77354fb")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -5870,7 +5982,7 @@
 	(gr_text "VCC"
 		(at 146.54 110.7 0)
 		(layer "F.SilkS")
-		(uuid "98c76fca-9780-4fab-bf53-7d4bfe59b17f")
+		(uuid "c6addc37-5ccc-4cfc-a9d4-517d730316f3")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -5881,7 +5993,7 @@
 	(gr_text "SCL"
 		(at 149.079999 109.4 0)
 		(layer "F.SilkS")
-		(uuid "224fae41-1aa0-489b-b9b1-71027b22f4b2")
+		(uuid "cc7d9287-8fba-429a-b792-5aa6efd2e2df")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -5892,7 +6004,7 @@
 	(gr_text "SDA"
 		(at 151.62 110.7 0)
 		(layer "F.SilkS")
-		(uuid "3524d0a3-e86a-406e-afd1-661a14136ed1")
+		(uuid "ea7a9e66-6d71-4a71-93e7-f1bf8d156e25")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -5903,7 +6015,7 @@
 	(gr_text "STBY"
 		(at 165.269999 111.6 0)
 		(layer "F.SilkS")
-		(uuid "8599abd7-ff1c-4f86-872d-bcd7752ca6f1")
+		(uuid "67d93e26-3447-43ac-a581-20371774ea2f")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -5914,7 +6026,7 @@
 	(gr_text "RAILS"
 		(at 172.269999 111.6 0)
 		(layer "F.SilkS")
-		(uuid "54ca0412-0815-44f8-bab2-5e3fcd6ab1a3")
+		(uuid "b303d3f4-2401-43c4-9b7c-1a42297a8afc")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -5925,7 +6037,7 @@
 	(gr_text "ATX ON"
 		(at 179.269999 111.6 0)
 		(layer "F.SilkS")
-		(uuid "52b1216c-bb4f-4e63-b8ec-9ce94639105c")
+		(uuid "dad53d8f-7581-4217-b1c5-a7cbe258654f")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -5936,7 +6048,7 @@
 	(gr_text "ESP"
 		(at 186.269999 111.6 0)
 		(layer "F.SilkS")
-		(uuid "156cae97-3b14-4eff-97f4-67b0fb027597")
+		(uuid "4008cf41-b825-4823-b149-51c990306f90")
 		(effects
 			(font
 				(size 0.8 0.8)
@@ -5947,7 +6059,7 @@
 	(gr_text "POWER"
 		(at 111.25 150.2 0)
 		(layer "F.SilkS")
-		(uuid "56a971cc-f83d-49cc-8756-85888d2e9f29")
+		(uuid "5dc1e64a-21d4-4a1b-8a9a-70431e9dd2c3")
 		(effects
 			(font
 				(size 1 1)
@@ -5956,9 +6068,9 @@
 		)
 	)
 	(gr_text "PANEL v0.1"
-		(at 116 132.6 0)
+		(at 112 132 0)
 		(layer "F.SilkS")
-		(uuid "1b8599b9-b2e6-44a9-bf20-23f4df27d8b4")
+		(uuid "287cee13-732f-4b9c-ae39-1b6aff9bf288")
 		(effects
 			(font
 				(size 1 1)
@@ -5969,7 +6081,7 @@
 	(gr_text "PREV"
 		(at 139.25 150.2 0)
 		(layer "F.SilkS")
-		(uuid "da8dbb5d-c59d-41e1-908c-d855ee41c87d")
+		(uuid "77ca2b7e-c3a8-4ff1-a71d-bd6619dedc73")
 		(effects
 			(font
 				(size 1 1)
@@ -5980,7 +6092,7 @@
 	(gr_text "PLAY"
 		(at 151.25 150.2 0)
 		(layer "F.SilkS")
-		(uuid "bfb9a35f-6e61-4549-ae1b-c558b742edf7")
+		(uuid "26cb2229-f06c-49e5-a9f4-168e88e3da03")
 		(effects
 			(font
 				(size 1 1)
@@ -5991,7 +6103,7 @@
 	(gr_text "STOP"
 		(at 163.25 150.2 0)
 		(layer "F.SilkS")
-		(uuid "fd46405e-4154-43f8-8f05-930af1dbdedd")
+		(uuid "b4fb0af9-8ea9-4b70-bc5c-5b47c7c235dc")
 		(effects
 			(font
 				(size 1 1)
@@ -6002,7 +6114,7 @@
 	(gr_text "NEXT"
 		(at 175.25 150.2 0)
 		(layer "F.SilkS")
-		(uuid "7434c1eb-7689-40a5-93f1-81a261921f55")
+		(uuid "5ef59459-8638-4a02-a359-8694cba4811b")
 		(effects
 			(font
 				(size 1 1)
@@ -6010,27 +6122,30 @@
 			)
 		)
 	)
-	(gr_text "SURRKLANK"
-		(at 116 130 0)
-		(layer "F.SilkS")
-		(uuid "32e2918e-c392-4048-8ee5-9e2ad753dc9a")
-		(effects
-			(font
-				(size 1.3 1.3)
-				(thickness 0.195)
-			)
-		)
-	)
 	(gr_text "by"
-		(at 111.6 119 0)
+		(at 122.8 118.4 0)
 		(layer "F.SilkS")
-		(uuid "c4c86a2f-0d6d-4978-97ab-d04e132d2e66")
+		(uuid "f31a0c10-a7cd-4f01-b5e4-2bd3f57ee829")
 		(effects
-			(font (face "Times New Roman")
-				(size 3 3)
+			(font (face "Georgia")
+				(size 2.1 2.1)
+				(thickness 0.254)
+				(bold yes)
 				(italic yes)
 			)
 			(justify right)
+		)
+	)
+	(gr_text "Surrklank"
+		(at 112 128.6 0)
+		(layer "F.SilkS")
+		(uuid "a65e68ac-f316-4779-9525-1387998a6705")
+		(effects
+			(font (face "Arial")
+				(size 2.6 2.6)
+				(thickness 0.254)
+				(bold yes)
+			)
 		)
 	)
 	(segment

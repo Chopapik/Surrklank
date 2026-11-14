@@ -143,10 +143,16 @@ as an FDD module header.
 
 ## Layout notes
 
-- Front silkscreen branding: the Surrklank logo (square ring, 8 mm, drawn
-  geometrically in the proportions of the user's image) with "SURRKLANK" and
-  the board name and revision, in white. It is a board-only footprint, not in
-  the schematic; `gen_module_pcb.py <board> brand` re-applies it without rerouting.
+- Silkscreen branding, white, board-only footprints (not in the schematic):
+  the Surrklank mark (10 mm frame with the beamed-notes glyph, 55 % of the frame
+  height, footprint `Surrklank_Mark_10mm` from `gen_logo_footprints.py`) with the
+  wordmark "Surrklank" and the board name and revision below it, and the author
+  mark (8 mm square ring, `Surrklank_Logo_8mm`) with a small italic "by" in its
+  upper-left corner. The author mark is on the front where there is room
+  (mainboard, LSM/HDD module, panel) and on the back otherwise (FDD module).
+  `gen_module_pcb.py <board> brand` re-applies them without rerouting. Wordmark
+  and "by" are TrueType text (Arial bold, Georgia bold italic) outlined in the
+  Gerbers; a different font on another machine changes their shape.
 - LSM/HDD module: ribbon IN/OUT on the left and right edges, registers in a
   row above four DRV8833 slots (rotated so OUT1–OUT4 face the bottom edge),
   JST-XH motor connectors at the bottom edge, 4-pole KF301 J5 at the left edge

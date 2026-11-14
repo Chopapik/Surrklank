@@ -49,9 +49,8 @@ def fdd_board():
     return {
         "size": (100.0, 80.0),
         "place": place,
-        "logo": (91.0, 56.0),          # about 8 mm right of the drive headers
-        "brand_text": [("SURRKLANK", 63.0, 1.3), ("FDD MODULE v0.1", 65.6, 1.0)],
-        "by_text": ("by", 86.6, 52.0, 3.0),  # italic Times New Roman at the logo's top-left corner
+        "mark": (89.0, 50.5), "name": "FDD MODULE v0.1",   # right of the drive headers
+        "author": (89.0, 59.0, "B"),                       # no room left on the front
         "ref_at": {},
         "power_zones": [],
         "keepouts": [],
@@ -118,9 +117,8 @@ def lsm_hdd_board():
     return {
         "size": (120.0, 80.0),
         "place": place,
-        "logo": (40.0, 6.0),
-        "brand_text": [("SURRKLANK", 13.0, 1.3), ("LSM/HDD MODULE v0.1", 15.6, 1.0)],
-        "by_text": ("by", 35.6, 2.0, 3.0),
+        "mark": (44.0, 1.5), "name": "LSM/HDD MODULE v0.1",
+        "author": (92.0, 8.0, "F"),
         "ref_at": {"C8": (20.5, 60.0)},       # keep the label off the M1 outline
         "power_zones": lsm_hdd_zones(),
         "keepouts": [((pcbnew.B_Cu,), LSM_HDD_KEEPOUT, True)],
@@ -153,9 +151,8 @@ def mainboard_board():
     return {
         "size": (100.0, 80.0),                    # within the 100 x 100 mm low-cost fab class
         "place": place,
-        "logo": (62.0, 30.0),
-        "brand_text": [("SURRKLANK", 37.0, 1.3), ("MAINBOARD v0.1", 39.6, 1.0)],
-        "by_text": ("by", 57.6, 26.0, 3.0),
+        "mark": (44.0, 24.0), "name": "MAINBOARD v0.1",
+        "author": (62.0, 30.0, "F"),
         "ref_at": {},
         "power_zones": [],
         # Below the USB end (y > 56, x 6-36) stays free for the USB plug.
@@ -197,9 +194,8 @@ def panel_board():
     return {
         "size": (100.0, 59.0),
         "place": place,
-        "logo": (16.0, 23.0),
-        "brand_text": [("SURRKLANK", 30.0, 1.3), ("PANEL v0.1", 32.6, 1.0)],
-        "by_text": ("by", 11.6, 19.0, 3.0),
+        "mark": (12.0, 15.0), "name": "PANEL v0.1",
+        "author": (28.0, 24.0, "F"),
         "ref_at": {},
         "power_zones": [],
         "notes": notes,
@@ -246,50 +242,83 @@ def add_text(board, text, x, y, size, left=False):
     board.Add(t)
 
 
+BY_FONT, WORD_FONT = "Georgia", "Arial"   # system TrueType fonts; outlined in Gerbers
+LEGACY_TEXTS = {"SURRKLANK", "Surrklank", "by", "MAINBOARD v0.1", "FDD MODULE v0.1",
+                "LSM/HDD MODULE v0.1", "PANEL v0.1"}
+
+
 def brand(board):
-    """Logo footprint, short text and notes on the front silkscreen; replaces old ones."""
+    """Surrklank mark with wordmark and board name, plus the author ring with a small 'by'.
+
+    B["mark"] = (centre x, top y) of the 10 mm frame; the wordmark and B["name"] sit below it.
+    B["author"] = (ring centre x, y, "F" or "B"): front if there is room, else the back side.
+    """
     # Collect first: SWIG item lists become unusable after a Remove() in this process.
-    texts = {t for t, *_ in B["brand_text"]} | {n[0] for n in B.get("notes", [])} | {B["by_text"][0]}
-    old = [fp for fp in board.GetFootprints() if fp.GetReference() == "LOGO1"]
+    texts = LEGACY_TEXTS | {n[0] for n in B.get("notes", [])}
+    old = [fp for fp in board.GetFootprints() if fp.GetReference() in ("LOGO1", "LOGO2")]
     old += [d for d in board.GetDrawings() if d.GetClass() == "PCB_TEXT" and d.GetText() in texts]
     for item in old:
         board.Remove(item)
-    logo = load_footprint("surrklank:Surrklank_Logo_8mm")
-    logo.SetReference("LOGO1")
-    logo.SetPosition(pt(*B["logo"]))
-    board.Add(logo)
-    for text, y, size in B["brand_text"]:
-        add_text(board, text, B["logo"][0], y, size)
+
+    mx, top = B["mark"]
+    mark = load_footprint("surrklank:Surrklank_Mark_10mm")
+    mark.SetReference("LOGO2")
+    mark.SetPosition(pt(mx, top + 5.0))
+    board.Add(mark)
+    word = pcbnew.PCB_TEXT(board)
+    word.SetText("Surrklank")
+    word.SetLayer(pcbnew.F_SilkS)
+    word.SetUnresolvedFontName(WORD_FONT)
+    word.SetBold(True)
+    word.SetPosition(pt(mx, top + 13.6))
+    word.SetTextSize(pcbnew.VECTOR2I(mm(2.6), mm(2.6)))
+    board.Add(word)
+    add_text(board, B["name"], mx, top + 17.0, 1.0)
+
+    ax, ay, side = B["author"]
+    ring = load_footprint("surrklank:Surrklank_Logo_8mm")
+    ring.SetReference("LOGO1")
+    ring.SetPosition(pt(ax, ay))
+    board.Add(ring)
+    by = pcbnew.PCB_TEXT(board)
+    by.SetText("by")
+    by.SetLayer(pcbnew.F_SilkS)
+    by.SetUnresolvedFontName(BY_FONT)
+    by.SetItalic(True)
+    by.SetBold(True)                             # thin serif strokes fall below the fab minimum otherwise
+    by.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_RIGHT)
+    by.SetPosition(pt(ax - 5.2, ay - 5.6))      # upper-left corner, slightly apart from the ring
+    by.SetTextSize(pcbnew.VECTOR2I(mm(2.1), mm(2.1)))
+    board.Add(by)
+    if side == "B":                              # same arrangement seen from the back
+        ring.Flip(pt(ax, ay), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
+        by.Flip(pt(ax, ay), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
     for text, x, y, size, *left in B.get("notes", []):
         add_text(board, text, x, y, size, bool(left and left[0]))
-    text, x, y, size = B["by_text"]
-    t = pcbnew.PCB_TEXT(board)
-    t.SetText(text)
-    t.SetLayer(pcbnew.F_SilkS)
-    t.SetUnresolvedFontName("Times New Roman")   # system TrueType font; outlined in Gerbers
-    t.SetItalic(True)
-    t.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_RIGHT)
-    t.SetPosition(pt(x, y))
-    t.SetTextSize(pcbnew.VECTOR2I(mm(size), mm(size)))
-    board.Add(t)
 
 
-def set_by_font(board_path):
+def set_text_fonts(board_path):
     """KiCad's Python API cannot set a TrueType face; add it to the saved file."""
     with open(board_path, encoding="utf-8") as f:
         text = f.read()
-    start = text.index(f'(gr_text "{B["by_text"][0]}"')
-    font = text.index("(font", start)
-    if '(face "Times New Roman")' not in text[font:font + 200]:
-        text = text[:font + 5] + ' (face "Times New Roman")' + text[font + 5:]
-        with open(board_path, "w", encoding="utf-8") as f:
-            f.write(text)
+    for label, face in (("by", BY_FONT), ("Surrklank", WORD_FONT)):
+        pos = 0
+        while True:
+            start = text.find(f'(gr_text "{label}"', pos)
+            if start < 0:
+                break
+            font = text.index("(font", start)
+            if f'(face "{face}")' not in text[font:font + 200]:
+                text = text[:font + 5] + f' (face "{face}")' + text[font + 5:]
+            pos = start + 10
+    with open(board_path, "w", encoding="utf-8") as f:
+        f.write(text)
 
 
 def save(board, board_path):
     apply_rules(board)
     pcbnew.SaveBoard(board_path, board)
-    set_by_font(board_path)
+    set_text_fonts(board_path)
     set_project_rules(board_path)
 
 
