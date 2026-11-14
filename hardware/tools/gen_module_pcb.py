@@ -29,7 +29,7 @@ PLANE = "dsn-plane"         # zone name: exported to Freerouting as a power plan
 def fdd_board():
     place = {
         "J1": (6.0, 20.0, 0), "J2": (91.5, 20.0, 0),
-        "J5": (30.0, 7.0, 0), "C6": (55.0, 4.5, 0), "U6": (64.0, 8.0, 0), "C7": (73.0, 4.5, 0),
+        "J5": (40.0, 6.5, 180), "C6": (55.0, 4.5, 0), "U6": (64.0, 8.0, 0), "C7": (73.0, 4.5, 0),
         "RN1": (15.5, 15.0, 0), "RN2": (20.5, 15.0, 0),
         "U1": (24.0, 28.0, 0), "C1": (24.0, 37.5, 0),
         "U2": (40.0, 28.0, 0), "C2": (40.0, 36.0, 0),
@@ -55,6 +55,9 @@ def fdd_board():
         "ref_at": {},
         "power_zones": [],
         "keepouts": [],
+        # KF301 J5, wires enter from the top edge: labels sit below the body, clear of it
+        "notes": [("+5V", 40.0, 12.6, 1.0), ("GND", 34.92, 12.6, 1.0),
+                  ("5V POWER ONLY, NO 12V", 37.46, 15.4, 0.9)],
     }
 
 
@@ -91,7 +94,7 @@ LSM_HDD_KEEPOUT = (0.0, BAND[1] + 0.8, 120.0, 80.0)
 
 def lsm_hdd_board():
     place = {
-        "J1": (6.0, 20.0, 0), "J2": (111.5, 20.0, 0),
+        "J1": (6.0, 18.5, 0), "J2": (111.5, 20.0, 0),
         "RN1": (15.5, 15.0, 0), "RN2": (20.5, 15.0, 0),
         "RN3": (104.0, 15.0, 0), "RN4": (104.0, 21.0, 0),
         "U1": (24.0, 28.0, 0), "C1": (24.0, 37.5, 0),
@@ -101,8 +104,8 @@ def lsm_hdd_board():
         "U5": (92.0, 28.0, 0), "C5": (92.0, 36.0, 0),
         "RN10": (60.0, 41.0, 90), "RN11": (84.0, 41.0, 90),
         "C6": (60.0, 4.5, 0), "U6": (69.0, 8.0, 0), "C7": (78.0, 4.5, 0),
-        # Molex: pin 4 (+5V) in the band, pins 2-3 (GND) on the lower plane
-        "J5": (7.5, ROW_BOT, 90), "J10": (112.5, ROW_BOT, 90),
+        # KF301 facing the left edge: pins 1-2 (+5V) in the band, pins 3-4 (GND) on the lower plane
+        "J5": (6.0, 46.0, 270),
         "C8": (20.5, ROW_TOP, 270),            # + in the band, - on the GND plane
         "H1": (4.0, 4.0, 0), "H2": (116.0, 4.0, 0), "H3": (4.0, 76.0, 0), "H4": (116.0, 76.0, 0),
         # Bring-up LEDs under the registers (D1..D3 = U2..U4, D4 = U5, D5 = 3V3) and header J11
@@ -122,6 +125,10 @@ def lsm_hdd_board():
         "ref_at": {"C8": (20.5, 60.0)},       # keep the label off the M1 outline
         "power_zones": lsm_hdd_zones(),
         "keepouts": [((pcbnew.B_Cu,), LSM_HDD_KEEPOUT, True)],
+        # Labels right of the terminal body (x > 10), one per pole, plus a warning below it
+        "notes": [("+5V", 11.0, 46.0, 1.0, True), ("+5V", 11.0, 51.08, 1.0, True),
+                  ("GND", 11.0, 56.16, 1.0, True), ("GND", 11.0, 61.24, 1.0, True),
+                  ("5V POWER ONLY", 1.5, 66.8, 0.9, True), ("NO 12V", 1.5, 68.6, 0.9, True)],
     }
 
 
@@ -131,7 +138,7 @@ def mainboard_board():
     # no copper on either layer under the antenna end.
     place = {
         "A1": (8.0, 5.0, 0),
-        "J1": (44.0, 59.5, 0),                    # ATX terminal, plug side to the bottom edge
+        "J1": (40.0, 70.0, 0),                    # ATX KF301, wires enter from the bottom edge
         "J2": (91.0, 8.0, 0), "J3": (91.0, 40.0, 0),
         "C2": (48.0, 5.0, 0),
         "J6": (58.0, 6.5, 90),                    # remote panel cable at the top edge
@@ -143,7 +150,7 @@ def mainboard_board():
         "R1": (50.0, 50.0, 0), "R2": (50.0, 55.0, 0),
         "R3": (56.0, 50.0, 0), "R4": (56.0, 55.0, 0), "Q1": (64.0, 53.0, 0),
         "J4": (73.5, 66.0, 0), "C3": (84.0, 66.0, 0),
-        "H1": (40.0, 4.0, 0), "H2": (66.0, 76.0, 0), "H3": (4.0, 76.0, 0), "H4": (96.0, 76.0, 0),
+        "H1": (40.0, 4.0, 0), "H2": (70.0, 76.0, 0), "H3": (4.0, 76.0, 0), "H4": (96.0, 76.0, 0),
     }
     return {
         "size": (100.0, 80.0),                    # within the 100 x 100 mm low-cost fab class
@@ -154,7 +161,12 @@ def mainboard_board():
         "ref_at": {},
         "power_zones": [],
         # Below the USB end (y > 56, x 6-36) stays free for the USB plug.
-        "notes": [("REMOVE JP1 BEFORE USB", 20.7, 62.0, 1.0)],
+        "notes": [("REMOVE JP1 BEFORE USB", 20.7, 62.0, 1.0),
+                  # J1 labels above the terminal body, two staggered rows with leader lines
+                  ("+5V", 40.0, 64.4, 1.0), ("GND", 45.08, 61.0, 1.0),
+                  ("PS_ON#", 50.16, 64.4, 1.0), ("+5VSB", 55.24, 61.0, 1.0),
+                  ("PWR_OK", 60.32, 64.4, 1.0)],
+        "silk_lines": [(45.08, 65.4, 45.08, 61.8), (55.24, 65.4, 55.24, 61.8)],
         "keepouts": [((pcbnew.F_Cu, pcbnew.B_Cu), (5.0, 0.0, 37.0, 3.6), False)],
     }
 
@@ -223,8 +235,10 @@ def set_project_rules(board_path):
         json.dump(d, f, indent=2)
 
 
-def add_text(board, text, x, y, size):
+def add_text(board, text, x, y, size, left=False):
     t = pcbnew.PCB_TEXT(board)
+    if left:
+        t.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_LEFT)
     t.SetText(text)
     t.SetLayer(pcbnew.F_SilkS)
     t.SetPosition(pt(x, y))
@@ -236,7 +250,7 @@ def add_text(board, text, x, y, size):
 def brand(board):
     """Logo footprint, short text and notes on the front silkscreen; replaces old ones."""
     # Collect first: SWIG item lists become unusable after a Remove() in this process.
-    texts = {t for t, *_ in B["brand_text"]} | {t for t, *_ in B.get("notes", [])} | {B["by_text"][0]}
+    texts = {t for t, *_ in B["brand_text"]} | {n[0] for n in B.get("notes", [])} | {B["by_text"][0]}
     old = [fp for fp in board.GetFootprints() if fp.GetReference() == "LOGO1"]
     old += [d for d in board.GetDrawings() if d.GetClass() == "PCB_TEXT" and d.GetText() in texts]
     for item in old:
@@ -247,8 +261,8 @@ def brand(board):
     board.Add(logo)
     for text, y, size in B["brand_text"]:
         add_text(board, text, B["logo"][0], y, size)
-    for text, x, y, size in B.get("notes", []):
-        add_text(board, text, x, y, size)
+    for text, x, y, size, *left in B.get("notes", []):
+        add_text(board, text, x, y, size, bool(left and left[0]))
     text, x, y, size = B["by_text"]
     t = pcbnew.PCB_TEXT(board)
     t.SetText(text)
@@ -394,6 +408,14 @@ def place(netlist, out):
     w, h = B["size"]
     add_rect(board, pcbnew.Edge_Cuts, 0, 0, w, h)
     brand(board)
+    for x1, y1, x2, y2 in B.get("silk_lines", []):
+        ln = pcbnew.PCB_SHAPE(board)
+        ln.SetShape(pcbnew.SHAPE_T_SEGMENT)
+        ln.SetStart(pt(x1, y1))
+        ln.SetEnd(pt(x2, y2))
+        ln.SetLayer(pcbnew.F_SilkS)
+        ln.SetWidth(mm(0.15))
+        board.Add(ln)
     for net, layer, points, priority in B["power_zones"]:
         add_zone(board, nets[net], layer, points, priority, PLANE)
     for layers, rect, allow_pours in B["keepouts"]:

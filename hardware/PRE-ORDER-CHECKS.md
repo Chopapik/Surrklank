@@ -13,7 +13,7 @@ and header J11 on both modules, nothing built or measured).
 
 | # | Check | How | Look for | Result |
 | --- | --- | --- | --- | --- |
-| 1 | Dry fit 1:1 | Run `export_dryfit.py` (KiCad's Python), print the A4 sheet at 100 % and check the 10 cm rulers first, then put foam under the paper and push the real parts through it | ESP32 row spacing and antenna overhang; **Molex key side (silk chamfers) and pin order**; IDE header; ATX terminal; JST-XH; OLED; buttons | 2026-11-14, user report: everything fits on the 1:1 print after the ESP32 row spacing was set to 24.85 mm (caliper measurement 24.8 to 24.9 mm). Observation only: the Molex key side was not reported separately | |
+| 1 | Dry fit 1:1 | Run `export_dryfit.py` (KiCad's Python), print the A4 sheet at 100 % and check the 10 cm rulers first, then put foam under the paper and push the real parts through it | ESP32 row spacing and antenna overhang; **KF301 terminals (pole pitch, body size, wire entry side)**; IDE header; JST-XH; OLED; buttons | 2026-11-14, user report: everything fits on the 1:1 print after the ESP32 row spacing was set to 24.85 mm (caliper measurement 24.8 to 24.9 mm). Observation only: the Molex key side was not reported separately | |
 
 ## B. Multimeter on real parts
 
@@ -28,11 +28,11 @@ and header J11 on both modules, nothing built or measured).
 
 | # | Check | How | Look for | Result |
 | --- | --- | --- | --- | --- |
-| 6 | +5 V on the Molex | **Before** fitting DRV8833 modules: real PSU plug into J5, measure pin 4 to GND | Exactly +5 V. 12 V means the header is soldered the wrong way round: unplug at once | |
-| 7 | Module 3.3 V | 5 V via Molex only, no ESP | 3.3 V ±0.1 V; AMS1117 not hot | |
+| 6 | +5 V on the J5 poles | **Before** fitting DRV8833 modules: with the PSU wires screwed in (red to the +5V poles, black to GND), measure each +5V pole to GND | Exactly +5 V on every +5V pole. 12 V means a yellow wire is connected: unplug at once | |
+| 7 | Module 3.3 V | 5 V via the J5 terminal only, no ESP | 3.3 V ±0.1 V; AMS1117 not hot | |
 | 8 | 3.3 V ripple | Oscilloscope (borrowed), probe with a short ground spring | No oscillation. Datasheet is silent on ceramics: if it misbehaves hand-fit a 22 µF tantalum or polymer (EIA 3216-18) on the C7 pads | |
-| 9 | Back-power | ESP on +5VSB, ATX off, module connected by ribbon only (no Molex): measure the module 3.3 V rail | Above about 1.5 V is a problem. Record the value. D5 on the rail starts to glow near 1.8 V (red), so a lit D5 with ATX off means a back-powered rail | |
-| 10 | Motor current | Bench supply with current limit or ammeter in the +5V line, one motor at a time | Start and hold current against the DRV8833 limit and one Molex pin | |
+| 9 | Back-power | ESP on +5VSB, ATX off, module connected by ribbon only (no J5 supply): measure the module 3.3 V rail | Above about 1.5 V is a problem. Record the value. D5 on the rail starts to glow near 1.8 V (red), so a lit D5 with ATX off means a back-powered rail | |
+| 10 | Motor current | Bench supply with current limit or ammeter in the +5V line, one motor at a time | Start and hold current against the DRV8833 limit and one KF301 pole (rating of the bought part) | |
 | 11 | Long ribbon | Longest planned ribbons, every module connected, motors under load, long run | Wrong or missing steps. Only on errors: oscilloscope on CLK and LATCH at the far end of the longest hop, ringing near 1.65 V. J11 taps add unterminated branches on CLK and LATCH (routed length, measured on the layout: FDD about 42 and 36 mm, LSM/HDD about 15 and 28 mm); look at these first | |
 
 ## D. Decisions before ordering
@@ -41,6 +41,6 @@ and header J11 on both modules, nothing built or measured).
 | --- | --- | --- | --- |
 | 12 | 74HC595 part | GR part (Chinese datasheet, SOIC-16 body width confirmed 3.9 mm, VIH/VIL given only at 4.5 V) or a branded 74HC595D from a local shop | |
 | 13 | Hand soldering SMD | No factory assembly: 0603 resistor arrays and LEDs, SOIC-16/20W and SOT-223 are soldered by hand (fine-tip iron, flux, tweezers); connectors, ESP32 sockets, buttons and DRV8833 modules were hand-soldered anyway. Practise on a spare board if unsure | |
-| 14 | Copper weight of the LSM/HDD board | +5V band is 4.7 to 7.9 mm wide (about 10 A at +20 K for 1 oz by an IPC-2221 estimate); the Molex pin and PSU wire limit first | |
+| 14 | Copper weight of the LSM/HDD board | +5V band is 4.7 to 7.9 mm wide (about 10 A at +20 K for 1 oz by an IPC-2221 estimate); the KF301 pole and PSU wire limit first | |
 | 17 | Bring-up LEDs and J11 | After the first module is built: test firmware shifts a pattern through U2-U4 and the LEDs and J11 pin 5 follow it. Fit the LEDs with the cathode toward GND (flat side or green mark; KiCad pad 1 is the cathode) | |
-| 16 | Mounting hole H2 on the mainboard | Sits under the plugged ATX terminal: move it or accept three holes | |
+| 16 | Mounting hole H2 on the mainboard | Moved to x 70 mm so it clears the KF301 ATX terminal J1 (x 37-63 mm, y 66-74 mm): confirm that three or four holes fit the enclosure plan | |

@@ -8668,7 +8668,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_Phoenix_MSTB:PhoenixContact_MSTBA_2,5_5-G-5,08_1x05_P5.08mm_Horizontal"
+		(property "Footprint" "surrklank:TerminalBlock_KF301_1x05_P5.08mm_Horizontal"
 			(at 38.1 190.5 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8960,7 +8960,7 @@
 		)
 		(uuid 6addf2aa-bb3d-5e38-8a83-806e21087ac4)
 	)
-	(text "J1: pluggable terminal from the ATX 24-pin distribution:\n1 +5V (red), 2 GND, 3 PS_ON# (green), 4 +5VSB (purple), 5 PWR_OK (grey)."
+	(text "J1: KF301 screw terminal from the ATX 24-pin distribution:\n1 +5V (red), 2 GND, 3 PS_ON# (green), 4 +5VSB (purple), 5 PWR_OK (grey)."
 		(exclude_from_sim no)
 		(at 20.32 213.36 0)
 		(effects

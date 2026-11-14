@@ -86,7 +86,7 @@ removed). With the pull-down on the GPIO side a module HIGH reads about 3.0 V.
 
 ### Power input
 
-A pluggable (two-part) screw terminal brings +5V, GND, PS_ON#, +5VSB and
+A KF301 screw terminal (5 poles, 5.08 mm, J1) brings +5V, GND, PS_ON#, +5VSB and
 PWR_OK from the user's ATX distribution. ATX +3.3 V is not used anywhere:
 modules make their own 3.3 V from +5 V. The mainboard uses terminal +5 V only
 for the panel's "main rails up" LED.
@@ -211,7 +211,7 @@ On each module:
 - The last 595's QH′ drives DATA on OUT.
 - The 165's QH drives Q165 on IN; its serial input (SER, pin 10) takes Q165
   from OUT, with a pull resistor so an open OUT reads a defined level.
-- Modules are powered locally from their own Molex; no power runs on the
+- Modules are powered locally from their own KF301 screw terminal; no power runs on the
   ribbon. Pin 15 is a spare wire that passes straight through each module and
   is unconnected on the mainboard.
 
@@ -248,7 +248,7 @@ only slow I2C. No measurement exists, so the following is a plan, not a result.
    connected, motors under load and long runs of motion, counting wrong or
    missing steps and unexpected outputs.
 2. Changes that need no new boards, in this order: keep ribbons away from motor
-   supply wires and cross them at right angles; use a thick, short Molex GND
+   supply wires and cross them at right angles; use a thick, short power GND
    wire so the ribbon GND wires carry almost no motor return current; replace
    the 33 Ω series arrays with 47–68 Ω to slow the edges; add ferrite clamps;
    slow CLK in firmware if the frame budget allows (not checked).
@@ -291,7 +291,7 @@ through a 33 Ω resistor.
 - Ribbon inputs have pull resistors (10 kΩ) on the module: DATA, CLK, LATCH and
   CLK165 to GND; /OE, /PL and the chained Q165 to 3.3 V.
 - Buffered CLK, LATCH, /OE, /PL, CLK165 and U4 QH′ reach OUT through 33 Ω.
-- Power: Molex J5 (+5 V) → AMS1117-3.3 (10 µF in, 22 µF out); 100 nF per IC.
+- Power: KF301 J5 (2 poles, +5 V and GND) → AMS1117-3.3 (10 µF in, 22 µF out); 100 nF per IC.
 - Parts are SMD (SOIC, 0805, 4 × 0603 resistor arrays) except connectors.
 - Bring-up aids: five 0603 LEDs with 1 kΩ resistors show the level on the
   serial output of each 595 (D1 U2, D2 U3, D3 U4), the 165 return (D4) and the
@@ -403,8 +403,8 @@ M1–M4 are the module's DRV8833 slots.
   module is open; with J1 closed the module's own pull-up wins). IN1–IN4 rely
   on the DRV8833 internal pull-downs. ULT lines have 10 kΩ pull-ups to 3.3 V.
 - Each slot has a 4-pin JST-XH connector (2.5 mm): pins 1–4 = OUT1–OUT4.
-- Power: Molex J5 (+5 V) and optional J10 (not fitted unless measured current
-  needs it), 470 µF bulk capacitor on +5 V, AMS1117-3.3 for logic.
+- Power: KF301 J5 (4 poles: +5 V, +5 V, GND, GND; two wires per rail share the
+  motor current), 470 µF bulk capacitor on +5 V, AMS1117-3.3 for logic.
 - Bring-up LEDs D1–D5 and header J11 are the same as on the FDD module.
 
 ### Motor connections
@@ -466,9 +466,9 @@ their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
 
 | Board | Supply |
 | --- | --- |
-| Mainboard | Screw terminal (see [Power input](#power-input)) |
-| FDD module | One male 4-pin Molex (+5 V, GND); an on-board 3.3 V LDO makes the logic supply |
-| LSM/HDD module | One or two male 4-pin Molex connectors for motor +5 V; the same LDO makes the logic supply |
+| Mainboard | KF301 screw terminal, 5 poles (see [Power input](#power-input)) |
+| FDD module | One KF301, 2 poles (+5 V, GND); an on-board 3.3 V LDO makes the logic supply |
+| LSM/HDD module | One KF301, 4 poles (2 × +5 V, 2 × GND) for motor +5 V; the same LDO makes the logic supply |
 
 - Each module takes power from exactly one local source. Logic current is
   estimated at about 10 mA per module, mainly pull-ups. The LDO is an
@@ -477,19 +477,28 @@ their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
   1206 ceramic (C7) is untested. If the 3.3 V rail misbehaves on the first
   board, hand-fit a 22 µF tantalum or polymer capacitor (EIA 3216-18) on the
   same pads and drop C7 from the JLCPCB BOM.
-- The Molex keeps the standard peripheral pinout: +5 V at the red position,
-  both middle pins GND, the +12 V (yellow) position unconnected and marked on
-  the silkscreen. The footprint is symmetric under a 180° rotation of the
-  holes, so polarity depends on the silkscreen body, whose two chamfered
-  corners (KEY SIDE) must match the housing key of the real header; confirm it
-  on the 1:1 print before soldering. A salvaged header soldered the wrong way
-  round puts a PSU plug's +12 V on the +5 V net, so measure +5 V on pin 4 with a
-  real PSU plug before fitting the DRV8833 modules. +3.3 V is never carried on a
-  Molex.
-- LSM/HDD worst case by DRV8833 rating is 4 × 2 × 1.2 A ≈ 9.6 A per module; the
-  second Molex is fitted only if measured current requires it. Both feed the
-  same +5 V band, and the ATX +5 V rail and the wire gauge limit the current as
-  well. Wide copper and a 470 µF bulk capacitor at the input are fitted.
+- One standard for every Surrklank power input: KF301 screw terminal, 5.08 mm
+  pitch, through-hole, wire entry from the board edge. Fixed pole order
+  (module J5 and mainboard J1), each pole labelled on the silkscreen with its
+  function (+5V, GND, ...) next to the terminal, outside the body so it stays
+  readable after soldering:
+
+  | Board, part | Poles | Order (pin 1 first) |
+  | --- | --- | --- |
+  | Mainboard J1 | 5 | +5V red, GND black, PS_ON# green, +5VSB purple, PWR_OK grey |
+  | FDD module J5 | 2 | +5V red, GND black |
+  | LSM/HDD module J5 | 4 | +5V red, +5V red, GND black, GND black |
+
+  There is no +12 V position on any of them and no plug to confuse with a PSU
+  Molex; a yellow +12 V wire is never connected. Use 18 AWG wire from the PSU;
+  on the LSM/HDD module one wire per pole, two per rail. Measure +5 V at the
+  terminal poles before fitting the DRV8833 modules. +3.3 V is never carried.
+  Pole and body dimensions in the footprints are generic KF301 values: check
+  the bought part against the 1:1 print.
+- LSM/HDD worst case by DRV8833 rating is 4 × 2 × 1.2 A ≈ 9.6 A per module,
+  shared by two +5 V and two GND poles and the same +5 V band. The ATX +5 V
+  rail, the terminal rating and the wire gauge limit the current as well. Wide
+  copper and a 470 µF bulk capacitor at the input are fitted.
 
 ## Passive components
 
@@ -497,7 +506,7 @@ their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
 | --- | --- |
 | 100 nF ceramic, ≥ 6.3 V | One per register and buffer IC, close to its supply pins |
 | LDO input/output capacitors | Each module: 10 µF in, 22 µF out (ESR to check, see Power) |
-| Bulk capacitor | Molex input of each LSM/HDD module: 470 µF 16 V |
+| Bulk capacitor | Power input of each LSM/HDD module: 470 µF 16 V |
 | 10 kΩ pull resistors | Mainboard control lines (table above) |
 | Pull-up resistor arrays | FDD lines and inputs, DRV8833 FAULT inputs |
 | Series resistors | 33 Ω on mainboard ribbon outputs and module OUT |

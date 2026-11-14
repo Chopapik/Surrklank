@@ -3736,7 +3736,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Connector_Generic:Conn_01x04"
+		(symbol "Connector_Generic:Conn_01x02"
 			(pin_names
 				(offset 1.016)
 				(hide yes)
@@ -3747,7 +3747,7 @@
 			(in_pos_files yes)
 			(duplicate_pin_numbers_are_jumpers no)
 			(property "Reference" "J"
-				(at 0 5.08 0)
+				(at 0 2.54 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -3756,8 +3756,8 @@
 					)
 				)
 			)
-			(property "Value" "Conn_01x04"
-				(at 0 -7.62 0)
+			(property "Value" "Conn_01x02"
+				(at 0 -5.08 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -3788,7 +3788,7 @@
 					)
 				)
 			)
-			(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -3821,27 +3821,16 @@
 					)
 				)
 			)
-			(symbol "Conn_01x04_1_1"
+			(symbol "Conn_01x02_1_1"
 				(rectangle
-					(start -1.27 3.81)
-					(end 1.27 -6.35)
+					(start -1.27 1.27)
+					(end 1.27 -3.81)
 					(stroke
 						(width 0.254)
 						(type default)
 					)
 					(fill
 						(type background)
-					)
-				)
-				(rectangle
-					(start -1.27 2.667)
-					(end 0 2.413)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
 					)
 				)
 				(rectangle
@@ -3866,19 +3855,8 @@
 						(type none)
 					)
 				)
-				(rectangle
-					(start -1.27 -4.953)
-					(end 0 -5.207)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
 				(pin passive line
-					(at -5.08 2.54 0)
+					(at -5.08 0 0)
 					(length 3.81)
 					(name "Pin_1"
 						(effects
@@ -3896,7 +3874,7 @@
 					)
 				)
 				(pin passive line
-					(at -5.08 0 0)
+					(at -5.08 -2.54 0)
 					(length 3.81)
 					(name "Pin_2"
 						(effects
@@ -3906,42 +3884,6 @@
 						)
 					)
 					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at -5.08 -2.54 0)
-					(length 3.81)
-					(name "Pin_3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at -5.08 -5.08 0)
-					(length 3.81)
-					(name "Pin_4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -19417,7 +19359,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector_Generic:Conn_01x04")
+		(lib_id "Connector_Generic:Conn_01x02")
 		(at 45.72 203.2 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -19426,7 +19368,7 @@
 		(dnp no)
 		(uuid 2fe74637-592a-5986-830c-df9f63ea181c)
 		(property "Reference" "J5"
-			(at 45.72 198.12 0)
+			(at 45.72 200.66 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19435,8 +19377,8 @@
 				)
 			)
 		)
-		(property "Value" "MOLEX_5V"
-			(at 45.72 210.82 0)
+		(property "Value" "POWER_5V"
+			(at 45.72 208.28 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19445,7 +19387,7 @@
 				)
 			)
 		)
-		(property "Footprint" "surrklank:Molex_8981_1x04_P5.08mm_Vertical"
+		(property "Footprint" "surrklank:TerminalBlock_KF301_1x02_P5.08mm_Horizontal"
 			(at 45.72 203.2 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19467,7 +19409,7 @@
 				)
 			)
 		)
-		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
 			(at 45.72 203.2 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19484,12 +19426,6 @@
 		(pin "2"
 			(uuid 2d0886b7-d385-58a5-ab5f-da9134360432)
 		)
-		(pin "3"
-			(uuid 8cf7487c-01c7-5be1-a117-d9919870ade5)
-		)
-		(pin "4"
-			(uuid a355bd0c-66c3-549f-aa00-4e3879d0636f)
-		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
@@ -19498,10 +19434,6 @@
 				)
 			)
 		)
-	)
-	(no_connect
-		(at 40.64 200.66)
-		(uuid 81ee529f-9eb9-570c-841b-53c04ef5f288)
 	)
 	(wire
 		(pts
@@ -19512,19 +19444,19 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 153ff6ac-ff9d-5b5c-b07f-97b3ea1eaeaa)
+		(uuid dc47331b-5a4c-5574-af06-e2f9ffb51e17)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 38.1 203.2 270)
+		(lib_id "power:+5V")
+		(at 38.1 203.2 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 348958ba-05be-55d6-84f3-5e614df29069)
+		(uuid 3140a860-2fa5-53c8-a931-65bebca3e7f3)
 		(property "Reference" "#PWR087"
-			(at 31.75 203.2 90)
+			(at 41.91 203.2 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -19534,8 +19466,8 @@
 				)
 			)
 		)
-		(property "Value" "GND"
-			(at 34.29 203.2 90)
+		(property "Value" "+5V"
+			(at 34.544 203.2 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19566,7 +19498,7 @@
 				)
 			)
 		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
 			(at 38.1 203.2 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19578,7 +19510,7 @@
 			)
 		)
 		(pin "1"
-			(uuid 2942c5ab-236f-5065-8613-137d72f99d89)
+			(uuid b5324aba-a8ad-58f7-a1ba-a489da2f4e7e)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -19598,7 +19530,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 7d768c15-104f-535a-b9b1-5987d1197cf6)
+		(uuid 153ff6ac-ff9d-5b5c-b07f-97b3ea1eaeaa)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -19608,7 +19540,7 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid c06b82aa-56f4-54fe-8e1e-34466861cf7d)
+		(uuid 348958ba-05be-55d6-84f3-5e614df29069)
 		(property "Reference" "#PWR088"
 			(at 31.75 205.74 90)
 			(show_name no)
@@ -19664,7 +19596,7 @@
 			)
 		)
 		(pin "1"
-			(uuid 70c6bb70-0116-5a84-b74f-cbfbac333282)
+			(uuid 2942c5ab-236f-5065-8613-137d72f99d89)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -19675,93 +19607,7 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 40.64 208.28)
-			(xy 38.1 208.28)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid 63eb8511-88c6-541c-94f5-bfa14229fde1)
-	)
-	(symbol
-		(lib_id "power:+5V")
-		(at 38.1 208.28 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(dnp no)
-		(uuid 5d94ff59-6602-52fe-87be-d2e90e88c914)
-		(property "Reference" "#PWR089"
-			(at 41.91 208.28 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+5V"
-			(at 34.544 208.28 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 38.1 208.28 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 38.1 208.28 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 38.1 208.28 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid 2e2b1a51-1f7c-5e31-8efe-f1bb1cc283de)
-		)
-		(instances
-			(project "surrklank-fdd-module"
-				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR089")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(text "J5 pin 1 (+12V, yellow) is not connected.\nPin 4 must carry +5V (red)."
+	(text "J5 (KF301, 2 poles): pin 1 +5V (red), pin 2 GND (black). No +12 V on this connector."
 		(exclude_from_sim no)
 		(at 25.4 218.44 0)
 		(effects
@@ -19770,7 +19616,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 84f86804-52e5-5696-b6ef-684a58d25bf0)
+		(uuid 311a3b7d-fbfc-50ed-8e60-74e6c0e2346e)
 	)
 	(symbol
 		(lib_id "Regulator_Linear:AMS1117-3.3")
@@ -19780,7 +19626,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 0364af24-f895-56e2-8da3-7183083b6a6b)
+		(uuid c06b82aa-56f4-54fe-8e1e-34466861cf7d)
 		(property "Reference" "U6"
 			(at 100.33 194.945 0)
 			(show_name no)
@@ -19836,13 +19682,13 @@
 			)
 		)
 		(pin "1"
-			(uuid d80a606a-8352-5cc0-b06b-d5f6920aa0e9)
+			(uuid 70c6bb70-0116-5a84-b74f-cbfbac333282)
 		)
 		(pin "2"
-			(uuid c7f6afd1-fd0c-5789-aa86-46a51931d2a5)
+			(uuid 8e44ee8b-5da3-52f3-b4c0-3fb96f3d29ff)
 		)
 		(pin "3"
-			(uuid b603d187-6ac5-5116-8f6a-51fe1e99326a)
+			(uuid 52e9bfe4-a590-5c87-b978-1f97c84bf0c4)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -19862,7 +19708,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid e1fe7d8a-5301-5967-992b-0516109063ab)
+		(uuid d70bd79e-b049-5b0d-83f3-9f8b2699406b)
 	)
 	(symbol
 		(lib_id "power:+5V")
@@ -19872,8 +19718,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 10777ea1-c3fc-5149-afe2-f9755515b924)
-		(property "Reference" "#PWR090"
+		(uuid 9b2e27e5-50a3-54a7-89e2-4ffd15288ff3)
+		(property "Reference" "#PWR089"
 			(at 97.79 198.12 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19928,12 +19774,12 @@
 			)
 		)
 		(pin "1"
-			(uuid dc3b3893-6028-5184-9ec9-17f6ceb741dd)
+			(uuid ae6ae652-00a8-5ccb-90cb-691525a11330)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR090")
+					(reference "#PWR089")
 					(unit 1)
 				)
 			)
@@ -19948,7 +19794,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 97deff06-12c6-5790-96f3-5542f769da68)
+		(uuid 02d2fef9-be6f-5671-8bd3-d1a2c704958d)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -19958,8 +19804,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid ffd30b46-a25f-5877-be22-226e35ad3e26)
-		(property "Reference" "#PWR091"
+		(uuid 1ee4cbf2-2dfb-577c-98d6-5fc5643e117a)
+		(property "Reference" "#PWR090"
 			(at 110.49 198.12 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20014,12 +19860,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 286814f3-7ac8-561a-8191-1f10ec6f7962)
+			(uuid b603d187-6ac5-5116-8f6a-51fe1e99326a)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR091")
+					(reference "#PWR090")
 					(unit 1)
 				)
 			)
@@ -20034,7 +19880,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 7e6d3c5b-de6e-5ac4-bbd7-9709b098b7e6)
+		(uuid e1fe7d8a-5301-5967-992b-0516109063ab)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -20044,8 +19890,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid d7dc2eec-d2fb-5988-a138-3bc7e37fe80a)
-		(property "Reference" "#PWR092"
+		(uuid 10777ea1-c3fc-5149-afe2-f9755515b924)
+		(property "Reference" "#PWR091"
 			(at 104.14 214.63 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20100,12 +19946,12 @@
 			)
 		)
 		(pin "1"
-			(uuid e9ca30da-7a6b-5e0c-8920-474bfcb87cbf)
+			(uuid dc3b3893-6028-5184-9ec9-17f6ceb741dd)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR092")
+					(reference "#PWR091")
 					(unit 1)
 				)
 			)
@@ -20119,7 +19965,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 91d6eeb1-2d63-5255-ae4e-cc673d94932c)
+		(uuid 022de35a-b788-5911-8b2f-9790253094c8)
 		(property "Reference" "C6"
 			(at 89.535 210.82 0)
 			(show_name no)
@@ -20176,10 +20022,10 @@
 			)
 		)
 		(pin "1"
-			(uuid b93aff08-7a87-56e1-8c8c-05d682a7fe04)
+			(uuid 9f3af9d6-4635-5a65-97eb-f8021c159550)
 		)
 		(pin "2"
-			(uuid dc8a339f-b28f-59ca-944f-f2e76eac9081)
+			(uuid 286814f3-7ac8-561a-8191-1f10ec6f7962)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -20199,7 +20045,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 8ec8661c-bd23-59a5-a15d-b62a8d396fa6)
+		(uuid 7e6d3c5b-de6e-5ac4-bbd7-9709b098b7e6)
 	)
 	(symbol
 		(lib_id "power:+5V")
@@ -20209,8 +20055,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 774f7b37-ab2d-522a-8cfc-1c803a861293)
-		(property "Reference" "#PWR093"
+		(uuid d7dc2eec-d2fb-5988-a138-3bc7e37fe80a)
+		(property "Reference" "#PWR092"
 			(at 88.9 210.82 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20265,12 +20111,12 @@
 			)
 		)
 		(pin "1"
-			(uuid d10169f3-5689-539d-a316-d4727ca0ae02)
+			(uuid e9ca30da-7a6b-5e0c-8920-474bfcb87cbf)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR093")
+					(reference "#PWR092")
 					(unit 1)
 				)
 			)
@@ -20285,7 +20131,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 0a797e59-8505-5aa9-81aa-1f188bb1ff23)
+		(uuid a95cc2a2-87be-5178-8bc8-c5fae84af448)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -20295,8 +20141,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 90e570fc-52a4-50b6-8139-2ed8cec0398c)
-		(property "Reference" "#PWR094"
+		(uuid 51a352ff-1dd4-5e24-a69d-4e1e74bf1aa7)
+		(property "Reference" "#PWR093"
 			(at 88.9 226.06 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20351,12 +20197,12 @@
 			)
 		)
 		(pin "1"
-			(uuid dd713158-31e2-53ef-a893-819d4e940253)
+			(uuid dc8a339f-b28f-59ca-944f-f2e76eac9081)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR094")
+					(reference "#PWR093")
 					(unit 1)
 				)
 			)
@@ -20370,7 +20216,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 00665fa2-2bf9-5875-a71f-5881c2c62cf9)
+		(uuid 92e5ace6-a7e5-58e7-aa54-1414c280eaff)
 		(property "Reference" "C7"
 			(at 120.015 210.82 0)
 			(show_name no)
@@ -20427,10 +20273,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 6d1e5182-9236-5fd9-9154-ce6de18c4395)
+			(uuid c05096d5-3e87-5147-a810-d5f2c4fdef9a)
 		)
 		(pin "2"
-			(uuid b988dabe-a362-5844-b549-b09fdc088a30)
+			(uuid d10169f3-5689-539d-a316-d4727ca0ae02)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -20450,7 +20296,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 7c034c31-75c3-51b3-8a19-cffe21fef971)
+		(uuid 0a797e59-8505-5aa9-81aa-1f188bb1ff23)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -20460,8 +20306,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid f9f33aa7-2a17-567d-9904-722670bc39fe)
-		(property "Reference" "#PWR095"
+		(uuid 90e570fc-52a4-50b6-8139-2ed8cec0398c)
+		(property "Reference" "#PWR094"
 			(at 119.38 210.82 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20516,12 +20362,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 4fd0a94c-871b-51a9-9fad-00bf2c49dd66)
+			(uuid dd713158-31e2-53ef-a893-819d4e940253)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR095")
+					(reference "#PWR094")
 					(unit 1)
 				)
 			)
@@ -20536,7 +20382,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid c674a686-851f-572e-8028-cce364fb33ce)
+		(uuid 9454f1c9-6653-5977-a8b2-8cf9e7ffee4a)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -20546,8 +20392,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 4826da96-bdd9-5ef3-b1f9-897473a4f3d3)
-		(property "Reference" "#PWR096"
+		(uuid cf4eb716-ccc1-5c64-a93d-5f42767b9dbb)
+		(property "Reference" "#PWR095"
 			(at 119.38 226.06 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20602,12 +20448,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 587f6069-5bae-5123-a393-3d3022201eb7)
+			(uuid b988dabe-a362-5844-b549-b09fdc088a30)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR096")
+					(reference "#PWR095")
 					(unit 1)
 				)
 			)
@@ -20621,8 +20467,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid e53dd69f-0bdd-59ff-b81d-a05331e90e8d)
-		(property "Reference" "#PWR098"
+		(uuid 208f843e-11c7-5485-95ac-6678ce765d8f)
+		(property "Reference" "#PWR097"
 			(at 63.5 237.49 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20677,12 +20523,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 9ff9e05a-6863-520b-b233-9172caf2df57)
+			(uuid f03a4b81-7918-57d6-9f4c-ee6526c321dc)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR098")
+					(reference "#PWR097")
 					(unit 1)
 				)
 			)
@@ -20696,8 +20542,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid ce501d8f-b4ed-593b-85fb-90d3e2d20b84)
-		(property "Reference" "#FLG098"
+		(uuid f1ab968b-3c90-5c9c-875c-81ce4128ec7f)
+		(property "Reference" "#FLG097"
 			(at 63.5 240.665 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20752,12 +20598,12 @@
 			)
 		)
 		(pin "1"
-			(uuid d3ec4898-b777-5ac4-b7d7-cac5d991f98f)
+			(uuid 1bb2bfd6-efae-59d3-a953-100b18f7b7a5)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#FLG098")
+					(reference "#FLG097")
 					(unit 1)
 				)
 			)
@@ -20772,7 +20618,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 5d9872e9-c332-52a2-ba2c-1ac8279d98a7)
+		(uuid 3cd35b43-0b51-543d-9deb-c77bbb62646c)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -20782,8 +20628,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 0e2c7f71-8108-59ad-94dc-6c9775ea0521)
-		(property "Reference" "#PWR100"
+		(uuid c45f0deb-060b-5c62-a7fa-ca08371faf62)
+		(property "Reference" "#PWR099"
 			(at 76.2 247.65 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20838,12 +20684,12 @@
 			)
 		)
 		(pin "1"
-			(uuid be3df104-8dcb-52aa-ad40-ff6f1e324995)
+			(uuid 3ae9ae2a-450a-5442-8978-7db296bf7ed3)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR100")
+					(reference "#PWR099")
 					(unit 1)
 				)
 			)
@@ -20857,8 +20703,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 2e0390f3-f94e-5f93-85c9-4cd348f962fb)
-		(property "Reference" "#FLG100"
+		(uuid e0b2e310-0ec1-570b-8cc2-f6f8587ba589)
+		(property "Reference" "#FLG099"
 			(at 76.2 234.315 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -20913,12 +20759,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 9f87b93c-9ef5-587b-891f-e37a0a4d2d0a)
+			(uuid d6b0b0eb-d7b9-5165-85c6-ccdbda79c1c9)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#FLG100")
+					(reference "#FLG099")
 					(unit 1)
 				)
 			)
@@ -20933,7 +20779,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 60727203-025e-5e41-875d-e614bdd8bae6)
+		(uuid 87beeb86-8739-573b-b647-8dcc5868615e)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -20943,7 +20789,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 21da1284-8a5d-5d9c-89b3-a5d969f31750)
+		(uuid 1710421a-873b-559e-bf5e-ceea89561f34)
 		(property "Reference" "C1"
 			(at 135.255 264.16 0)
 			(show_name no)
@@ -21000,10 +20846,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 3b84936e-ae83-5284-8c04-fb3ca035943a)
+			(uuid 3fecbced-261c-5d60-bb78-b95260c54257)
 		)
 		(pin "2"
-			(uuid a5511630-387b-5655-8349-0dc8ec3494d9)
+			(uuid be3df104-8dcb-52aa-ad40-ff6f1e324995)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -21023,7 +20869,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid f57f6bc7-cca2-50c3-87c7-103ab1e5f582)
+		(uuid e6b95a53-46c1-521b-bc9f-164bd3822228)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -21033,8 +20879,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 530e6b88-d943-5bdb-aa2f-19ce8cacbb3b)
-		(property "Reference" "#PWR101"
+		(uuid 3deb273b-81e1-54e4-bfda-4f672d4b83b5)
+		(property "Reference" "#PWR100"
 			(at 134.62 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21089,12 +20935,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 97ac5c7f-eccb-57ba-aabc-a55330d2b010)
+			(uuid ef652fad-936b-5ba7-b47e-8b091ad5c3a9)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR101")
+					(reference "#PWR100")
 					(unit 1)
 				)
 			)
@@ -21109,7 +20955,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 9dfe20be-d48a-5e5d-a57f-2d705fe60d4f)
+		(uuid 9d285aa7-d8e8-51e0-91df-1ecc270943dd)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -21119,8 +20965,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 5fa3ddc1-d768-5fa2-af28-441fe7fe0577)
-		(property "Reference" "#PWR102"
+		(uuid a5fe717d-059e-5d38-b0de-9e9f3acce8b5)
+		(property "Reference" "#PWR101"
 			(at 134.62 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21175,12 +21021,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 1d180f4a-abcc-51da-8efa-9943bf5b20c9)
+			(uuid a5511630-387b-5655-8349-0dc8ec3494d9)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR102")
+					(reference "#PWR101")
 					(unit 1)
 				)
 			)
@@ -21194,7 +21040,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid cebbb499-0da0-5449-8661-562a27dcac04)
+		(uuid 5fa215e8-4946-5de5-bc49-dfa0799c2edf)
 		(property "Reference" "C2"
 			(at 145.415 264.16 0)
 			(show_name no)
@@ -21251,10 +21097,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 03f16c61-bffc-5aa8-9f89-ff14a06c6416)
+			(uuid 3255058d-bc21-5207-a620-9b371cd63db6)
 		)
 		(pin "2"
-			(uuid 7fd89f17-d0b3-5956-b674-7002c92f05b4)
+			(uuid 97ac5c7f-eccb-57ba-aabc-a55330d2b010)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -21274,7 +21120,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 50b8bb05-4283-5379-a6f3-b1c305228e20)
+		(uuid 9dfe20be-d48a-5e5d-a57f-2d705fe60d4f)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -21284,8 +21130,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid d7538704-39e6-5671-817b-c340ea4697ae)
-		(property "Reference" "#PWR103"
+		(uuid 5fa3ddc1-d768-5fa2-af28-441fe7fe0577)
+		(property "Reference" "#PWR102"
 			(at 144.78 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21340,12 +21186,12 @@
 			)
 		)
 		(pin "1"
-			(uuid cfc58f49-99d9-5fcf-99d2-17cdfb1412ee)
+			(uuid 1d180f4a-abcc-51da-8efa-9943bf5b20c9)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR103")
+					(reference "#PWR102")
 					(unit 1)
 				)
 			)
@@ -21360,7 +21206,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 4e6ce103-4fa8-5a69-9564-034f70a94fed)
+		(uuid 583831e3-f362-5706-87a0-9232229b5303)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -21370,8 +21216,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 794cf829-9683-5b67-b252-227ac1627df3)
-		(property "Reference" "#PWR104"
+		(uuid 049864de-dd6f-51be-88aa-10ae479c6767)
+		(property "Reference" "#PWR103"
 			(at 144.78 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21426,12 +21272,12 @@
 			)
 		)
 		(pin "1"
-			(uuid d9efe4c7-02e5-5c0e-810d-871fe6780d75)
+			(uuid 7fd89f17-d0b3-5956-b674-7002c92f05b4)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR104")
+					(reference "#PWR103")
 					(unit 1)
 				)
 			)
@@ -21445,7 +21291,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid a1538d73-df22-5dc0-a256-a6b80b919579)
+		(uuid b23d647c-9f0c-59d9-a14c-b80e497a9ff7)
 		(property "Reference" "C3"
 			(at 155.575 264.16 0)
 			(show_name no)
@@ -21502,10 +21348,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 2242f825-ced6-5e57-b190-6aa5c2535db9)
+			(uuid e1eb0b90-b872-5e1c-881e-2d2df86e1bca)
 		)
 		(pin "2"
-			(uuid 7ae06bd2-ca9f-5e8d-a5df-a2d93c149558)
+			(uuid cfc58f49-99d9-5fcf-99d2-17cdfb1412ee)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -21525,7 +21371,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid c5861d99-e70e-5147-88eb-f0f10374b00a)
+		(uuid 4e6ce103-4fa8-5a69-9564-034f70a94fed)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -21535,8 +21381,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 779d99c5-1f4d-52c6-a8d6-9be13e3d1c11)
-		(property "Reference" "#PWR105"
+		(uuid 794cf829-9683-5b67-b252-227ac1627df3)
+		(property "Reference" "#PWR104"
 			(at 154.94 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21591,12 +21437,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 88b479be-93ff-5dc4-ad6e-9b16ae3dfada)
+			(uuid d9efe4c7-02e5-5c0e-810d-871fe6780d75)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR105")
+					(reference "#PWR104")
 					(unit 1)
 				)
 			)
@@ -21611,7 +21457,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 04575b70-f476-5839-a8cb-2c24332b41e4)
+		(uuid b7faa07c-e197-5717-9470-f65263bfb93f)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -21621,8 +21467,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 2568a75e-e516-5589-8beb-a5a0205e0825)
-		(property "Reference" "#PWR106"
+		(uuid 13180628-6881-51b8-adb5-04763584bac9)
+		(property "Reference" "#PWR105"
 			(at 154.94 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21677,12 +21523,12 @@
 			)
 		)
 		(pin "1"
-			(uuid ed05dc2a-2a4b-5534-b2a2-f389e2f18239)
+			(uuid 7ae06bd2-ca9f-5e8d-a5df-a2d93c149558)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR106")
+					(reference "#PWR105")
 					(unit 1)
 				)
 			)
@@ -21696,7 +21542,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid f8e26ce7-80b0-5b7b-9efc-a9391e2859eb)
+		(uuid 5771b09a-8b8f-50d3-ae15-8f5c0b696034)
 		(property "Reference" "C4"
 			(at 165.735 264.16 0)
 			(show_name no)
@@ -21753,10 +21599,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 6b70f5bd-6da0-59f6-9294-38542da9b276)
+			(uuid a06ee970-62fa-565c-a9b5-6f90ff55c9c7)
 		)
 		(pin "2"
-			(uuid fe4f43c5-1ecc-5310-bb3e-32b4afa24803)
+			(uuid 88b479be-93ff-5dc4-ad6e-9b16ae3dfada)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -21776,7 +21622,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 133093f5-2db1-5e29-a5b5-a23f55b65cbe)
+		(uuid 04575b70-f476-5839-a8cb-2c24332b41e4)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -21786,8 +21632,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid adf49ebc-34b1-58ec-b832-4e2fafb4ac4b)
-		(property "Reference" "#PWR107"
+		(uuid 2568a75e-e516-5589-8beb-a5a0205e0825)
+		(property "Reference" "#PWR106"
 			(at 165.1 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21842,12 +21688,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 43f28492-130a-52a3-b07b-5798a82aeb47)
+			(uuid ed05dc2a-2a4b-5534-b2a2-f389e2f18239)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR107")
+					(reference "#PWR106")
 					(unit 1)
 				)
 			)
@@ -21862,7 +21708,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid ce3bb832-e0b6-556f-86aa-eb53d231fe95)
+		(uuid 130f64ce-2e7a-5319-ad67-ba2c7a5e68e7)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -21872,8 +21718,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 4f4f6747-74e3-5ee2-8a0b-2881366bb49f)
-		(property "Reference" "#PWR108"
+		(uuid 301157f1-6176-5c67-b108-e589e7dd0edf)
+		(property "Reference" "#PWR107"
 			(at 165.1 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -21928,12 +21774,12 @@
 			)
 		)
 		(pin "1"
-			(uuid b3b8a1dd-2302-59d6-a2fa-f06d43013857)
+			(uuid fe4f43c5-1ecc-5310-bb3e-32b4afa24803)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR108")
+					(reference "#PWR107")
 					(unit 1)
 				)
 			)
@@ -21947,7 +21793,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid cdc08cdd-3304-5294-bc4f-05797ee85240)
+		(uuid 5d4e2c7b-b19d-55a4-be06-c72f272549c6)
 		(property "Reference" "C5"
 			(at 175.895 264.16 0)
 			(show_name no)
@@ -22004,10 +21850,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 756b1576-0a75-5759-a01d-d3229348707c)
+			(uuid fa7c7b64-e4df-5b6d-8783-174a6977de95)
 		)
 		(pin "2"
-			(uuid 59397674-f077-51c9-b819-e8b7e63f86a6)
+			(uuid 43f28492-130a-52a3-b07b-5798a82aeb47)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -22027,7 +21873,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 0f4d59b4-0703-5e2f-a6fe-fd57cf31f6a4)
+		(uuid ce3bb832-e0b6-556f-86aa-eb53d231fe95)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -22037,8 +21883,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 5944ff2c-3b1b-50ec-9e55-ba5693850e30)
-		(property "Reference" "#PWR109"
+		(uuid 4f4f6747-74e3-5ee2-8a0b-2881366bb49f)
+		(property "Reference" "#PWR108"
 			(at 175.26 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22093,12 +21939,12 @@
 			)
 		)
 		(pin "1"
-			(uuid b3074c28-c162-502c-b4cb-cbee8e635084)
+			(uuid b3b8a1dd-2302-59d6-a2fa-f06d43013857)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR109")
+					(reference "#PWR108")
 					(unit 1)
 				)
 			)
@@ -22113,7 +21959,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 3e8245ad-dd15-5916-858f-d8f5447d01b4)
+		(uuid 4260525e-1faf-5100-940d-7fd36f2b5e43)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -22123,8 +21969,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 1d36b65a-8be1-5f6b-bc2d-0318c6edda77)
-		(property "Reference" "#PWR110"
+		(uuid 57ebc505-b0d0-57dd-a613-c460643bc077)
+		(property "Reference" "#PWR109"
 			(at 175.26 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22179,12 +22025,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 4ef23830-12ae-5a26-b4bb-1ee9924b614a)
+			(uuid 59397674-f077-51c9-b819-e8b7e63f86a6)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR110")
+					(reference "#PWR109")
 					(unit 1)
 				)
 			)
@@ -22199,7 +22045,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid b8c875ff-f505-58b5-8136-63b24f404af5)
+		(uuid 6771f575-1c0d-5d12-b994-554527b9c417)
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
@@ -22209,7 +22055,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid e47ca8f7-67c4-553d-887f-d46eefdc346c)
+		(uuid 5944ff2c-3b1b-50ec-9e55-ba5693850e30)
 		(property "Reference" "H1"
 			(at 236.22 274.32 0)
 			(show_name no)
@@ -22280,7 +22126,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 4cded57b-2bdf-5bdd-ab15-fba24424ea78)
+		(uuid 1766c4a3-132e-5fda-b044-090517648ceb)
 		(property "Reference" "H2"
 			(at 246.38 274.32 0)
 			(show_name no)
@@ -22351,7 +22197,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 9d57c619-cf2d-5308-8152-981224faa062)
+		(uuid 6bf2b127-8b35-574f-8972-d36ad893ea5a)
 		(property "Reference" "H3"
 			(at 256.54 274.32 0)
 			(show_name no)
@@ -22422,7 +22268,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid e4c2f26e-e43e-5f7c-a2c0-1ab5bba90b9c)
+		(uuid 1d36b65a-8be1-5f6b-bc2d-0318c6edda77)
 		(property "Reference" "H4"
 			(at 266.7 274.32 0)
 			(show_name no)
@@ -22493,7 +22339,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 3f668d48-6db7-5630-a41b-d2059c3f85eb)
+		(uuid a3ef025f-8fc7-51aa-bf7d-3a5daa3a2936)
 		(property "Reference" "R1"
 			(at 292.1 239.268 0)
 			(show_name no)
@@ -22548,10 +22394,10 @@
 			)
 		)
 		(pin "1"
-			(uuid afbf11cb-dd26-50fc-9be6-bbb9adf1e9fc)
+			(uuid 712afe47-11d4-55e6-bb47-ac8e9dae226a)
 		)
 		(pin "2"
-			(uuid 97435c63-88fd-5215-8c5b-1a0b30bf3790)
+			(uuid 74e6438c-7d10-5b09-82ae-c25f24b0c7fe)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -22571,7 +22417,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 1dd9a9b5-7068-525a-8a1b-2c1d64912a29)
+		(uuid 093685b8-fb87-52ec-8f14-fd8ad2eddca7)
 	)
 	(label "SR1"
 		(at 285.75 241.3 180)
@@ -22581,7 +22427,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid b9550f9f-a72f-52d2-8d45-90e1ccc79a83)
+		(uuid b90ed2c2-222d-5288-bd5c-c40cfa2d6c37)
 	)
 	(wire
 		(pts
@@ -22592,7 +22438,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 9ef5d85b-dc2a-5216-af8a-95bc8981d361)
+		(uuid 91f72da5-cd01-59a1-8c46-26ab5ba61590)
 	)
 	(label "LED_D1"
 		(at 298.45 241.3 0)
@@ -22602,7 +22448,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid f114e503-b998-5940-951c-dd51481001e2)
+		(uuid a19a715c-94f2-55fa-bec1-e6b1c68e2f2a)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -22612,7 +22458,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 5608309a-3ac2-59c7-bf4b-ffc44d62dc32)
+		(uuid 1eed5f67-0039-5664-9ff6-934316c864b7)
 		(property "Reference" "D1"
 			(at 312.42 243.84 0)
 			(show_name no)
@@ -22678,10 +22524,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 52cc8d1a-c56c-5bd7-84c4-2da83d0fdf44)
+			(uuid 97435c63-88fd-5215-8c5b-1a0b30bf3790)
 		)
 		(pin "2"
-			(uuid 9820f579-702b-5a5f-80f8-fe8a35721f1a)
+			(uuid 3bd5f42a-2af5-5e2d-b180-92dd150e38c5)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -22701,7 +22547,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 1735b2ec-42f5-5fa8-8baa-a4450d7c3e38)
+		(uuid 619d828f-f394-55b6-a7fc-cd9395548927)
 	)
 	(label "LED_D1"
 		(at 306.07 241.3 180)
@@ -22711,7 +22557,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 54115caa-b2ff-5c3c-9d44-9ba2cc8a4a6e)
+		(uuid 2d3e6041-8614-5237-b0e7-da31db24821b)
 	)
 	(wire
 		(pts
@@ -22722,7 +22568,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 96707beb-86e7-5c18-a9c4-bea22dd82c4b)
+		(uuid d88828a0-46bf-5164-8885-0f6bb21a91a9)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -22732,8 +22578,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid f83b0a1e-c5f1-5b5b-8586-6db23b10a3ad)
-		(property "Reference" "#PWR111"
+		(uuid 5608309a-3ac2-59c7-bf4b-ffc44d62dc32)
+		(property "Reference" "#PWR110"
 			(at 325.12 241.3 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22788,12 +22634,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 4e55c69b-e5a3-5dc0-87c4-c78dad954ce3)
+			(uuid 52cc8d1a-c56c-5bd7-84c4-2da83d0fdf44)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR111")
+					(reference "#PWR110")
 					(unit 1)
 				)
 			)
@@ -22807,7 +22653,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 014712f1-a238-5d4a-9ee6-b5f83626f13f)
+		(uuid 9f3eff7c-83bd-5b0f-aa45-024dd0290211)
 		(property "Reference" "R2"
 			(at 292.1 246.888 0)
 			(show_name no)
@@ -22862,10 +22708,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 47e0393e-addc-5f9a-8c5d-5531da197d6c)
+			(uuid 7f599c09-926d-58f1-8038-11fb39087813)
 		)
 		(pin "2"
-			(uuid 54a1b6a7-e3c4-5bd9-a43f-9fb633c67f53)
+			(uuid 7792c54e-dd02-56bf-9f2d-a2587ef9ad7d)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -22885,7 +22731,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 380d810b-5aaa-53d3-a547-ea96791014cb)
+		(uuid 96707beb-86e7-5c18-a9c4-bea22dd82c4b)
 	)
 	(label "SR2"
 		(at 285.75 248.92 180)
@@ -22895,7 +22741,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid b26ae027-25c9-5f04-aad3-e81fc82fafb7)
+		(uuid a5c4031f-dc42-57c3-b539-942180d6bec6)
 	)
 	(wire
 		(pts
@@ -22906,7 +22752,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 0a967c3f-ec0f-5532-bae9-5682ce23af44)
+		(uuid 72ab302e-4acd-56e2-b577-f000f6dccd0a)
 	)
 	(label "LED_D2"
 		(at 298.45 248.92 0)
@@ -22916,7 +22762,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 793ec272-c7d9-50d0-bb45-966fac97b934)
+		(uuid 08933226-9922-5dac-93a4-b5f7bab96958)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -22926,7 +22772,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 93ed64b3-10fd-5353-afdc-0f2bd7cfcf90)
+		(uuid f2fb5d22-df86-5516-bbf7-f663ece71f88)
 		(property "Reference" "D2"
 			(at 312.42 251.46 0)
 			(show_name no)
@@ -22992,10 +22838,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 092501ac-bdbc-55ec-8ecf-669d56a9de68)
+			(uuid 54a1b6a7-e3c4-5bd9-a43f-9fb633c67f53)
 		)
 		(pin "2"
-			(uuid 31c3206a-d77a-5f7a-9abd-8df4159c9ec9)
+			(uuid 1e309b89-bd77-5bc3-93a1-c4c82a92d0c6)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -23015,7 +22861,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 8fac697f-7372-5bf9-9a13-d544a3e4d350)
+		(uuid 684f848c-dcf1-5aa5-97e4-052a288a9f49)
 	)
 	(label "LED_D2"
 		(at 306.07 248.92 180)
@@ -23025,7 +22871,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid a1e604e7-4f94-5987-bed9-9bb68e8c208e)
+		(uuid abeb9cd1-fc0a-5fef-8cb7-0e8ca72c1e29)
 	)
 	(wire
 		(pts
@@ -23036,7 +22882,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 5073ec97-e44e-51b2-91f4-10b199b05402)
+		(uuid ae032d94-0c47-5131-a26e-8a445f759b7a)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -23046,8 +22892,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 70f49a38-b1cc-5610-ae57-f59b09b5698f)
-		(property "Reference" "#PWR112"
+		(uuid 93ed64b3-10fd-5353-afdc-0f2bd7cfcf90)
+		(property "Reference" "#PWR111"
 			(at 325.12 248.92 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23102,12 +22948,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 9788e090-a560-5b0c-878c-29e3ea19550e)
+			(uuid 092501ac-bdbc-55ec-8ecf-669d56a9de68)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR112")
+					(reference "#PWR111")
 					(unit 1)
 				)
 			)
@@ -23121,7 +22967,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid c577c37d-a808-5ae1-869f-042bc663083c)
+		(uuid 5e4742a9-daab-5ff3-9bd5-1920355f944d)
 		(property "Reference" "R3"
 			(at 292.1 254.508 0)
 			(show_name no)
@@ -23176,10 +23022,10 @@
 			)
 		)
 		(pin "1"
-			(uuid dab35189-5438-5d84-913a-9a2820970bfe)
+			(uuid 31f89d42-4374-52f1-97f3-ce8ddcf00f40)
 		)
 		(pin "2"
-			(uuid 646e2db3-7d1d-5ea0-8c93-7b54707b163b)
+			(uuid d9b81a4a-1eca-52dd-8664-b0f36471be27)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -23199,7 +23045,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid d5aaf460-1d24-5743-90ed-a86388876487)
+		(uuid 5073ec97-e44e-51b2-91f4-10b199b05402)
 	)
 	(label "SR3"
 		(at 285.75 256.54 180)
@@ -23209,7 +23055,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid b3c1ef0b-f1fe-546e-9fbb-33c08bc686f8)
+		(uuid 422ffaa0-a883-5fcc-a72b-6efa32a31999)
 	)
 	(wire
 		(pts
@@ -23220,7 +23066,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid fa5e921d-cc90-56ad-afdd-0e06dedd9185)
+		(uuid 6523060d-ace2-5c1e-a98f-de14a3e803fd)
 	)
 	(label "LED_D3"
 		(at 298.45 256.54 0)
@@ -23230,7 +23076,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid aaf04f3d-b31c-515d-87cd-5b843dda858c)
+		(uuid d57234e2-9bf0-5ea2-880b-92f75c439b5b)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -23240,7 +23086,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 37f71d8d-a7d7-534a-9228-50c423511777)
+		(uuid c3d64a60-36d9-5be6-a842-9ee863b9441d)
 		(property "Reference" "D3"
 			(at 312.42 259.08 0)
 			(show_name no)
@@ -23306,10 +23152,10 @@
 			)
 		)
 		(pin "1"
-			(uuid f44373b1-3b9f-500e-853b-a52bbf9b30cc)
+			(uuid 646e2db3-7d1d-5ea0-8c93-7b54707b163b)
 		)
 		(pin "2"
-			(uuid 7447d872-3ab8-55ac-a339-b2849dffabba)
+			(uuid 7649ed59-611e-50d8-bf3e-f0646c0eac38)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -23329,7 +23175,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 3249b91f-f0a2-58a8-9426-ad00209f7619)
+		(uuid 231d341c-9e11-5b76-bc72-d551bfb3accb)
 	)
 	(label "LED_D3"
 		(at 306.07 256.54 180)
@@ -23339,7 +23185,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid d3c43553-1f57-5246-a8f6-ee77f147deb6)
+		(uuid b3198914-c42b-5ee0-9c6e-d9ddb8d4328e)
 	)
 	(wire
 		(pts
@@ -23350,7 +23196,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid a7201eab-38ca-570b-96b5-a9514e5d4031)
+		(uuid 47fe9630-7d3a-5d03-9b0e-4d2066e53e3b)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -23360,8 +23206,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid f06c4f8f-4ab7-53e3-ac42-f4e140e63583)
-		(property "Reference" "#PWR113"
+		(uuid 37f71d8d-a7d7-534a-9228-50c423511777)
+		(property "Reference" "#PWR112"
 			(at 325.12 256.54 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23416,12 +23262,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 22c22858-41e9-5f05-afb6-307a4d545c79)
+			(uuid f44373b1-3b9f-500e-853b-a52bbf9b30cc)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR113")
+					(reference "#PWR112")
 					(unit 1)
 				)
 			)
@@ -23435,7 +23281,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid d0462c3d-b149-5a0b-8258-5056b1f183bf)
+		(uuid 8917bd5b-06a5-5b89-9957-faa2dcf888ac)
 		(property "Reference" "R4"
 			(at 292.1 262.128 0)
 			(show_name no)
@@ -23490,10 +23336,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 595e3844-18e7-50f5-99bb-662e2a2a1278)
+			(uuid d7193b90-51bd-5e5a-b5be-241bb18ece99)
 		)
 		(pin "2"
-			(uuid 126b9622-2e9f-5407-81bd-cbf5e1f8ccd3)
+			(uuid 5f264cdc-90d3-5d4e-95dc-c7696eab05b3)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -23513,7 +23359,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid be2b0aa5-d3ef-5973-b4ea-e4be5afb0c49)
+		(uuid a7201eab-38ca-570b-96b5-a9514e5d4031)
 	)
 	(label "Q165_LOCAL"
 		(at 285.75 264.16 180)
@@ -23523,7 +23369,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 227bd92d-3f39-5528-ac26-88e14cbf9fe9)
+		(uuid fd5d0c09-58e9-590d-894b-c77763b91c68)
 	)
 	(wire
 		(pts
@@ -23534,7 +23380,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 6a11ba01-af50-54a5-99cc-8b25c37444d3)
+		(uuid c19393d8-5e93-513b-ad8c-27c9168db03d)
 	)
 	(label "LED_D4"
 		(at 298.45 264.16 0)
@@ -23544,7 +23390,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid d7dc3a39-8c86-5885-b3eb-405d8f483e19)
+		(uuid cd1cd28b-26ff-5b20-b913-1a8a88960df9)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -23554,7 +23400,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 74be4b06-c58f-5469-baef-70faeb9a41ef)
+		(uuid a249cf55-8c08-5b42-ae39-267771c7819d)
 		(property "Reference" "D4"
 			(at 312.42 266.7 0)
 			(show_name no)
@@ -23620,10 +23466,10 @@
 			)
 		)
 		(pin "1"
-			(uuid f4154950-b559-58a4-a12e-e8797c270bb0)
+			(uuid 126b9622-2e9f-5407-81bd-cbf5e1f8ccd3)
 		)
 		(pin "2"
-			(uuid ffd5f595-09de-57ee-bd88-12951aa7d901)
+			(uuid 1f674859-96df-55d3-963b-6a70c8a67119)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -23643,7 +23489,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid f047e7e1-a7a0-529b-8d33-dbdec0edeee0)
+		(uuid 297f2142-69da-5ba1-8e43-c15ae8107bc0)
 	)
 	(label "LED_D4"
 		(at 306.07 264.16 180)
@@ -23653,7 +23499,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 95f7ea7e-32ce-57d0-917c-d1616c34cf3b)
+		(uuid 2a2fa52f-ce4c-53cf-9522-0276e45151c1)
 	)
 	(wire
 		(pts
@@ -23664,7 +23510,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 1bff1099-ce50-59f2-b318-c6c997036d9f)
+		(uuid 8687ec4f-c465-587f-84c7-be2449c15317)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -23674,8 +23520,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 6d4ee5e2-b795-549d-acdd-2253f04c6eb0)
-		(property "Reference" "#PWR114"
+		(uuid 74be4b06-c58f-5469-baef-70faeb9a41ef)
+		(property "Reference" "#PWR113"
 			(at 325.12 264.16 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23730,12 +23576,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 317844d9-94fe-5a41-96c1-ec094582ef6c)
+			(uuid f4154950-b559-58a4-a12e-e8797c270bb0)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR114")
+					(reference "#PWR113")
 					(unit 1)
 				)
 			)
@@ -23749,7 +23595,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 32d42504-2d5a-5c8c-a284-3a66c88d0ed5)
+		(uuid cb4d0dc0-c1d7-5d08-a9f1-c4897e52fa31)
 		(property "Reference" "R5"
 			(at 292.1 269.748 0)
 			(show_name no)
@@ -23804,10 +23650,10 @@
 			)
 		)
 		(pin "1"
-			(uuid c0c9218e-5ab3-5ea7-9d6e-b115b36d79f5)
+			(uuid 4317944a-88d8-5aee-a07e-70d6c1f94302)
 		)
 		(pin "2"
-			(uuid 0dda4a32-5cd4-55e4-a736-993ecf2f0a34)
+			(uuid 38d34fa0-9928-504c-8b5c-c5b9b8a62f49)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -23827,7 +23673,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 5a3d3d7c-7f10-5c40-aba0-aab4f2dbec74)
+		(uuid 1bff1099-ce50-59f2-b318-c6c997036d9f)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -23837,8 +23683,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 8bb6620a-dd9e-56d1-922e-b20f49dfd184)
-		(property "Reference" "#PWR115"
+		(uuid 6d4ee5e2-b795-549d-acdd-2253f04c6eb0)
+		(property "Reference" "#PWR114"
 			(at 289.56 271.78 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23893,12 +23739,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 25fa6b5b-49c2-5111-b934-6323747f3a71)
+			(uuid 317844d9-94fe-5a41-96c1-ec094582ef6c)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR115")
+					(reference "#PWR114")
 					(unit 1)
 				)
 			)
@@ -23913,7 +23759,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 9befff06-8f3e-5020-9e9b-a8520ff2b3c6)
+		(uuid 495f43a9-ce56-598d-9447-19041803b33c)
 	)
 	(label "LED_D5"
 		(at 298.45 271.78 0)
@@ -23923,7 +23769,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 69688d36-ebe3-50e6-b7c1-91dd5f519807)
+		(uuid a1434982-36bf-5e51-b102-e16415de6641)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -23933,7 +23779,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 9474335a-ade0-5c7b-bc25-375132ea5cfb)
+		(uuid 2155aa38-c0c8-5d4f-b82d-997519d6e0a9)
 		(property "Reference" "D5"
 			(at 312.42 274.32 0)
 			(show_name no)
@@ -23999,10 +23845,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 05c81499-db10-5ed5-80f4-a70b09e9a502)
+			(uuid 8e434324-384c-5651-b973-e9cbd69e05e0)
 		)
 		(pin "2"
-			(uuid 350c8af0-d054-59c2-a916-0af3c8ace5e8)
+			(uuid daeb53cb-8789-5859-95e7-643ac99c4747)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -24022,7 +23868,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 1de2a2c3-e818-51f8-a24d-bd998acbd398)
+		(uuid f0cc6e7b-d592-59d1-a8ce-b44b2b849051)
 	)
 	(label "LED_D5"
 		(at 306.07 271.78 180)
@@ -24032,7 +23878,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 52b11959-1028-50a6-b02c-01378deb2de2)
+		(uuid f708feda-3e3b-5e37-b234-029de7834e51)
 	)
 	(wire
 		(pts
@@ -24043,7 +23889,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 25e383cc-69f8-529f-befb-db0a7f02c43a)
+		(uuid 27e34412-786e-5880-920f-40d9e825dcf5)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -24053,8 +23899,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 5da8bb56-31a3-5529-b22a-a4d74d344d58)
-		(property "Reference" "#PWR116"
+		(uuid 9474335a-ade0-5c7b-bc25-375132ea5cfb)
+		(property "Reference" "#PWR115"
 			(at 325.12 271.78 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24109,12 +23955,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 336c4f92-6fb6-5de0-8df4-0fe9fbb79e79)
+			(uuid 05c81499-db10-5ed5-80f4-a70b09e9a502)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR116")
+					(reference "#PWR115")
 					(unit 1)
 				)
 			)
@@ -24128,7 +23974,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 86e38b51-02fd-5f93-8cba-05fd9110b098)
+		(uuid c56e2e04-75af-5c6b-a177-afa9d0b1f9dd)
 		(property "Reference" "J11"
 			(at 353.06 246.38 0)
 			(show_name no)
@@ -24183,22 +24029,22 @@
 			)
 		)
 		(pin "1"
-			(uuid 492c4efa-5026-5260-a116-7b4a64ff004d)
+			(uuid f5325b0c-f301-54ce-9a37-e57e8f9aefe9)
 		)
 		(pin "2"
-			(uuid ebde1d79-b36d-5386-a5bf-6cddd5905586)
+			(uuid 4a37bb6d-05a9-567e-8f02-0986d794a0f4)
 		)
 		(pin "3"
-			(uuid 745146f0-719a-5899-8224-05d835d3dc8d)
+			(uuid 87a2e89a-3201-5b81-ad60-ab6c2d1a9ad9)
 		)
 		(pin "4"
-			(uuid f516486b-b9e0-5b42-b5ee-2ad94dd32da9)
+			(uuid f2b7987d-a15d-5614-97f0-65c1d6c4851f)
 		)
 		(pin "5"
-			(uuid e1cbb74d-bf62-5d00-92a3-eee0b1a56c1a)
+			(uuid 336c4f92-6fb6-5de0-8df4-0fe9fbb79e79)
 		)
 		(pin "6"
-			(uuid 2a204f07-708c-598a-9bee-cd28148fc177)
+			(uuid 601d485e-cf7c-5995-95d0-1bcd4e5009e3)
 		)
 		(instances
 			(project "surrklank-fdd-module"
@@ -24218,7 +24064,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid ec8d446b-3681-5d9b-94fc-7e3ea2230e57)
+		(uuid a4d2c4b2-741d-5ed9-9c38-41f5f4c46015)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -24228,8 +24074,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 0c3785c0-97e5-5606-8843-65c54624d283)
-		(property "Reference" "#PWR117"
+		(uuid 3eb979ea-338e-5f3e-8c24-9346d6dac4e0)
+		(property "Reference" "#PWR116"
 			(at 349.25 248.92 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24284,12 +24130,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 16d53094-c089-535a-b80f-99b7bf4f4210)
+			(uuid 745146f0-719a-5899-8224-05d835d3dc8d)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR117")
+					(reference "#PWR116")
 					(unit 1)
 				)
 			)
@@ -24304,7 +24150,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 68047bab-7e92-5673-ab11-efeb4ed560d1)
+		(uuid 70df32a6-d5b1-5d78-b4da-0c6607f957f0)
 	)
 	(label "B_DATA"
 		(at 345.44 251.46 180)
@@ -24314,7 +24160,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 8006710f-c6f4-52e0-87ae-2f0b06f76f46)
+		(uuid 182aef11-c6bc-5b28-bcfe-2f7589d2b8bf)
 	)
 	(wire
 		(pts
@@ -24325,7 +24171,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid c299668b-ac35-5b70-bbfb-0f6b3977dd1e)
+		(uuid 0d51377e-9acc-55e6-9dd2-1893e4b4b9fe)
 	)
 	(label "B_CLK"
 		(at 345.44 254 180)
@@ -24335,7 +24181,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 35aa989a-3156-533c-86ef-33f0538f5fcb)
+		(uuid e4b93195-6927-5f2b-aa6c-eb292ee5d02d)
 	)
 	(wire
 		(pts
@@ -24346,7 +24192,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 78a63fc0-08e4-54e9-8af1-f32895914da5)
+		(uuid 7becda18-3a11-5a12-9efb-bb17fb44cb85)
 	)
 	(label "B_LATCH"
 		(at 345.44 256.54 180)
@@ -24356,7 +24202,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 02b8e635-e8e3-5a67-836a-21df6788e082)
+		(uuid 0eca3017-5b33-5517-896c-ecd4ed8b1ad7)
 	)
 	(wire
 		(pts
@@ -24367,7 +24213,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 66214d6d-108d-5160-926c-a4f1c6928e71)
+		(uuid 68047bab-7e92-5673-ab11-efeb4ed560d1)
 	)
 	(label "SR3"
 		(at 345.44 259.08 180)
@@ -24377,7 +24223,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid a7973616-7d5f-5c6e-aee0-a12994566213)
+		(uuid 8006710f-c6f4-52e0-87ae-2f0b06f76f46)
 	)
 	(wire
 		(pts
@@ -24388,7 +24234,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 0586554d-d50d-5988-9a2b-532027a53df8)
+		(uuid c299668b-ac35-5b70-bbfb-0f6b3977dd1e)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -24398,8 +24244,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 3e06abdd-35e4-58cf-adbb-fd22435a9640)
-		(property "Reference" "#PWR118"
+		(uuid fad9de30-00ae-5303-b945-618d709e03e8)
+		(property "Reference" "#PWR117"
 			(at 339.09 261.62 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -24454,12 +24300,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 1220c881-d9dc-5491-a909-e226477693b7)
+			(uuid 47167463-5540-55d4-9f83-b6635e384b1f)
 		)
 		(instances
 			(project "surrklank-fdd-module"
 				(path "/92a31a02-2301-5484-bcfd-7a054ce4974c"
-					(reference "#PWR118")
+					(reference "#PWR117")
 					(unit 1)
 				)
 			)
@@ -24474,7 +24320,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid dcfe8b0f-b1b8-5bcf-995b-94cc835b77ea)
+		(uuid 23496f01-eb83-58fa-b85e-eddf402d80c6)
 	)
 	(sheet_instances
 		(path "/"

@@ -98,8 +98,8 @@ def main(path):
     for ref, pin in (("U1", "20"), ("U2", "16"), ("U3", "16"), ("U4", "16"), ("U5", "16")):
         if where.get((ref, pin)) != "+3V3":
             fail(f"{ref}.{pin} not on +3V3")
-    if where.get(("J5", "4")) != "+5V" or ("J5", "1") in where and where[("J5", "1")] not in (None,) and not where[("J5", "1")].startswith("unconnected"):
-        fail("Molex: pin 4 must be +5V and pin 1 (+12V) unconnected")
+    if where.get(("J5", "1")) != "+5V" or where.get(("J5", "2")) != "GND" or ("J5", "3") in where:
+        fail("J5 (KF301, 2 poles) must be pin 1 +5V and pin 2 GND")
 
     # Bring-up aids: LEDs read existing nets through 1k, header J11 is a plain tap
     lit = {"D1": ("U2", "9"), "D2": ("U3", "9"), "D3": ("U4", "9"), "D4": ("U5", "9")}

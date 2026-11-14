@@ -13,7 +13,7 @@ import module_common as mc  # noqa: E402
 
 FP_R = "Resistor_SMD:R_0805_2012Metric"
 FP_C = "Capacitor_SMD:C_0805_2012Metric"
-FP_TERM = "Connector_Phoenix_MSTB:PhoenixContact_MSTBA_2,5_5-G-5,08_1x05_P5.08mm_Horizontal"
+FP_TERM = "surrklank:TerminalBlock_KF301_1x05_P5.08mm_Horizontal"
 FP_JST2 = "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical"
 FP_JUMPER = "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
 FP_IDC10 = "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical"
@@ -92,7 +92,7 @@ def build(path):
     j1 = sh.symbol("Connector:Screw_Terminal_01x05", "J1", "ATX_IN", 38.1, 190.5, footprint=FP_TERM)
     for pin, n in zip("12345", ["+5V", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]):
         sh.connect(j1, pin, n)
-    sh.text("J1: pluggable terminal from the ATX 24-pin distribution:\n"
+    sh.text("J1: KF301 screw terminal from the ATX 24-pin distribution:\n"
             "1 +5V (red), 2 GND, 3 PS_ON# (green), 4 +5VSB (purple), 5 PWR_OK (grey).",
             (20.32, 213.36))
     sh.flag("+5V", (25.4, 233.68))

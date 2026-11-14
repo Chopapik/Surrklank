@@ -14,7 +14,7 @@ KiCad 10 projects:
 | `mainboard/` | Mainboard v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB (within the 100 × 100 mm low-cost fab class) |
 | `panel/` | Remote panel v0.1: generated schematic and autorouted 100 × 59 mm 2-layer PCB |
 | `surrklank-controller/` | Empty first KiCad project, superseded by `mainboard/` |
-| `lib/` | Custom symbols (DRV8833 module, ESP32 38-pin board) and footprints (Molex 8981, DRV8833 module, Surrklank logo) |
+| `lib/` | Custom symbols (DRV8833 module, ESP32 38-pin board) and footprints (KF301 screw terminals, ESP32 board, DRV8833 module, Surrklank logo) |
 | `tools/` | Generators, netlist check and build script |
 
 Boards are generated, not edited by hand. One command rebuilds a board
@@ -53,10 +53,10 @@ Freerouting 2.5.0 CLI build fails on board serialization and is not used.
   pins left no room for thermal spokes.
 - LSM/HDD motor supply: a +5V band on B_Cu (7.9 mm at its widest, 4.7 mm at the
   four GND notches, about 10 A at +20 K for 1 oz copper by an IPC-2221 estimate;
-  the Molex pin and the PSU wire limit first, so consider 2 oz copper) runs from Molex J5 pin 4
-  past C8 (+) and the VCC pins of all four DRV8833 slots to J10 pin 4. Below it
+  the terminal and the PSU wire limit first, so consider 2 oz copper) runs from the two +5V
+  poles of KF301 J5 past C8 (+) and the VCC pins of all four DRV8833 slots. Below it
   B_Cu is a solid GND plane reaching each slot's GND pin through a notch in the
-  band, plus the Molex GND pins and C8 (−). Both zones are passed to Freerouting
+  band, plus the two GND poles of J5 and C8 (−). Both zones are passed to Freerouting
   as planes, and a rule area forbids B_Cu tracks and vias there, so signals
   cross on F_Cu only. The band's current capacity for the theoretical 9.6 A is
   estimated, not calculated or measured; the LDO is fed by a 0.6 mm track.
@@ -69,8 +69,8 @@ Freerouting 2.5.0 CLI build fails on board serialization and is not used.
 | Board | Contents |
 | --- | --- |
 | Mainboard | ESP32 board, ATX switch and button, PWR_OK input, 5VSB supply, one ribbon connector per branch, remote panel connector |
-| FDD module | 3 × 74HC595, 1 × 74HC165, input buffer, LDO, two 40-pin IDE headers, IN/OUT ribbon connectors, one Molex |
-| LSM/HDD module | Four DRV8833 module positions, 3 × 74HC595, 1 × 74HC165, input buffer, LDO, IN/OUT ribbon connectors, one or two Molex |
+| FDD module | 3 × 74HC595, 1 × 74HC165, input buffer, LDO, two 40-pin IDE headers, IN/OUT ribbon connectors, one 2-pole KF301 |
+| LSM/HDD module | Four DRV8833 module positions, 3 × 74HC595, 1 × 74HC165, input buffer, LDO, IN/OUT ribbon connectors, one 4-pole KF301 |
 
 At least two module designs are needed. Whether the mainboard is a third design
 or is merged into one of them is not decided.
@@ -93,13 +93,14 @@ pin order listed by the seller and matching the silkscreen photo.
   body outline in the footprint is approximate, so the antenna position on
   the real board is not checked.
 - Below the USB end the PCB is left free (only the silkscreen note
-  "REMOVE JP1 BEFORE USB") so the micro-USB plug clears the ATX terminal.
+  "REMOVE JP1 BEFORE USB") so the micro-USB plug clears the ATX terminal (KF301 J1, x 37-63 mm, y 66-74 mm).
 - PCB v0.1 layout: register control resistor arrays in the middle, ribbon
-  J2 (FDD) and J3 (LSM/HDD) on the right edge, ATX terminal J1 at the bottom
-  edge with the plug side outward, button J4 bottom right, remote panel
+  J2 (FDD) and J3 (LSM/HDD) on the right edge, ATX terminal J1 (KF301, 5 poles) at the bottom
+  edge with the wire entry outward and labelled poles above it, button J4 bottom right, remote panel
   connector J6 (2 × 5 IDC, see WIRING.md) at the top edge. Autorouted, not
   hand-optimised.
-- Power input: pluggable (two-part) screw terminal; ATX button on a two-pin connector.
+- Power input: KF301 screw terminal on every board that takes power (mainboard 5 poles,
+  FDD module 2, LSM/HDD module 4); ATX button on a two-pin connector.
 
 ## Remote panel
 
@@ -130,16 +131,15 @@ everything on the front side:
 | --- | --- |
 | Ribbon IN/OUT | 2 × 8 IDC box header, 2.54 mm |
 | FDD drive cable | Salvaged 40-pin IDE header; standard DIN 41651 2 × 20 footprint (2.54 mm pitch, 1.0 mm holes, body about 58.5 × 8.9 mm in KiCad) with extra clearance for a cut-down housing |
-| Molex power | Custom: Molex 8981 family, 5.08 mm pitch, slightly enlarged holes and a few millimetres of clearance for different salvaged housings; pin tail diameter (optional measurement) can refine holes |
+| Power input | Custom `TerminalBlock_KF301_1xNN_P5.08mm_Horizontal` (2, 4 and 5 poles, from `gen_terminal_footprints.py`): 5.08 mm pitch, 3.0 mm pads, 1.4 mm holes, generic body about 8 mm deep with the wires entering from the +y side; check against the bought part |
 | DRV8833 module | Custom `DRV8833_Module_2x6_W15.24mm`: 2 × 6, 2.54 mm pitch, rows 15.24 mm apart, 1.0 mm holes, DIP-style numbering |
 | Motor outputs | JST-XH 4-pin vertical (B4B-XH-A, 2.5 mm) per DRV8833 slot; crimped plugs |
 | LSM/HDD bulk capacitor | 470 µF 16 V radial THT, 10 mm diameter, 5 mm pitch |
 | ESP32 board | Two 1 × 19 female headers, 2.54 mm pitch, rows 24.85 mm apart |
 
-Male Molex connectors may be salvaged from HDD controller boards, where they
-often share one housing with the IDE header and jumpers. Desolder the whole part
-first, then cut the plastic housing; the cut-off IDE part can serve as an FDD
-module header.
+Salvaged male Molex headers turned out to be SMD, so every power input is a
+KF301 screw terminal (see WIRING.md, Power). A cut-off IDE part can still serve
+as an FDD module header.
 
 ## Layout notes
 
@@ -149,10 +149,10 @@ module header.
   the schematic; `gen_module_pcb.py <board> brand` re-applies it without rerouting.
 - LSM/HDD module: ribbon IN/OUT on the left and right edges, registers in a
   row above four DRV8833 slots (rotated so OUT1–OUT4 face the bottom edge),
-  JST-XH motor connectors at the bottom edge, J5 bottom left with C8 beside it,
-  optional J10 bottom right. The Molex footprint marks the +12 V position NC.
-  The board is 120 mm wide: the Molex clearance, C8 and four 18.6 mm slots do
-  not fit in 100 mm.
+  JST-XH motor connectors at the bottom edge, 4-pole KF301 J5 at the left edge
+  with C8 beside it. Every pole is labelled with its function (+5V or GND) to
+  the right of the terminal body. The board is 120 mm wide: C8 and four 18.6 mm
+  slots do not fit in 100 mm.
 - Ribbon signals keep the signal/ground order of the 16-pin assignment.
 - Both modules carry bring-up aids: LEDs D1-D5 (register serial outputs, 165
   return, 3.3 V) at the registers and header J11 (3V3, DATA, CLK, LATCH, end of
@@ -188,11 +188,11 @@ script are partly unverified and are not maintained for hand assembly).
 ## Open items
 
 - Before ordering: dry-fit the 1:1 sheet (`export_dryfit.py`) with the real ESP32
-  board, salvaged IDE header and Molex, terminal, buttons and OLED; measure the
+  board, salvaged IDE header, KF301 terminals, buttons and OLED; measure the
   DRV8833 module J1 and EEP pull-up supply with a multimeter.
 - Parts: AMS1117 with the 22 µF 1206 ceramic is untested (datasheet silent on
   ceramics; scope the 3.3 V rail of the first module).
-- Molex footprint key side (silk chamfers) against the real salvaged header.
+- Power input: KF301 pole and body size against the bought terminals (generic values in the footprints).
 - MOTOR behaviour on the installed drives (the hand-wired assembly works with
   TRACK0 pulled up and no 595 output pull-ups).
 - Motor supply current per LSM/HDD module and wire gauge.

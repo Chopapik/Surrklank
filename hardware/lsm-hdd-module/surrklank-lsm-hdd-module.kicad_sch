@@ -14382,7 +14382,7 @@
 				)
 			)
 		)
-		(property "Value" "MOLEX_5V"
+		(property "Value" "POWER_5V"
 			(at 45.72 210.82 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14392,7 +14392,7 @@
 				)
 			)
 		)
-		(property "Footprint" "surrklank:Molex_8981_1x04_P5.08mm_Vertical"
+		(property "Footprint" "surrklank:TerminalBlock_KF301_1x04_P5.08mm_Horizontal"
 			(at 45.72 203.2 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14446,9 +14446,91 @@
 			)
 		)
 	)
-	(no_connect
-		(at 40.64 200.66)
-		(uuid e8f61762-7696-5cba-b0b9-663571e3a71b)
+	(wire
+		(pts
+			(xy 40.64 200.66)
+			(xy 38.1 200.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 60be20cf-1046-5e9e-83cd-f4f064662300)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 38.1 200.66 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid 5daf48a9-c64b-5220-964e-db57f3b9fbd7)
+		(property "Reference" "#PWR051"
+			(at 41.91 200.66 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 34.544 200.66 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 38.1 200.66 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 38.1 200.66 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 38.1 200.66 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid d3694915-35dd-587c-9a1d-fddd2d67eb16)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "#PWR051")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -14459,19 +14541,19 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 4ff732cc-4cac-59d6-8384-cd6c81855215)
+		(uuid 7f7adf7a-ab51-5f26-a7a5-f9f567c9b0a9)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 38.1 203.2 270)
+		(lib_id "power:+5V")
+		(at 38.1 203.2 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 86287b07-c7ab-5e90-9022-688a6acba08e)
-		(property "Reference" "#PWR051"
-			(at 31.75 203.2 90)
+		(uuid 51c3887c-3c89-5f9f-bd15-6b3c818750ae)
+		(property "Reference" "#PWR052"
+			(at 41.91 203.2 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -14481,8 +14563,8 @@
 				)
 			)
 		)
-		(property "Value" "GND"
-			(at 34.29 203.2 90)
+		(property "Value" "+5V"
+			(at 34.544 203.2 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14513,7 +14595,7 @@
 				)
 			)
 		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
 			(at 38.1 203.2 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14525,12 +14607,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 61cd88cf-9c40-5af1-8298-2df36b4d4831)
+			(uuid cd551bb4-56c5-53a8-ab8f-4ed47e75f657)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR051")
+					(reference "#PWR052")
 					(unit 1)
 				)
 			)
@@ -14545,7 +14627,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid f6eef6ca-d13a-5644-a73d-aafa1d07a417)
+		(uuid a6fc01d1-2db9-5a45-a7d7-c862b5c8ed82)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -14555,8 +14637,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid d534487a-483f-5c60-96ee-81cf93c2be25)
-		(property "Reference" "#PWR052"
+		(uuid 4dc4c662-9c57-51a1-a9da-13d5cfd7bdf9)
+		(property "Reference" "#PWR053"
 			(at 31.75 205.74 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14611,12 +14693,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 972fdbf8-1b55-55d9-93db-587c095bf217)
+			(uuid 9e9fbccb-f116-5189-bc84-38f86b967875)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR052")
+					(reference "#PWR053")
 					(unit 1)
 				)
 			)
@@ -14631,19 +14713,19 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 508fc64c-ce24-5cf9-8e01-16e52e138dfa)
+		(uuid da445a7d-2328-5d9e-a1ae-0590b027c847)
 	)
 	(symbol
-		(lib_id "power:+5V")
-		(at 38.1 208.28 90)
+		(lib_id "power:GND")
+		(at 38.1 208.28 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 14b79f88-2ba0-5a3c-a4ea-781fa4a67973)
-		(property "Reference" "#PWR053"
-			(at 41.91 208.28 90)
+		(uuid 738e7320-d52a-5fbb-9898-5a21e61a9110)
+		(property "Reference" "#PWR054"
+			(at 31.75 208.28 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -14653,8 +14735,8 @@
 				)
 			)
 		)
-		(property "Value" "+5V"
-			(at 34.544 208.28 90)
+		(property "Value" "GND"
+			(at 34.29 208.28 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14685,82 +14767,8 @@
 				)
 			)
 		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
 			(at 38.1 208.28 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid 976eb304-d9ee-5344-b228-dea87acd843e)
-		)
-		(instances
-			(project "surrklank-lsm-hdd-module"
-				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR053")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Generic:Conn_01x04")
-		(at 45.72 233.68 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp yes)
-		(uuid 738e7320-d52a-5fbb-9898-5a21e61a9110)
-		(property "Reference" "J10"
-			(at 45.72 228.6 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "MOLEX_5V_OPT"
-			(at 45.72 241.3 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "surrklank:Molex_8981_1x04_P5.08mm_Vertical"
-			(at 45.72 233.68 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 45.72 233.68 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 45.72 233.68 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -14773,105 +14781,6 @@
 		(pin "1"
 			(uuid 7c83a3a9-af76-54c5-a137-c8ef0477e43d)
 		)
-		(pin "2"
-			(uuid 9e7cb314-9d2e-5417-876e-5fb5a394c5c2)
-		)
-		(pin "3"
-			(uuid 16522916-2746-53a9-ab64-dcc19111363a)
-		)
-		(pin "4"
-			(uuid 03e76cd1-9a37-505b-a5ca-aa2d7e58d929)
-		)
-		(instances
-			(project "surrklank-lsm-hdd-module"
-				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "J10")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(no_connect
-		(at 40.64 231.14)
-		(uuid f764fca2-174a-593b-95ea-05ed08cee4b2)
-	)
-	(wire
-		(pts
-			(xy 40.64 233.68)
-			(xy 38.1 233.68)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid b068b3b8-a443-541c-af12-8a8463c53f34)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 38.1 233.68 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(dnp no)
-		(uuid 26c15ac7-391b-5082-bbf9-402c975708ed)
-		(property "Reference" "#PWR054"
-			(at 31.75 233.68 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 34.29 233.68 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 38.1 233.68 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 38.1 233.68 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 38.1 233.68 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid 91ed53eb-3713-539c-b2dc-96430ec68637)
-		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
@@ -14881,188 +14790,16 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 40.64 236.22)
-			(xy 38.1 236.22)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid 9b700e42-ab05-58b7-9b8e-7dfacaa026ff)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 38.1 236.22 270)
-		(unit 1)
+	(text "J5 (KF301, 4 poles): pins 1-2 +5V (red), pins 3-4 GND (black), one wire per pole.\nNo +12 V on this connector. Two wires per rail share the motor current."
 		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(dnp no)
-		(uuid 4bd6b5b3-3cb8-5ff9-a221-d08101837b2e)
-		(property "Reference" "#PWR055"
-			(at 31.75 236.22 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 34.29 236.22 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 38.1 236.22 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 38.1 236.22 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 38.1 236.22 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid 1c7e926e-e8a3-5912-b777-09421c2fa855)
-		)
-		(instances
-			(project "surrklank-lsm-hdd-module"
-				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR055")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 40.64 238.76)
-			(xy 38.1 238.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid 3c745ff7-34f2-59f6-b4eb-1d11cce72990)
-	)
-	(symbol
-		(lib_id "power:+5V")
-		(at 38.1 238.76 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(dnp no)
-		(uuid f4442e8e-bf1c-5b04-b444-f4c55eb48c4e)
-		(property "Reference" "#PWR056"
-			(at 41.91 238.76 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+5V"
-			(at 34.544 238.76 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 38.1 238.76 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 38.1 238.76 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 38.1 238.76 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid b9b5998e-a854-561b-ba9a-296dc54c3122)
-		)
-		(instances
-			(project "surrklank-lsm-hdd-module"
-				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR056")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(text "J5/J10 pin 1 (+12V, yellow) is not connected; pin 4 must carry +5V (red).\nJ10 is fitted only if measured motor current needs it."
-		(exclude_from_sim no)
-		(at 25.4 248.92 0)
+		(at 25.4 218.44 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left bottom)
 		)
-		(uuid 5f52de47-cc9d-58ac-a92f-30523fe470b8)
+		(uuid 5970f783-e32a-5a73-872a-e78360d8cc24)
 	)
 	(symbol
 		(lib_id "Device:C_Polarized")
@@ -15072,7 +14809,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 61afa7f7-c5bb-5eab-959d-e18a8c424b20)
+		(uuid 88c04109-335b-5c48-a18a-1282ecda385c)
 		(property "Reference" "C8"
 			(at 76.835 264.16 0)
 			(show_name no)
@@ -15129,10 +14866,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 3efd60d6-f90d-5682-80f2-988500d53c08)
+			(uuid 03e76cd1-9a37-505b-a5ca-aa2d7e58d929)
 		)
 		(pin "2"
-			(uuid 9af35874-c465-5241-b335-1baf4dd7e382)
+			(uuid 78992955-70c5-589c-9a10-2bdacef0e1c0)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -15152,7 +14889,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 6160c054-52fc-5737-9cd6-c6200f84c690)
+		(uuid b068b3b8-a443-541c-af12-8a8463c53f34)
 	)
 	(symbol
 		(lib_id "power:+5V")
@@ -15162,8 +14899,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid f914c4c9-15e5-554c-b71c-6642b68cd716)
-		(property "Reference" "#PWR057"
+		(uuid 26c15ac7-391b-5082-bbf9-402c975708ed)
+		(property "Reference" "#PWR055"
 			(at 76.2 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15218,12 +14955,12 @@
 			)
 		)
 		(pin "1"
-			(uuid ddea3b73-3379-5877-b999-72a33525b5ab)
+			(uuid 91ed53eb-3713-539c-b2dc-96430ec68637)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR057")
+					(reference "#PWR055")
 					(unit 1)
 				)
 			)
@@ -15238,7 +14975,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 5e1739bd-449d-5721-9d35-c52ba73b1c40)
+		(uuid 9b700e42-ab05-58b7-9b8e-7dfacaa026ff)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -15248,8 +14985,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid d453cef9-67d4-57b5-bb2e-230e6a8bb2d1)
-		(property "Reference" "#PWR058"
+		(uuid 4bd6b5b3-3cb8-5ff9-a221-d08101837b2e)
+		(property "Reference" "#PWR056"
 			(at 76.2 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15304,12 +15041,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 91c8cd64-5ec6-5cad-9333-7b3511dd64d3)
+			(uuid 1c7e926e-e8a3-5912-b777-09421c2fa855)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR058")
+					(reference "#PWR056")
 					(unit 1)
 				)
 			)
@@ -15323,7 +15060,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 6e76762c-827e-595d-9c86-5d6051c891d1)
+		(uuid 95626ae8-2f54-527a-aa67-5ea1542a4112)
 		(property "Reference" "U6"
 			(at 100.33 194.945 0)
 			(show_name no)
@@ -15379,13 +15116,13 @@
 			)
 		)
 		(pin "1"
-			(uuid fe7bb914-0d44-5342-93f7-9b6b2da5edf4)
+			(uuid 29c1ba0b-59be-5886-a83e-6b0ed6b241cf)
 		)
 		(pin "2"
-			(uuid 6299b9de-7bd3-50ba-8ca7-fcb5ae571e88)
+			(uuid b9b5998e-a854-561b-ba9a-296dc54c3122)
 		)
 		(pin "3"
-			(uuid 11a9e9a0-55ed-5a74-b0ce-cb41b649a8f0)
+			(uuid dfa12911-3850-5024-a154-70f70c12f65a)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -15405,7 +15142,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid ab9d9079-c3e2-5387-8c64-2aeea0ae4eae)
+		(uuid 183b6f89-c534-5ebc-8499-a30d29c4644a)
 	)
 	(symbol
 		(lib_id "power:+5V")
@@ -15415,8 +15152,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 265cee73-4fbd-50ca-a3b2-4ce601577b7b)
-		(property "Reference" "#PWR059"
+		(uuid b9996096-59f6-5351-bd83-ba046903c626)
+		(property "Reference" "#PWR057"
 			(at 97.79 198.12 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15471,12 +15208,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 7e7021b5-76e1-554f-a71b-eaeea0f792e7)
+			(uuid 9af35874-c465-5241-b335-1baf4dd7e382)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR059")
+					(reference "#PWR057")
 					(unit 1)
 				)
 			)
@@ -15491,7 +15228,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 9521f41e-84a6-5f36-8781-a3223ebbb5e7)
+		(uuid 6160c054-52fc-5737-9cd6-c6200f84c690)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -15501,8 +15238,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid ef169bee-9db1-5fa7-94cb-8fdafdc409ba)
-		(property "Reference" "#PWR060"
+		(uuid f914c4c9-15e5-554c-b71c-6642b68cd716)
+		(property "Reference" "#PWR058"
 			(at 110.49 198.12 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15557,12 +15294,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 4f6a2c1b-8377-5db1-a549-17cae4efc21d)
+			(uuid ddea3b73-3379-5877-b999-72a33525b5ab)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR060")
+					(reference "#PWR058")
 					(unit 1)
 				)
 			)
@@ -15577,7 +15314,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 93bd5044-620c-5368-a577-f387ec099cc7)
+		(uuid 5e1739bd-449d-5721-9d35-c52ba73b1c40)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -15587,8 +15324,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 44765c17-ebb7-5758-9479-e241027c1452)
-		(property "Reference" "#PWR061"
+		(uuid d453cef9-67d4-57b5-bb2e-230e6a8bb2d1)
+		(property "Reference" "#PWR059"
 			(at 104.14 214.63 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15643,12 +15380,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 56899587-59c5-5b0a-8b71-579179fe41e7)
+			(uuid 91c8cd64-5ec6-5cad-9333-7b3511dd64d3)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR061")
+					(reference "#PWR059")
 					(unit 1)
 				)
 			)
@@ -15662,7 +15399,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 8067df51-15c3-55ee-9979-ae152916d553)
+		(uuid 6e76762c-827e-595d-9c86-5d6051c891d1)
 		(property "Reference" "C6"
 			(at 89.535 210.82 0)
 			(show_name no)
@@ -15719,10 +15456,10 @@
 			)
 		)
 		(pin "1"
-			(uuid a3212f58-f0c7-587e-a4f8-21b0821fa10f)
+			(uuid fe7bb914-0d44-5342-93f7-9b6b2da5edf4)
 		)
 		(pin "2"
-			(uuid 2b84273b-d50f-566c-8c37-316fe9b4d44d)
+			(uuid 6299b9de-7bd3-50ba-8ca7-fcb5ae571e88)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -15742,7 +15479,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid ba24cfe6-7899-5b7c-a9be-9efa3b1726c0)
+		(uuid 51b3ea60-524a-5eb5-a2b3-3d252a4c943d)
 	)
 	(symbol
 		(lib_id "power:+5V")
@@ -15752,8 +15489,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 70e56863-5fd5-5d6d-9761-203230d03b6d)
-		(property "Reference" "#PWR062"
+		(uuid 68eb7762-809b-5d88-bc35-0fa9e1d5acf4)
+		(property "Reference" "#PWR060"
 			(at 88.9 210.82 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15808,12 +15545,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 2cc32bee-75ca-50d0-a4e1-5d57fa4ea157)
+			(uuid a3788583-5f0a-52a5-89d3-71cc4e9bfc0c)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR062")
+					(reference "#PWR060")
 					(unit 1)
 				)
 			)
@@ -15828,7 +15565,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid f685a3d0-e4bc-5f17-891d-04716a1bcc72)
+		(uuid a58d4a5a-4832-51e0-9a02-e196dd4b193b)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -15838,8 +15575,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 9e9ed9bc-82fe-5f37-86be-6444989c7cfb)
-		(property "Reference" "#PWR063"
+		(uuid bc5cd589-d9b5-56cc-a375-88063e287ad8)
+		(property "Reference" "#PWR061"
 			(at 88.9 226.06 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15894,12 +15631,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 54d91a23-7791-5151-a836-b924235ba2df)
+			(uuid 9efb963a-775a-5ff5-8586-d8c22907fbcf)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR063")
+					(reference "#PWR061")
 					(unit 1)
 				)
 			)
@@ -15913,7 +15650,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid aaae45db-1137-543d-a3b1-ceed005e7451)
+		(uuid 5f54ec02-73a9-5c04-b73d-3c109972e1c7)
 		(property "Reference" "C7"
 			(at 120.015 210.82 0)
 			(show_name no)
@@ -15970,10 +15707,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 9baeab29-1e97-5c0d-ae48-86bf67c08f76)
+			(uuid bcbc65f8-339e-5083-885c-48931e249c6a)
 		)
 		(pin "2"
-			(uuid 7bf4d5ec-6b22-5d4b-8ea4-88b6db7d6a7d)
+			(uuid db811bb5-412b-50f1-b367-51dfcd654442)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -15993,7 +15730,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid ae0cbece-e939-5fea-bd63-b813c3fed88c)
+		(uuid 9328b5dd-91c5-588e-86bb-f3067b46c96d)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -16003,8 +15740,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 20fbc2e2-9694-5dd5-a286-5b56c4877e99)
-		(property "Reference" "#PWR064"
+		(uuid 8067df51-15c3-55ee-9979-ae152916d553)
+		(property "Reference" "#PWR062"
 			(at 119.38 210.82 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16059,12 +15796,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 813b3d8b-c71a-5444-bdad-403762edda20)
+			(uuid a3212f58-f0c7-587e-a4f8-21b0821fa10f)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR064")
+					(reference "#PWR062")
 					(unit 1)
 				)
 			)
@@ -16079,7 +15816,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid cd5151ef-b8df-510a-ab6e-7cfccd1827af)
+		(uuid a5b99465-419b-5cdf-a04d-ccfbf2b2375e)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -16089,8 +15826,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 349b99a6-5536-56de-a3bc-32268d6a5ba9)
-		(property "Reference" "#PWR065"
+		(uuid c6bbff77-b01b-5e53-a34b-16cd475c012c)
+		(property "Reference" "#PWR063"
 			(at 119.38 226.06 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16145,12 +15882,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 7d96af6c-cce4-537f-bd17-83100b22b6e3)
+			(uuid f5ddc977-40b3-559c-b935-67288bca3a0e)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR065")
+					(reference "#PWR063")
 					(unit 1)
 				)
 			)
@@ -16164,8 +15901,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid e90b97f1-6d14-5cec-9de0-18ffdec4ab02)
-		(property "Reference" "#PWR067"
+		(uuid a9b9c412-4265-5ad5-a509-78a4eafa9421)
+		(property "Reference" "#PWR065"
 			(at 88.9 237.49 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16220,12 +15957,12 @@
 			)
 		)
 		(pin "1"
-			(uuid e88edf1d-c4ac-5325-b3b7-a719f16a3d7a)
+			(uuid a25f63e6-01e0-5d8a-b40f-eccfac1308b7)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR067")
+					(reference "#PWR065")
 					(unit 1)
 				)
 			)
@@ -16239,8 +15976,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid adf04425-37dd-570d-9057-51a489278ef2)
-		(property "Reference" "#FLG067"
+		(uuid 9e9ed9bc-82fe-5f37-86be-6444989c7cfb)
+		(property "Reference" "#FLG065"
 			(at 88.9 240.665 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16295,12 +16032,12 @@
 			)
 		)
 		(pin "1"
-			(uuid fdab94a6-1946-5baa-a500-7b2819de6e4e)
+			(uuid 54d91a23-7791-5151-a836-b924235ba2df)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#FLG067")
+					(reference "#FLG065")
 					(unit 1)
 				)
 			)
@@ -16315,7 +16052,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid ed29664d-5e3a-5eb0-bbf6-aa2248a70ec2)
+		(uuid 7ce3ec32-3b07-5efb-8803-ab16c723498a)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -16325,8 +16062,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 38d2f7d5-93e2-59ee-aeee-0b6a7f239dc4)
-		(property "Reference" "#PWR069"
+		(uuid 5f213a11-d584-5271-bd9a-760b87192f3e)
+		(property "Reference" "#PWR067"
 			(at 101.6 247.65 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16381,12 +16118,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 2a97ba47-45c4-5e05-949b-8d27e3e345a5)
+			(uuid 7bf4d5ec-6b22-5d4b-8ea4-88b6db7d6a7d)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR069")
+					(reference "#PWR067")
 					(unit 1)
 				)
 			)
@@ -16400,8 +16137,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 9c3df59b-b858-5cf4-adf1-c2fab80c26a2)
-		(property "Reference" "#FLG069"
+		(uuid 27457bf9-bc0e-5e61-aeae-980fb8719f7a)
+		(property "Reference" "#FLG067"
 			(at 101.6 234.315 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16456,12 +16193,12 @@
 			)
 		)
 		(pin "1"
-			(uuid f09628bf-9812-554a-9dee-d7d7b5864471)
+			(uuid d621a080-023c-537f-ad10-39cb4e503547)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#FLG069")
+					(reference "#FLG067")
 					(unit 1)
 				)
 			)
@@ -16476,7 +16213,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 75513f6d-db36-5087-bcec-a8dfe1d072d1)
+		(uuid 0ddf2a03-3d2c-5f70-a524-8e80f963369f)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -16486,7 +16223,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 9f6732d6-3b40-52e7-8135-741ee5aed812)
+		(uuid 107581c3-04c1-55b8-8ee8-21dca43227a5)
 		(property "Reference" "C1"
 			(at 135.255 264.16 0)
 			(show_name no)
@@ -16543,10 +16280,10 @@
 			)
 		)
 		(pin "1"
-			(uuid cfbf6264-8649-5d12-9cd0-306a9f11cb4f)
+			(uuid ea893166-0659-5c25-9aef-e6f7b9a90aed)
 		)
 		(pin "2"
-			(uuid 60e9ca27-a3ae-5f57-89d2-6ea467d324fc)
+			(uuid 7d96af6c-cce4-537f-bd17-83100b22b6e3)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -16566,7 +16303,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 58e01e6e-ea2f-5bf7-a3fc-8bd2998b9c93)
+		(uuid a9ec739b-c7a5-5b66-a6db-099b1da12e1f)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -16576,8 +16313,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 82a6a25c-20db-52a1-8f37-f18cc6c85181)
-		(property "Reference" "#PWR070"
+		(uuid 9e32a8a9-db4a-5f07-90d3-03dd81a1f29e)
+		(property "Reference" "#PWR068"
 			(at 134.62 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16632,12 +16369,12 @@
 			)
 		)
 		(pin "1"
-			(uuid dafccaac-acbf-5ada-be42-0ef5cb3c49e3)
+			(uuid 4ee82f11-c98f-5368-b5dd-48694c82f1b9)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR070")
+					(reference "#PWR068")
 					(unit 1)
 				)
 			)
@@ -16652,7 +16389,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid b90f3a7d-3666-566c-8186-451845edbb2b)
+		(uuid 768f24ee-1cf2-5954-b68e-d75da32de955)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -16662,8 +16399,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 0c15a2f2-d6e4-52e8-92ab-56f49a0c829e)
-		(property "Reference" "#PWR071"
+		(uuid 03545619-d3a4-5a51-8769-10c8e192c77d)
+		(property "Reference" "#PWR069"
 			(at 134.62 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16718,12 +16455,12 @@
 			)
 		)
 		(pin "1"
-			(uuid ae9106cf-80d1-51a7-9a72-e3762df5eecd)
+			(uuid 2f6b5d77-e64e-5854-8991-f3b25993fcce)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR071")
+					(reference "#PWR069")
 					(unit 1)
 				)
 			)
@@ -16737,7 +16474,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 2bef2c4e-97e4-599a-bb56-b6cf35cd270b)
+		(uuid ab6c322a-6e18-5aec-bf7f-3b685de97171)
 		(property "Reference" "C2"
 			(at 145.415 264.16 0)
 			(show_name no)
@@ -16794,10 +16531,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 8cef4bfc-af33-5eeb-84a6-f79c35aa8268)
+			(uuid 5203368d-2643-592b-8232-f787bd375c1c)
 		)
 		(pin "2"
-			(uuid 869a0737-e162-51a6-b607-1d83f2b51d99)
+			(uuid f09628bf-9812-554a-9dee-d7d7b5864471)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -16817,7 +16554,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 13f9c190-c660-5ba8-bd1d-c06419488e70)
+		(uuid 75513f6d-db36-5087-bcec-a8dfe1d072d1)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -16827,8 +16564,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 00d9b571-da26-59b1-b27a-dc9e7103ec6f)
-		(property "Reference" "#PWR072"
+		(uuid 9f6732d6-3b40-52e7-8135-741ee5aed812)
+		(property "Reference" "#PWR070"
 			(at 144.78 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16883,12 +16620,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 3635f7b6-212a-5427-9740-fc1649ca17c0)
+			(uuid cfbf6264-8649-5d12-9cd0-306a9f11cb4f)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR072")
+					(reference "#PWR070")
 					(unit 1)
 				)
 			)
@@ -16903,7 +16640,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid d565f9d3-581c-55e5-8072-bbbefcb5afcf)
+		(uuid 9a603e81-3908-5b02-9e40-c98ca07ae2cb)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -16913,8 +16650,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 396ea510-fb12-518d-a047-ac115ce0ffa4)
-		(property "Reference" "#PWR073"
+		(uuid 6c247fd1-401b-5f22-8939-0b608c0bf5a8)
+		(property "Reference" "#PWR071"
 			(at 144.78 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16969,12 +16706,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 2270b7d3-326e-551a-b6f4-88fc999e8e68)
+			(uuid d1e995a9-db5a-536a-8d30-1f9abfbe7b57)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR073")
+					(reference "#PWR071")
 					(unit 1)
 				)
 			)
@@ -16988,7 +16725,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 307ed017-aac1-5364-aa4a-a03822c618bf)
+		(uuid 8fa552f7-0110-5ba1-8ed0-b99d4894d767)
 		(property "Reference" "C3"
 			(at 155.575 264.16 0)
 			(show_name no)
@@ -17045,10 +16782,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 42022591-ef6f-5b6a-8336-4f745eabc593)
+			(uuid 7d880162-a104-5d0d-8aaa-71eb8948e1d1)
 		)
 		(pin "2"
-			(uuid 9b71a8cf-b16f-5808-8d2c-acf58d7c19de)
+			(uuid f577da2e-f165-5a2f-98bb-c309fbb57886)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -17068,7 +16805,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 7f3916fa-81a3-5731-bb8a-8987afedbfba)
+		(uuid ef42fffb-4b3f-53cb-b74e-b39ff046861c)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -17078,8 +16815,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 148a29c1-7162-5889-845e-5a4e38805e66)
-		(property "Reference" "#PWR074"
+		(uuid 2bef2c4e-97e4-599a-bb56-b6cf35cd270b)
+		(property "Reference" "#PWR072"
 			(at 154.94 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17134,12 +16871,12 @@
 			)
 		)
 		(pin "1"
-			(uuid fad13a3d-0450-5807-b340-2bcc10062deb)
+			(uuid 8cef4bfc-af33-5eeb-84a6-f79c35aa8268)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR074")
+					(reference "#PWR072")
 					(unit 1)
 				)
 			)
@@ -17154,7 +16891,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 2b97ec8f-4cc5-5dd1-9cd5-b947becb4eb6)
+		(uuid ca17c564-438b-5de3-874d-26ef2398b476)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -17164,8 +16901,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 56511b2d-e462-5f4f-89e6-24043af0a198)
-		(property "Reference" "#PWR075"
+		(uuid 7ce31d66-7c82-5ad3-a4f1-03df302453bc)
+		(property "Reference" "#PWR073"
 			(at 154.94 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17220,12 +16957,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 195ec579-a53c-5769-ad55-50eff31ec2cf)
+			(uuid ffc60bea-76da-5789-98c8-affc3517b1a7)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR075")
+					(reference "#PWR073")
 					(unit 1)
 				)
 			)
@@ -17239,7 +16976,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 51fc3b8f-5a6e-5e4c-82c5-9baff79db841)
+		(uuid 1a7ca752-7e0e-5db8-acbe-fd41fceabcfd)
 		(property "Reference" "C4"
 			(at 165.735 264.16 0)
 			(show_name no)
@@ -17296,10 +17033,10 @@
 			)
 		)
 		(pin "1"
-			(uuid e36652fe-5639-5df9-808b-4f42c989a435)
+			(uuid 61ab5dec-870f-5013-bb57-8252375604f2)
 		)
 		(pin "2"
-			(uuid 6041d7af-81d4-53bd-8188-459fca6a05ca)
+			(uuid 28902647-77c2-5466-8ef2-b55e3d827185)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -17319,7 +17056,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid e798c15c-f8e8-5da0-970b-54de76c5d307)
+		(uuid 8c813598-96f6-5025-bff7-6a774dfa48ad)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -17329,8 +17066,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 578c7ce4-6285-5b78-bffa-48dc37bd51c1)
-		(property "Reference" "#PWR076"
+		(uuid 307ed017-aac1-5364-aa4a-a03822c618bf)
+		(property "Reference" "#PWR074"
 			(at 165.1 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17385,12 +17122,12 @@
 			)
 		)
 		(pin "1"
-			(uuid d761fd98-cb68-50a2-bf03-eafdde7ae53e)
+			(uuid 42022591-ef6f-5b6a-8336-4f745eabc593)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR076")
+					(reference "#PWR074")
 					(unit 1)
 				)
 			)
@@ -17405,7 +17142,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid c56e12f5-2c2d-5618-9ad2-7d70278c6841)
+		(uuid 6035d8db-ecec-5004-a17c-2919179d469c)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -17415,8 +17152,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 110445da-6a21-5434-8125-9ae7267d88a5)
-		(property "Reference" "#PWR077"
+		(uuid 39216eba-a0ab-5351-89f2-6c0f0d575c4f)
+		(property "Reference" "#PWR075"
 			(at 165.1 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17471,12 +17208,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 78d168a3-1213-5165-8f0a-ad46a32985be)
+			(uuid bfe9f144-1361-52a4-b556-25367e0459dc)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR077")
+					(reference "#PWR075")
 					(unit 1)
 				)
 			)
@@ -17490,7 +17227,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid b1af2fb6-4a0f-503c-9592-f65ab6d53c14)
+		(uuid ad315215-5bc2-5ff1-8f3b-f061d0101dd8)
 		(property "Reference" "C5"
 			(at 175.895 264.16 0)
 			(show_name no)
@@ -17547,10 +17284,10 @@
 			)
 		)
 		(pin "1"
-			(uuid b89c44cc-0017-5f55-b64c-03773752db2b)
+			(uuid 0a5bd2c6-e99d-5d3f-9c9a-a29a0ebc83d2)
 		)
 		(pin "2"
-			(uuid bed2790c-3b50-5ec2-897a-433b299c1fe8)
+			(uuid 3c297906-7e5c-5cf5-95eb-6f5ab6d5ed4a)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -17570,7 +17307,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 3c6b9809-212a-50eb-92df-266f3f920a51)
+		(uuid b6f71f8c-2404-59e0-8513-7d8e3f47553f)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -17580,8 +17317,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 1c164718-0b4b-588a-9678-b2d4b26ca050)
-		(property "Reference" "#PWR078"
+		(uuid 51fc3b8f-5a6e-5e4c-82c5-9baff79db841)
+		(property "Reference" "#PWR076"
 			(at 175.26 264.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17636,12 +17373,12 @@
 			)
 		)
 		(pin "1"
-			(uuid bbf68371-aad5-5f66-90b3-74c86af59e2c)
+			(uuid e36652fe-5639-5df9-808b-4f42c989a435)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR078")
+					(reference "#PWR076")
 					(unit 1)
 				)
 			)
@@ -17656,7 +17393,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid afb906f2-233a-50d2-b10e-9e31ac519279)
+		(uuid a054f917-5827-53d7-a98a-3c190923051b)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -17666,8 +17403,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid ddce93b1-87a4-5ab4-8349-310811073654)
-		(property "Reference" "#PWR079"
+		(uuid 7b78b4ed-f093-5c96-9980-fd7f470a7129)
+		(property "Reference" "#PWR077"
 			(at 175.26 279.4 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17722,12 +17459,12 @@
 			)
 		)
 		(pin "1"
-			(uuid bfd3540d-d017-5099-85d9-a31b83cb3987)
+			(uuid 5335c188-3573-50cc-8d5f-d9156ee924da)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR079")
+					(reference "#PWR077")
 					(unit 1)
 				)
 			)
@@ -17742,7 +17479,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 948c2130-7e1a-5857-8ec5-2f7546954649)
+		(uuid 72a0be3e-f733-5f81-84d2-41a1d9b6a23c)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -17752,7 +17489,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 27257e19-c6c2-5861-8b00-6061e4c403a3)
+		(uuid c50d46fc-32f0-560f-8c24-e8093404860c)
 		(property "Reference" "R1"
 			(at 292.1 239.268 0)
 			(show_name no)
@@ -17807,10 +17544,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 284590b2-ee5b-5b41-aa50-c231112d61c2)
+			(uuid 8f8c67e9-02b5-58d0-aeb0-bc763b511015)
 		)
 		(pin "2"
-			(uuid b6a69fba-5e54-5195-98a3-31d6ab084662)
+			(uuid 78d168a3-1213-5165-8f0a-ad46a32985be)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -17830,7 +17567,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 1474a3c8-4d8f-5398-ac72-8164c6456777)
+		(uuid 12a8fae4-9973-5060-8774-786415b6d2e2)
 	)
 	(label "SR1"
 		(at 285.75 241.3 180)
@@ -17840,7 +17577,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 39e61f6c-05a4-58e4-9fce-0f89f49f13be)
+		(uuid c3df660b-f475-5c95-bafc-03f4fe95fef3)
 	)
 	(wire
 		(pts
@@ -17851,7 +17588,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 70b45a6c-03af-5d16-991c-d68b5ce027ed)
+		(uuid f7fdc8f8-fd70-5a98-86ab-e9045103c728)
 	)
 	(label "LED_D1"
 		(at 298.45 241.3 0)
@@ -17861,7 +17598,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 93db61c2-008f-57e3-83dd-0fb243a60ebc)
+		(uuid 874a449c-dde7-5531-8525-3a6598dd4f3b)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -17871,7 +17608,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 8d03ffd9-1921-5b8c-945f-22419fd8df5a)
+		(uuid 1c164718-0b4b-588a-9678-b2d4b26ca050)
 		(property "Reference" "D1"
 			(at 312.42 243.84 0)
 			(show_name no)
@@ -17937,10 +17674,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 01a10369-3279-5bf8-9db2-4e1883166fbb)
+			(uuid bbf68371-aad5-5f66-90b3-74c86af59e2c)
 		)
 		(pin "2"
-			(uuid 3c8309d9-3bc4-5327-8643-de7dbb35c750)
+			(uuid 17bec036-3008-52c1-bc0e-98439383262c)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -17960,7 +17697,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 51548848-de0f-5266-b29f-d200503e102e)
+		(uuid 05b3bc30-f031-5e20-af97-0d1b75525200)
 	)
 	(label "LED_D1"
 		(at 306.07 241.3 180)
@@ -17970,7 +17707,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 7326e415-8f81-519f-bbe0-a4c4b3fba5dd)
+		(uuid 04e8b155-244e-5a8b-8d90-ff834a1d3824)
 	)
 	(wire
 		(pts
@@ -17981,7 +17718,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid a28356c5-727c-5793-a371-2e1bc0d248c4)
+		(uuid c3b89749-658f-5671-a2cc-f32816d51799)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -17991,8 +17728,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid a872323e-4cd0-5b95-a15d-07ebd849478d)
-		(property "Reference" "#PWR080"
+		(uuid 27257e19-c6c2-5861-8b00-6061e4c403a3)
+		(property "Reference" "#PWR078"
 			(at 325.12 241.3 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18047,12 +17784,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 75eea85a-ab02-5000-ae0e-90e9781f8069)
+			(uuid 284590b2-ee5b-5b41-aa50-c231112d61c2)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR080")
+					(reference "#PWR078")
 					(unit 1)
 				)
 			)
@@ -18066,7 +17803,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 10b8a678-62b0-532b-b116-02f8ac12a8fa)
+		(uuid c124c9a8-03b6-5ddf-b3df-ebbb0393f685)
 		(property "Reference" "R2"
 			(at 292.1 246.888 0)
 			(show_name no)
@@ -18121,10 +17858,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 89d7d9aa-7f83-51e6-abd1-d331df6fae96)
+			(uuid 5388fc52-04d6-5470-acc4-a29a9489659c)
 		)
 		(pin "2"
-			(uuid 349dc225-b716-5550-b8cc-950024844f34)
+			(uuid 7d544542-742e-5293-a787-e52d238c656f)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -18144,7 +17881,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 5163dce5-fe4c-521b-920f-c6c75ff987df)
+		(uuid 70b45a6c-03af-5d16-991c-d68b5ce027ed)
 	)
 	(label "SR2"
 		(at 285.75 248.92 180)
@@ -18154,7 +17891,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 51623fd1-99f7-5d48-82db-67c1bf9b1478)
+		(uuid 93db61c2-008f-57e3-83dd-0fb243a60ebc)
 	)
 	(wire
 		(pts
@@ -18165,7 +17902,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 30fc7d89-811d-5659-b93f-0c8684f3ad3c)
+		(uuid 349cee30-0410-52dc-a6cb-bbe14db7336a)
 	)
 	(label "LED_D2"
 		(at 298.45 248.92 0)
@@ -18175,7 +17912,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid e7aa8eb9-cd7f-521e-9743-f9d90ece37c9)
+		(uuid 664642e9-001b-5af5-aecf-7b113fdcdb57)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -18185,7 +17922,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid bf223734-e743-5b0f-898d-334f9016cae9)
+		(uuid ff5c883d-f723-5621-ab05-e3e3d4d73d80)
 		(property "Reference" "D2"
 			(at 312.42 251.46 0)
 			(show_name no)
@@ -18251,10 +17988,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 25a6041c-7820-50ef-bf04-42a9a913e758)
+			(uuid 7edb72e1-6365-523d-bdc3-3d3883a56cc5)
 		)
 		(pin "2"
-			(uuid bcb18b44-1068-5062-a207-df866cec884e)
+			(uuid 2a18b211-fe74-5d7c-9435-9256527482c5)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -18274,7 +18011,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid f8a579cb-07c6-5ce2-9b14-80552374762d)
+		(uuid a28356c5-727c-5793-a371-2e1bc0d248c4)
 	)
 	(label "LED_D2"
 		(at 306.07 248.92 180)
@@ -18284,7 +18021,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 22bd8095-a267-5997-af9c-65bf4b4046e1)
+		(uuid 4dc2410f-54d5-51c2-a6ba-ff650701ba51)
 	)
 	(wire
 		(pts
@@ -18295,7 +18032,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 16d58f5e-3a14-5736-8b35-9616efc1af89)
+		(uuid 872a70f8-30f1-5faf-8bdb-e1a2144d9dac)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -18305,8 +18042,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 97954cb1-e36a-5857-9910-52e6f82614a8)
-		(property "Reference" "#PWR081"
+		(uuid 10b8a678-62b0-532b-b116-02f8ac12a8fa)
+		(property "Reference" "#PWR079"
 			(at 325.12 248.92 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18361,12 +18098,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 3ab6e03f-8b71-5afe-ad23-fceee6d8f122)
+			(uuid 89d7d9aa-7f83-51e6-abd1-d331df6fae96)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR081")
+					(reference "#PWR079")
 					(unit 1)
 				)
 			)
@@ -18380,7 +18117,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid f989103a-7772-5040-a2f7-a6b4dc9176cc)
+		(uuid 7b0aeece-247b-52e8-aa01-f2ea137d16b1)
 		(property "Reference" "R3"
 			(at 292.1 254.508 0)
 			(show_name no)
@@ -18435,10 +18172,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 6b9f3af8-45fe-515a-8389-c2c08302303e)
+			(uuid d17a0364-d7b1-511b-91a2-193639e37497)
 		)
 		(pin "2"
-			(uuid 70b42daa-234c-5bba-b598-ccfa2a3705e6)
+			(uuid 29c2736b-735a-5d57-935a-b748e4c4250b)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -18458,7 +18195,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid dbe1d350-b870-5696-89e2-40b3910b55ce)
+		(uuid 30fc7d89-811d-5659-b93f-0c8684f3ad3c)
 	)
 	(label "SR_LAST"
 		(at 285.75 256.54 180)
@@ -18468,7 +18205,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 4b604cba-b8db-5a58-b48f-e2ccb6e12de8)
+		(uuid e7aa8eb9-cd7f-521e-9743-f9d90ece37c9)
 	)
 	(wire
 		(pts
@@ -18479,7 +18216,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 891a74b7-a372-53c5-9efd-aba4648f1c39)
+		(uuid bc3b690c-da40-5c0b-912e-b3081d5169e5)
 	)
 	(label "LED_D3"
 		(at 298.45 256.54 0)
@@ -18489,7 +18226,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid a0b317f4-3bfb-5bdc-b9da-5cd2c6cd17e7)
+		(uuid 38f59a12-2354-57b5-a68c-99284dbb0570)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -18499,7 +18236,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 2715293e-deee-57b5-bcca-3158609576f6)
+		(uuid 606198c9-84b0-5d06-a65c-5e68f6d944a0)
 		(property "Reference" "D3"
 			(at 312.42 259.08 0)
 			(show_name no)
@@ -18565,10 +18302,10 @@
 			)
 		)
 		(pin "1"
-			(uuid d4dd38c4-7676-59e4-8e70-4c7894a25b73)
+			(uuid 2473866e-a4e2-5517-9173-3e00179fe664)
 		)
 		(pin "2"
-			(uuid ede6a90d-9e3a-5f82-8b3f-6b2d2bf7fbcd)
+			(uuid 47a8bd9b-fa1a-5de0-afd9-d061bc7f7dd4)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -18588,7 +18325,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 3554a3b8-f30a-5357-af95-093a16b5510a)
+		(uuid 16d58f5e-3a14-5736-8b35-9616efc1af89)
 	)
 	(label "LED_D3"
 		(at 306.07 256.54 180)
@@ -18598,7 +18335,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid c77126e5-9931-575e-aafe-a38a83dd96f4)
+		(uuid ba00c2a0-8879-5d07-b9e1-9ac3af144359)
 	)
 	(wire
 		(pts
@@ -18609,7 +18346,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 7822ef1c-d63e-5d5b-95f6-1a0cbaca1d69)
+		(uuid 85393298-339e-525b-985f-c155d48b5903)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -18619,8 +18356,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid ac98e8bc-5cc3-54e3-8577-e3d5e201a70f)
-		(property "Reference" "#PWR082"
+		(uuid f989103a-7772-5040-a2f7-a6b4dc9176cc)
+		(property "Reference" "#PWR080"
 			(at 325.12 256.54 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18675,12 +18412,12 @@
 			)
 		)
 		(pin "1"
-			(uuid ab6a806e-5fca-5f32-b09e-acfcf368cb1c)
+			(uuid 6b9f3af8-45fe-515a-8389-c2c08302303e)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR082")
+					(reference "#PWR080")
 					(unit 1)
 				)
 			)
@@ -18694,7 +18431,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 4044b120-9bfc-5adf-9fd8-6ec879f7b3d4)
+		(uuid a8572e40-b553-555a-809c-6f69d6046aa0)
 		(property "Reference" "R4"
 			(at 292.1 262.128 0)
 			(show_name no)
@@ -18749,10 +18486,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 38b94fbf-1a2f-5c57-ab50-b959ec1db019)
+			(uuid 667416cd-6c7e-5c79-b50d-ec4d261240ed)
 		)
 		(pin "2"
-			(uuid 3b56632d-cf53-5f3b-8a48-990a60eb32a8)
+			(uuid 7483698d-2fde-55e1-ac74-365bf087161f)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -18772,7 +18509,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 52327d3e-828f-54d6-a203-41c20ebbb651)
+		(uuid 891a74b7-a372-53c5-9efd-aba4648f1c39)
 	)
 	(label "Q165_LOCAL"
 		(at 285.75 264.16 180)
@@ -18782,7 +18519,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 9b565d65-992a-55a6-b257-aa01488477fa)
+		(uuid a0b317f4-3bfb-5bdc-b9da-5cd2c6cd17e7)
 	)
 	(wire
 		(pts
@@ -18793,7 +18530,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 931fa7bd-33dd-51ff-864c-b693caf24318)
+		(uuid 8ff4d902-733b-550b-9d43-1d8859961f2e)
 	)
 	(label "LED_D4"
 		(at 298.45 264.16 0)
@@ -18803,7 +18540,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 5aa7810c-2f12-5a82-a7cc-39e2da1ab25e)
+		(uuid 2d680fd4-9978-5932-bdb0-2e267888df47)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -18813,7 +18550,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 0a65dea3-c3ab-5644-a862-dbe0e5b16924)
+		(uuid be2a8057-cecb-54a7-822a-070541cb35e3)
 		(property "Reference" "D4"
 			(at 312.42 266.7 0)
 			(show_name no)
@@ -18879,10 +18616,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 4933cc49-2656-5c41-9f7c-7a6c21517072)
+			(uuid 28bb178f-bd28-5e21-a20b-53f34d647837)
 		)
 		(pin "2"
-			(uuid 5b958c9d-81a7-5867-b8a0-c8396185e85d)
+			(uuid 235d9479-97fa-5553-9d6e-5114d8d1c8f0)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -18902,7 +18639,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid e889df3a-4ee5-5834-be48-84b7914e09c8)
+		(uuid 7822ef1c-d63e-5d5b-95f6-1a0cbaca1d69)
 	)
 	(label "LED_D4"
 		(at 306.07 264.16 180)
@@ -18912,7 +18649,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 46cccbe1-e5a9-51ed-b4e0-a8c93dad8d65)
+		(uuid 48b46948-64d0-51f2-9ca6-23c01434cf9c)
 	)
 	(wire
 		(pts
@@ -18923,7 +18660,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 83a958fe-31cf-5e0f-a22e-c762a7f75503)
+		(uuid 0b00c3d8-a5d9-5d3f-82f2-50d4160f5e7d)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -18933,8 +18670,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 4cbc9bdb-3453-58f6-a3d2-2dab29f2b14a)
-		(property "Reference" "#PWR083"
+		(uuid 4044b120-9bfc-5adf-9fd8-6ec879f7b3d4)
+		(property "Reference" "#PWR081"
 			(at 325.12 264.16 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -18989,12 +18726,12 @@
 			)
 		)
 		(pin "1"
-			(uuid c6106449-215d-58b1-aaf1-94e3f5747321)
+			(uuid 38b94fbf-1a2f-5c57-ab50-b959ec1db019)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR083")
+					(reference "#PWR081")
 					(unit 1)
 				)
 			)
@@ -19008,7 +18745,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 4adb51c4-ac4f-598f-98b1-2f0f03b6956b)
+		(uuid 89fa3a03-8a62-546b-b44b-8f062b66b6df)
 		(property "Reference" "R5"
 			(at 292.1 269.748 0)
 			(show_name no)
@@ -19063,10 +18800,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 661628b1-80d9-5c94-9196-9020607fda8c)
+			(uuid 1ef9c7b2-eb90-5c7d-982b-22c80f80239c)
 		)
 		(pin "2"
-			(uuid ccde691e-d1af-508a-8740-5c9c64eec924)
+			(uuid 9ebf3520-fad5-5439-ab37-ba8ac453b518)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -19086,7 +18823,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid d7e8e3f1-33c4-55a8-9ed7-551426356d0d)
+		(uuid 931fa7bd-33dd-51ff-864c-b693caf24318)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -19096,8 +18833,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid b8b00263-575c-5bed-8c7e-121513ba4ad5)
-		(property "Reference" "#PWR084"
+		(uuid 21a41086-9de4-5c63-8352-6b8826c95578)
+		(property "Reference" "#PWR082"
 			(at 289.56 271.78 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19152,12 +18889,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 01069b7a-fde2-519f-95a0-c6db2878d99f)
+			(uuid 336ce652-ad57-570b-9c73-b46179af6dc3)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR084")
+					(reference "#PWR082")
 					(unit 1)
 				)
 			)
@@ -19172,7 +18909,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 99b54f21-3f38-5e6f-9bc9-7e1d02074cd5)
+		(uuid 36fd2486-3866-5918-bedb-8ca1d1688d79)
 	)
 	(label "LED_D5"
 		(at 298.45 271.78 0)
@@ -19182,7 +18919,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid 4027742b-45d0-5f4e-a5d2-e05d2d5817ba)
+		(uuid 43df0c00-f35f-5e76-b6d3-610b6789e88b)
 	)
 	(symbol
 		(lib_id "Device:LED")
@@ -19192,7 +18929,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 43d9d86e-6eae-5d45-a29c-e7391427ae53)
+		(uuid 6378d2d4-e5c4-521b-9ea0-5809c842f416)
 		(property "Reference" "D5"
 			(at 312.42 274.32 0)
 			(show_name no)
@@ -19258,10 +18995,10 @@
 			)
 		)
 		(pin "1"
-			(uuid 5da74457-cc07-5f4e-8530-40dc5b40770c)
+			(uuid f15711fb-bc14-5f03-a2fe-ca0014b55c79)
 		)
 		(pin "2"
-			(uuid 176687f3-061f-5312-9d03-27b09ac54bb8)
+			(uuid 90c970fa-b4d0-57e5-9a2a-30297e6588d5)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -19281,7 +19018,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 2587e70e-2d82-585b-b153-fb53fdea06e2)
+		(uuid 2a087a9d-d8d5-5c91-8a1f-58163ab1243c)
 	)
 	(label "LED_D5"
 		(at 306.07 271.78 180)
@@ -19291,7 +19028,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 57719e8b-a28b-5afb-bf91-b18d93ad8d6f)
+		(uuid 278fcd7a-af04-54ee-a447-84bd9803d572)
 	)
 	(wire
 		(pts
@@ -19302,7 +19039,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 8a33fe44-5794-518b-861b-24139ff4e6ae)
+		(uuid edae3ecd-4456-5100-aed6-b0509c22c2ea)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -19312,8 +19049,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 1dac82b5-b079-55a3-a5e9-efa7b81015ee)
-		(property "Reference" "#PWR085"
+		(uuid 0af98e33-cbdd-5d13-aabd-9fb426251aac)
+		(property "Reference" "#PWR083"
 			(at 325.12 271.78 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19368,12 +19105,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 2f0c5dff-5fba-5a82-bab8-0216f4f1ca0c)
+			(uuid ccde691e-d1af-508a-8740-5c9c64eec924)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR085")
+					(reference "#PWR083")
 					(unit 1)
 				)
 			)
@@ -19387,7 +19124,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid 9c888891-1787-5ea7-9687-e78f94d33c9b)
+		(uuid 90f07ed5-9dcc-5834-b40c-4fb175f3e407)
 		(property "Reference" "J11"
 			(at 353.06 246.38 0)
 			(show_name no)
@@ -19442,22 +19179,22 @@
 			)
 		)
 		(pin "1"
-			(uuid 25a093b3-7467-5e26-9670-db6e533ce8d2)
+			(uuid b3fedc51-2728-5e56-9f32-6746213cf079)
 		)
 		(pin "2"
-			(uuid d051dcb7-fdea-5e62-a939-f902f8592e1d)
+			(uuid 01069b7a-fde2-519f-95a0-c6db2878d99f)
 		)
 		(pin "3"
-			(uuid ab6ed3d5-39f4-5414-bd0f-13a35d22f7da)
+			(uuid 0223d2ba-42c0-5f3b-a13d-dea6dea0eb2a)
 		)
 		(pin "4"
-			(uuid b79e5ab4-348a-55b0-aa0e-6cf538e50a72)
+			(uuid 921a125f-9c3b-515a-9691-e2754e0cd57f)
 		)
 		(pin "5"
-			(uuid beba3017-db46-538a-ba1e-a2fc074a2cfb)
+			(uuid 75537f62-02a7-5cdb-9133-314d675a58f7)
 		)
 		(pin "6"
-			(uuid ded61064-a711-5fb9-b4b9-72a3a51fa918)
+			(uuid 5da74457-cc07-5f4e-8530-40dc5b40770c)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
@@ -19477,7 +19214,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 11293de2-aa3c-5687-9430-2e1e26d6bbb3)
+		(uuid 9ef46464-d9a9-5265-ac94-61512290b716)
 	)
 	(symbol
 		(lib_id "power:+3V3")
@@ -19487,8 +19224,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid 67b114fa-d74f-5168-96f7-2c9310f03080)
-		(property "Reference" "#PWR086"
+		(uuid 31365b95-ccec-587d-a699-54930ba6884e)
+		(property "Reference" "#PWR084"
 			(at 349.25 248.92 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19543,12 +19280,12 @@
 			)
 		)
 		(pin "1"
-			(uuid 152622ef-268c-5a80-9c03-aaf0c05b1da8)
+			(uuid 2b437929-c383-545a-845a-a4daa1732755)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR086")
+					(reference "#PWR084")
 					(unit 1)
 				)
 			)
@@ -19563,7 +19300,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 97f0e5ba-c6be-5461-90b8-8933108a49d6)
+		(uuid 8a33fe44-5794-518b-861b-24139ff4e6ae)
 	)
 	(label "B_DATA"
 		(at 345.44 251.46 180)
@@ -19573,7 +19310,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid c87ef683-e0b4-5d07-875d-c72febddf1cb)
+		(uuid b70f9c12-13de-5c55-85cf-cf151776b21f)
 	)
 	(wire
 		(pts
@@ -19584,7 +19321,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 631fc567-a829-58b6-9aeb-687e3998f1eb)
+		(uuid 35511d0f-22bd-5ea4-bd2c-29dac9ac12d6)
 	)
 	(label "B_CLK"
 		(at 345.44 254 180)
@@ -19594,7 +19331,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid bd62fb8a-f0bd-5e2f-9ecb-50cbd0478cc6)
+		(uuid 1f3f441b-f0d7-566d-9a3e-56138d540ed6)
 	)
 	(wire
 		(pts
@@ -19605,7 +19342,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid e30716c3-aa23-524a-98e6-4ccfca9f88ba)
+		(uuid 592e24b9-9210-5098-ae57-f14796414e0a)
 	)
 	(label "B_LATCH"
 		(at 345.44 256.54 180)
@@ -19615,7 +19352,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid c8e465ef-84c8-5efb-a6bf-a8a7d3944768)
+		(uuid ff27fe9e-e505-5503-bb96-96f12b521884)
 	)
 	(wire
 		(pts
@@ -19626,7 +19363,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid 30ae111f-54e3-5b8d-8651-948b2690ed26)
+		(uuid 387fb052-dd16-586a-8610-3f2a785cefe7)
 	)
 	(label "SR_LAST"
 		(at 345.44 259.08 180)
@@ -19636,7 +19373,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid 6fce83da-cc7f-5814-8020-577225b2ad57)
+		(uuid e2843bbb-89bd-5469-8761-2cfa541767f8)
 	)
 	(wire
 		(pts
@@ -19647,7 +19384,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid c6a1e978-7ab5-59eb-877b-0784ad37ec3f)
+		(uuid 3d5e0b86-48d4-5b05-a5a9-8218c0bacd60)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -19657,8 +19394,8 @@
 		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(uuid c5ff7db8-97ca-5de1-82e0-ac93d68763ce)
-		(property "Reference" "#PWR087"
+		(uuid c4053e1f-27a0-5c28-8fc4-0230766f3a35)
+		(property "Reference" "#PWR085"
 			(at 339.09 261.62 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -19713,12 +19450,12 @@
 			)
 		)
 		(pin "1"
-			(uuid a911e848-78ce-5978-95e1-81e09de59374)
+			(uuid 6a43406a-1b96-57b4-a85b-e674ad5b1732)
 		)
 		(instances
 			(project "surrklank-lsm-hdd-module"
 				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
-					(reference "#PWR087")
+					(reference "#PWR085")
 					(unit 1)
 				)
 			)
@@ -19733,7 +19470,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid b2f33fd1-d352-5ef0-9863-6787c775d5b5)
+		(uuid bebaac0d-10eb-54c1-b29a-ec59342acce3)
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
@@ -19743,7 +19480,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 9237471a-503a-5cf3-8150-2deca83f2d9b)
+		(uuid c875e5a5-e331-59d2-a8fd-0c5b8b03b541)
 		(property "Reference" "H1"
 			(at 236.22 274.32 0)
 			(show_name no)
@@ -19814,7 +19551,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 1494bd6a-9bb1-510a-9881-a36d16f9633d)
+		(uuid d1e59682-11f1-5b5c-a1bb-d91d2d53aff6)
 		(property "Reference" "H2"
 			(at 246.38 274.32 0)
 			(show_name no)
@@ -19885,7 +19622,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid d4e0d65b-979c-5543-bdf7-c447706a160f)
+		(uuid cdd1530c-5b83-5624-982b-694f553b0b84)
 		(property "Reference" "H3"
 			(at 256.54 274.32 0)
 			(show_name no)
@@ -19956,7 +19693,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 35bad0e1-490a-560b-9811-35291bb69927)
+		(uuid cb9aa42e-a22c-5d51-a472-267d81abac87)
 		(property "Reference" "H4"
 			(at 266.7 274.32 0)
 			(show_name no)

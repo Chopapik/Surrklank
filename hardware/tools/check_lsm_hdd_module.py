@@ -85,9 +85,10 @@ def main(path):
     for ref, pin in (("U1", "20"), ("U2", "16"), ("U3", "16"), ("U4", "16"), ("U5", "16")):
         if where.get((ref, pin)) != "+3V3":
             errors.append(f"{ref}.{pin} not on +3V3")
-    for j in ("J5", "J10"):
-        if where.get((j, "4")) != "+5V" or not (where.get((j, "1")) or "unconnected").startswith("unconnected"):
-            errors.append(f"{j}: pin 4 must be +5V and pin 1 (+12V) unconnected")
+    if [where.get(("J5", p)) for p in "1234"] != ["+5V", "+5V", "GND", "GND"] or ("J5", "5") in where:
+        errors.append("J5 (KF301, 4 poles) must be +5V, +5V, GND, GND")
+    if any(r == "J10" for r, _ in where):
+        errors.append("J10 is removed: J5 has two wires per rail")
     if ("U6", "3") not in nets["+5V"] or ("U6", "2") not in nets["+3V3"]:
         errors.append("LDO must take +5V and supply +3V3")
 

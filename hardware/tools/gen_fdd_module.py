@@ -20,7 +20,6 @@ FP_C1206 = "Capacitor_SMD:C_1206_3216Metric"
 FP_RN = "Resistor_SMD:R_Array_Convex_4x0603"
 FP_IDC16 = "Connector_IDC:IDC-Header_2x08_P2.54mm_Vertical"
 FP_IDE40 = "Connector_IDC:IDC-Header_2x20_P2.54mm_Vertical"
-FP_MOLEX = "surrklank:Molex_8981_1x04_P5.08mm_Vertical"
 FP_HOLE = "MountingHole:MountingHole_3.2mm_M3"
 
 DRIVE_OUTPUTS = ["DS0", "DS1", "DS2", "MOTOR", "DIR", "STEP"]   # 595 outputs per drive
@@ -174,13 +173,10 @@ def build(path):
         for p in range(1, 41):
             sh.connect(j, str(p), used[p])
 
-    # Power: Molex +5 V -> AMS1117-3.3
-    j5 = sh.symbol("Connector_Generic:Conn_01x04", "J5", "MOLEX_5V", 45.72, 203.2, footprint=FP_MOLEX)
-    sh.no_connect(j5, "1")
-    sh.connect(j5, "2", "GND")
-    sh.connect(j5, "3", "GND")
-    sh.connect(j5, "4", "+5V")
-    sh.text("J5 pin 1 (+12V, yellow) is not connected.\nPin 4 must carry +5V (red).", (25.4, 218.44))
+    # Power: KF301 +5 V -> AMS1117-3.3
+    mc.power_terminal(sh, "J5", 45.72, 203.2, ["+5V", "GND"])
+    sh.text("J5 (KF301, 2 poles): pin 1 +5V (red), pin 2 GND (black). No +12 V on this connector.",
+            (25.4, 218.44))
     u6 = sh.symbol("Regulator_Linear:AMS1117-3.3", "U6", "AMS1117-3.3", 104.14, 198.12,
                    footprint="Package_TO_SOT_SMD:SOT-223-3_TabPin2")
     sh.connect(u6, "3", "+5V")

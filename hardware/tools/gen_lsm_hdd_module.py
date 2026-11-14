@@ -63,16 +63,11 @@ def build(path):
     mc.pack(sh, "RN10", "100k", 241.3, 198.12, [net(m, "EEP") for m in range(1, 5)], rail="GND")
     mc.pack(sh, "RN11", "10k", 256.54, 198.12, [net(m, "ULT") for m in range(1, 5)], rail="+3V3")
 
-    # Power: Molex (second one optional), bulk capacitor, LDO for logic
-    mc.molex(sh, "J5", 45.72, 203.2)
-    j10 = sh.symbol("Connector_Generic:Conn_01x04", "J10", "MOLEX_5V_OPT", 45.72, 233.68,
-                    footprint=mc.FP_MOLEX, dnp=True)
-    sh.no_connect(j10, "1")
-    sh.connect(j10, "2", "GND")
-    sh.connect(j10, "3", "GND")
-    sh.connect(j10, "4", "+5V")
-    sh.text("J5/J10 pin 1 (+12V, yellow) is not connected; pin 4 must carry +5V (red).\n"
-            "J10 is fitted only if measured motor current needs it.", (25.4, 248.92))
+    # Power: KF301, bulk capacitor, LDO for logic
+    mc.power_terminal(sh, "J5", 45.72, 203.2, ["+5V", "+5V", "GND", "GND"])
+    sh.text("J5 (KF301, 4 poles): pins 1-2 +5V (red), pins 3-4 GND (black), one wire per pole.\n"
+            "No +12 V on this connector. Two wires per rail share the motor current.",
+            (25.4, 218.44))
     bulk = sh.symbol("Device:C_Polarized", "C8", "470u 16V", 76.2, 266.7, footprint=FP_BULK)
     sh.connect(bulk, "1", "+5V")
     sh.connect(bulk, "2", "GND")

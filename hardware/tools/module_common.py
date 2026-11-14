@@ -11,7 +11,7 @@ FP_C = "Capacitor_SMD:C_0805_2012Metric"
 FP_C1206 = "Capacitor_SMD:C_1206_3216Metric"
 FP_RN = "Resistor_SMD:R_Array_Convex_4x0603"
 FP_IDC16 = "Connector_IDC:IDC-Header_2x08_P2.54mm_Vertical"
-FP_MOLEX = "surrklank:Molex_8981_1x04_P5.08mm_Vertical"
+FP_KF301 = "surrklank:TerminalBlock_KF301_1x%02d_P5.08mm_Horizontal"
 FP_HOLE = "MountingHole:MountingHole_3.2mm_M3"
 
 QPINS = ["15", "1", "2", "3", "4", "5", "6", "7"]   # 595 QA..QH
@@ -117,12 +117,12 @@ def input_register(sh, ref, x, y, inputs):
     return u
 
 
-def molex(sh, ref, x, y):
-    j = sh.symbol("Connector_Generic:Conn_01x04", ref, "MOLEX_5V", x, y, footprint=FP_MOLEX)
-    sh.no_connect(j, "1")
-    sh.connect(j, "2", "GND")
-    sh.connect(j, "3", "GND")
-    sh.connect(j, "4", "+5V")
+def power_terminal(sh, ref, x, y, nets):
+    """KF301 screw terminal for the module +5 V supply; nets lists the pin nets in order."""
+    j = sh.symbol(f"Connector_Generic:Conn_01x{len(nets):02d}", ref, "POWER_5V", x, y,
+                  footprint=FP_KF301 % len(nets))
+    for pin, net in enumerate(nets, start=1):
+        sh.connect(j, str(pin), net)
     return j
 
 
