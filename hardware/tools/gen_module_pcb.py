@@ -56,7 +56,7 @@ def fdd_board():
         "power_zones": [],
         "keepouts": [],
         # KF301 J5, wires enter from the top edge: labels sit below the body, clear of it
-        "notes": [("+5V", 40.0, 12.6, 1.0), ("GND", 34.92, 12.6, 1.0)],
+        "notes": [("+5V", 41.4, 12.6, 1.0), ("GND", 34.92, 12.6, 1.0)],
     }
 
 
