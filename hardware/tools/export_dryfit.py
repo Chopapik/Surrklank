@@ -32,6 +32,14 @@ LAYOUT = [                           # board, title, x, y of the board's top-lef
     ("lsm-hdd-module", "LSM/HDD MODULE 120 x 80 mm", 10.0, 106.0),
     ("panel", "PANEL 100 x 59 mm", 140.0, 106.0),
 ]
+# Back side of a double-sided print: same boards, other places, so the holes pushed through
+# the paper from one side do not fall on the other side's parts.
+LAYOUT_BACK = [
+    ("fdd-module", "FDD MODULE 100 x 80 mm", 10.0, 12.0),
+    ("mainboard", "MAINBOARD 100 x 80 mm", 122.0, 12.0),
+    ("panel", "PANEL 100 x 59 mm", 10.0, 106.0),
+    ("lsm-hdd-module", "LSM/HDD MODULE 120 x 80 mm", 138.0, 106.0),
+]
 LABELLED = ("J", "A", "M", "SW", "D", "C8")
 
 
@@ -80,30 +88,34 @@ class Page:
         px, py = self.p(x, y)
         self.ops.append("BT /F1 %.1f Tf %.2f %.2f Td (%s) Tj ET" % (size_pt, px, py, s))
 
-    def save(self, path):
-        w, h = PAGE_W_MM * K, PAGE_H_MM * K      # drawing is landscape (w x h)
-        # The PDF page itself is A4 portrait (h x w) and the drawing is rotated
-        # 90 degrees on it: a printer does not rotate a landscape page when
-        # scaling is off and would crop it. Turn the printed sheet to read it.
-        ops = ["q 0 1 -1 0 %.3f 0 cm" % h] + self.ops + ["Q"]
-        stream = "\n".join(ops).encode("latin-1", "replace")
-        objs = [b"<< /Type /Catalog /Pages 2 0 R >>",
-                b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-                ("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %.3f %.3f] /Contents 4 0 R "
-                 "/Resources << /Font << /F1 5 0 R >> >> >>" % (h, w)).encode(),
-                b"<< /Length %d >>\nstream\n" % len(stream) + stream + b"\nendstream",
-                b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
-        out = bytearray(b"%PDF-1.4\n")
-        offsets = []
-        for i, body in enumerate(objs, start=1):
-            offsets.append(len(out))
-            out += b"%d 0 obj\n" % i + body + b"\nendobj\n"
-        xref = len(out)
-        out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objs) + 1)
-        for off in offsets:
-            out += b"%010d 00000 n \n" % off
-        out += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(objs) + 1, xref)
-        Path(path).write_bytes(bytes(out))
+
+def write_pdf(pages, path):
+    """Write one A4 portrait PDF page per Page. The drawing is landscape (w x h) and is
+    rotated 90 degrees on the portrait page: a printer does not rotate a landscape
+    page when scaling is off and would crop it. Turn the printed sheet to read it."""
+    w, h = PAGE_W_MM * K, PAGE_H_MM * K
+    n = len(pages)
+    objs = [b"<< /Type /Catalog /Pages 2 0 R >>",
+            ("<< /Type /Pages /Kids [%s] /Count %d >>"
+             % (" ".join("%d 0 R" % (3 + 2 * i) for i in range(n)), n)).encode()]
+    font_id = 3 + 2 * n
+    for i, pg in enumerate(pages):
+        stream = "\n".join(["q 0 1 -1 0 %.3f 0 cm" % h] + pg.ops + ["Q"]).encode("latin-1", "replace")
+        objs.append(("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %.3f %.3f] /Contents %d 0 R "
+                     "/Resources << /Font << /F1 %d 0 R >> >> >>" % (h, w, 4 + 2 * i, font_id)).encode())
+        objs.append(b"<< /Length %d >>\nstream\n" % len(stream) + stream + b"\nendstream")
+    objs.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for i, body in enumerate(objs, start=1):
+        offsets.append(len(out))
+        out += b"%d 0 obj\n" % i + body + b"\nendobj\n"
+    xref = len(out)
+    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objs) + 1)
+    for off in offsets:
+        out += b"%010d 00000 n \n" % off
+    out += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(objs) + 1, xref)
+    Path(path).write_bytes(bytes(out))
 
 
 def mm(v):
@@ -248,19 +260,24 @@ def ruler(page, x0, y0, horizontal):
         page.text(x0 - 12.0, y0 - 2.0, "10 cm vertical", 7.0)
 
 
+def sheet(layout, ruler_h, note_x):
+    page = Page()
+    for name, title, x, y in layout:
+        draw_board(page, name, title, x, y)
+    ruler(page, ruler_h[0], ruler_h[1], True)
+    ruler(page, 262.0, 20.0, False)
+    page.color(BLACK)
+    page.text(note_x, 201.0, "Print at 100 % / actual size (not fit to page). Black: board and part outlines. "
+                             "Red: through-hole pads.", 6.5)
+    return page
+
+
 def main():
     out = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_OUT
     out.parent.mkdir(parents=True, exist_ok=True)
-    page = Page()
-    for name, title, x, y in LAYOUT:
-        draw_board(page, name, title, x, y)
-    ruler(page, 140.0, 178.0, True)
-    ruler(page, 262.0, 20.0, False)
-    page.color(BLACK)
-    page.text(140.0, 201.0, "Print at 100 % / actual size (not fit to page). Black: board and part outlines. "
-                            "Red: through-hole pads.", 6.5)
-    page.save(out)
-    print(f"wrote {out}")
+    pages = [sheet(LAYOUT, (140.0, 178.0), 140.0), sheet(LAYOUT_BACK, (10.0, 178.0), 10.0)]
+    write_pdf(pages, out)
+    print(f"wrote {out} ({len(pages)} pages: front, back)")
 
 
 if __name__ == "__main__":
