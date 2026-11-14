@@ -293,6 +293,14 @@ through a 33 Ω resistor.
 - Buffered CLK, LATCH, /OE, /PL, CLK165 and U4 QH′ reach OUT through 33 Ω.
 - Power: Molex J5 (+5 V) → AMS1117-3.3 (10 µF in, 22 µF out); 100 nF per IC.
 - Parts are SMD (SOIC, 0805, 4 × 0603 resistor arrays) except connectors.
+- Bring-up aids: five 0603 LEDs with 1 kΩ resistors show the level on the
+  serial output of each 595 (D1 U2, D2 U3, D3 U4), the 165 return (D4) and the
+  3.3 V rail (D5). They read existing nets and add no logic; use LEDs with Vf up
+  to about 2.2 V (red, yellow, green). Header J11 (1 × 6) taps 3V3, buffered
+  DATA, CLK, LATCH, the end of the chain and GND for a probe or clip lead. A
+  test firmware that shifts a known pattern through the chain therefore shows
+  where it stops, before any drive or motor is connected. The LEDs show data
+  levels, not activity: all registers share CLK and LATCH.
 
 ### Outputs and inputs per drive
 
@@ -397,6 +405,7 @@ M1–M4 are the module's DRV8833 slots.
 - Each slot has a 4-pin JST-XH connector (2.5 mm): pins 1–4 = OUT1–OUT4.
 - Power: Molex J5 (+5 V) and optional J10 (not fitted unless measured current
   needs it), 470 µF bulk capacitor on +5 V, AMS1117-3.3 for logic.
+- Bring-up LEDs D1–D5 and header J11 are the same as on the FDD module.
 
 ### Motor connections
 
@@ -492,6 +501,7 @@ their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
 | 10 kΩ pull resistors | Mainboard control lines (table above) |
 | Pull-up resistor arrays | FDD lines and inputs, DRV8833 FAULT inputs |
 | Series resistors | 33 Ω on mainboard ribbon outputs and module OUT |
+| LED resistors | 1 kΩ 0603, one per module bring-up LED (five per module) |
 | PWR_OK divider | Mainboard: 10 kΩ / 20 kΩ |
 | MMBT3904, 2.2 kΩ, 100 kΩ | Mainboard ATX switch (S8050 in the hand-wired assembly) |
 

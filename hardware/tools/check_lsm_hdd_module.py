@@ -91,6 +91,23 @@ def main(path):
     if ("U6", "3") not in nets["+5V"] or ("U6", "2") not in nets["+3V3"]:
         errors.append("LDO must take +5V and supply +3V3")
 
+    # Bring-up aids: LEDs read existing nets through 1k, header J11 is a plain tap
+    lit = {"D1": ("U2", "9"), "D2": ("U3", "9"), "D3": ("U4", "9"), "D4": ("U5", "9")}
+    for d, (ic, pin) in lit.items():
+        if where.get((d, "1")) != "GND":
+            errors.append(f"{d} cathode must be on GND")
+        rr = "R" + d[1:]
+        src = where.get((ic, pin))
+        if where.get((rr, "1")) != src or where.get((rr, "2")) != where.get((d, "2")):
+            errors.append(f"{d}: expected {ic} pin {pin} -> {rr} -> LED anode")
+    if where.get(("R5", "1")) != "+3V3" or where.get(("D5", "1")) != "GND" or where.get(("R5", "2")) != where.get(("D5", "2")):
+        errors.append("D5/R5 must light from +3V3")
+    if nets.get(where.get(("J11", "1"))) is None or where.get(("J11", "1")) != "+3V3" or where.get(("J11", "6")) != "GND":
+        errors.append("J11 pin 1 must be +3V3 and pin 6 GND")
+    for pin, what in (("2", ("U2", "14")), ("3", ("U2", "11")), ("4", ("U2", "12")), ("5", ("U4", "9"))):
+        if where.get(("J11", pin)) != where.get(what):
+            errors.append(f"J11 pin {pin} must share the net of {what[0]} pin {what[1]}")
+
     print("Register bits:")
     for ref, q, what in sorted(bits, key=lambda b: (b[0], b[1])):
         print(f"  {ref} {q}: {what}")

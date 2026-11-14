@@ -152,8 +152,9 @@ module header.
   The board is 120 mm wide: the Molex clearance, C8 and four 18.6 mm slots do
   not fit in 100 mm.
 - Ribbon signals keep the signal/ground order of the 16-pin assignment.
-- Optional test points on DATA, CLK, LATCH, /OE, +3V3 and GND are proposed for
-  debugging; not decided.
+- Both modules carry bring-up aids: LEDs D1-D5 (register serial outputs, 165
+  return, 3.3 V) at the registers and header J11 (3V3, DATA, CLK, LATCH, end of
+  chain, GND). The FDD module stays 100 x 80 mm, within the 100 x 100 mm limit.
 
 ## Manufacturing
 
@@ -161,13 +162,20 @@ SMD (factory assembly) or THT (hand soldering) is not decided. With factory
 assembly, parts would be chosen from the JLCPCB/LCSC stock to limit assembly
 fees; costs are not estimated yet.
 
-`hardware/tools/export_review.py [board ...]` writes review material to
+`hardware/tools/export_review.py [board ...]` writes review tables to
 `hardware/fabrication/review/` (git-ignored): a pin-by-pin table per board from
 the netlist (connectors, modules, switches, LEDs: pin name, net, what else is
-on it) and an A4 PDF of copper and silkscreen at 1:1 for a paper dry fit. The
-tables are generated from the schematic, so they are the thing to compare with
-the real parts and breadboard wiring; `check_*.py` only compares the schematic
-with WIRING.md.
+on it). The tables are generated from the schematic, so they are the thing to
+compare with the real parts and breadboard wiring; `check_*.py` only compares
+the schematic with WIRING.md.
+
+`hardware/tools/export_dryfit.py` (run with KiCad's Python, which provides
+`pcbnew`) writes `surrklank-dryfit-a4-1to1.pdf` to the same folder: one A4
+landscape sheet with all four boards at true size for a paper dry fit. Black
+lines are the board edge, footprint outlines and mounting holes; red circles
+are through-hole pads with their drills; tracks and SMD parts are left out to
+save ink. A 10 cm ruler along both axes shows whether the printer rescaled the
+page: print at 100 % / actual size, never fit to page.
 
 `hardware/tools/export_jlcpcb.py [board ...]` writes JLCPCB upload files to
 `hardware/fabrication/` (git-ignored): one Gerber and drill zip per board
@@ -188,11 +196,12 @@ modules stay hand-soldered.
 
 ## Open items
 
-- Before ordering: dry-fit the 1:1 print (`export_review.py`) with the real ESP32
+- Before ordering: dry-fit the 1:1 sheet (`export_dryfit.py`) with the real ESP32
   board, salvaged IDE header and Molex, terminal, buttons and OLED; measure the
   DRV8833 module J1 and EEP pull-up supply with a multimeter; compare every
   pin-1 marker in the JLCPCB placement preview.
-- Parts: LCSC numbers for the mainboard Q1 and resistors and the panel parts;
+- Parts: LCSC numbers for the mainboard Q1 and resistors and the panel parts, and
+  confirm the bring-up LED and 1 kΩ 0603 numbers (C2286, C21190);
   AMS1117 with the 22 µF 1206 ceramic is untested (datasheet silent on
   ceramics; scope the 3.3 V rail of the first module); CPL rotation of the
   resistor arrays and Q1; SMD or THT assembly.

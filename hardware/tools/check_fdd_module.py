@@ -101,6 +101,23 @@ def main(path):
     if where.get(("J5", "4")) != "+5V" or ("J5", "1") in where and where[("J5", "1")] not in (None,) and not where[("J5", "1")].startswith("unconnected"):
         fail("Molex: pin 4 must be +5V and pin 1 (+12V) unconnected")
 
+    # Bring-up aids: LEDs read existing nets through 1k, header J11 is a plain tap
+    lit = {"D1": ("U2", "9"), "D2": ("U3", "9"), "D3": ("U4", "9"), "D4": ("U5", "9")}
+    for d, (ic, pin) in lit.items():
+        if where.get((d, "1")) != "GND":
+            fail(f"{d} cathode must be on GND")
+        rr = "R" + d[1:]
+        src = where.get((ic, pin))
+        if where.get((rr, "1")) != src or where.get((rr, "2")) != where.get((d, "2")):
+            fail(f"{d}: expected {ic} pin {pin} -> {rr} -> LED anode")
+    if where.get(("R5", "1")) != "+3V3" or where.get(("D5", "1")) != "GND" or where.get(("R5", "2")) != where.get(("D5", "2")):
+        fail("D5/R5 must light from +3V3")
+    if nets.get(where.get(("J11", "1"))) is None or where.get(("J11", "1")) != "+3V3" or where.get(("J11", "6")) != "GND":
+        fail("J11 pin 1 must be +3V3 and pin 6 GND")
+    for pin, what in (("2", ("U2", "14")), ("3", ("U2", "11")), ("4", ("U2", "12")), ("5", ("U4", "9"))):
+        if where.get(("J11", pin)) != where.get(what):
+            fail(f"J11 pin {pin} must share the net of {what[0]} pin {what[1]}")
+
     order = {"15": "QA", "1": "QB", "2": "QC", "3": "QD", "4": "QE", "5": "QF", "6": "QG", "7": "QH"}
     d165 = {"11": "D0", "12": "D1", "13": "D2", "14": "D3", "3": "D4", "4": "D5", "5": "D6", "6": "D7"}
     print("Register bits:")

@@ -3726,6 +3726,634 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:LED"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "LED"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Light emitting diode"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Sim.Pins" "1=K 2=A"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "LED diode"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "LED* LED_SMD:* LED_THT:*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "LED_0_1"
+				(polyline
+					(pts
+						(xy -3.048 -0.762)
+						(xy -4.572 -2.286)
+						(xy -3.81 -2.286)
+						(xy -4.572 -2.286)
+						(xy -4.572 -1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.778 -0.762)
+						(xy -3.302 -2.286)
+						(xy -2.54 -2.286)
+						(xy -3.302 -2.286)
+						(xy -3.302 -1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 0)
+						(xy 1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -1.27)
+						(xy -1.27 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.27)
+						(xy 1.27 1.27)
+						(xy -1.27 0)
+						(xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "LED_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Connector_Generic:Conn_01x06"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "J"
+				(at 0 7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x06"
+				(at 0 -10.16 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "Conn_01x06_1_1"
+				(rectangle
+					(start -1.27 6.35)
+					(end 1.27 -8.89)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(rectangle
+					(start -1.27 5.207)
+					(end 0 4.953)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 2.667)
+					(end 0 2.413)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -4.953)
+					(end 0 -5.207)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -7.493)
+					(end 0 -7.747)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 5.08 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -7.62 0)
+					(length 3.81)
+					(name "Pin_6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Mechanical:MountingHole"
 			(pin_names
 				(offset 1.016)
@@ -17117,6 +17745,1997 @@
 		(uuid 948c2130-7e1a-5857-8ec5-2f7546954649)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 292.1 241.3 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid 27257e19-c6c2-5861-8b00-6061e4c403a3)
+		(property "Reference" "R1"
+			(at 292.1 239.268 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 292.1 241.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 292.1 243.078 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 292.1 241.3 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 292.1 241.3 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 284590b2-ee5b-5b41-aa50-c231112d61c2)
+		)
+		(pin "2"
+			(uuid b6a69fba-5e54-5195-98a3-31d6ab084662)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 288.29 241.3)
+			(xy 285.75 241.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 1474a3c8-4d8f-5398-ac72-8164c6456777)
+	)
+	(label "SR1"
+		(at 285.75 241.3 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid 39e61f6c-05a4-58e4-9fce-0f89f49f13be)
+	)
+	(wire
+		(pts
+			(xy 295.91 241.3)
+			(xy 298.45 241.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 70b45a6c-03af-5d16-991c-d68b5ce027ed)
+	)
+	(label "LED_D1"
+		(at 298.45 241.3 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid 93db61c2-008f-57e3-83dd-0fb243a60ebc)
+	)
+	(symbol
+		(lib_id "Device:LED")
+		(at 312.42 241.3 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid 8d03ffd9-1921-5b8c-945f-22419fd8df5a)
+		(property "Reference" "D1"
+			(at 312.42 243.84 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LED"
+			(at 312.42 238.76 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+			(at 312.42 241.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 312.42 241.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 312.42 241.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 312.42 241.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 01a10369-3279-5bf8-9db2-4e1883166fbb)
+		)
+		(pin "2"
+			(uuid 3c8309d9-3bc4-5327-8643-de7dbb35c750)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "D1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 308.61 241.3)
+			(xy 306.07 241.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 51548848-de0f-5266-b29f-d200503e102e)
+	)
+	(label "LED_D1"
+		(at 306.07 241.3 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid 7326e415-8f81-519f-bbe0-a4c4b3fba5dd)
+	)
+	(wire
+		(pts
+			(xy 316.23 241.3)
+			(xy 318.77 241.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid a28356c5-727c-5793-a371-2e1bc0d248c4)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 318.77 241.3 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid a872323e-4cd0-5b95-a15d-07ebd849478d)
+		(property "Reference" "#PWR080"
+			(at 325.12 241.3 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 322.58 241.3 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 318.77 241.3 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 318.77 241.3 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 318.77 241.3 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 75eea85a-ab02-5000-ae0e-90e9781f8069)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "#PWR080")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 292.1 248.92 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid 10b8a678-62b0-532b-b116-02f8ac12a8fa)
+		(property "Reference" "R2"
+			(at 292.1 246.888 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 292.1 248.92 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 292.1 250.698 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 292.1 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 292.1 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 89d7d9aa-7f83-51e6-abd1-d331df6fae96)
+		)
+		(pin "2"
+			(uuid 349dc225-b716-5550-b8cc-950024844f34)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 288.29 248.92)
+			(xy 285.75 248.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 5163dce5-fe4c-521b-920f-c6c75ff987df)
+	)
+	(label "SR2"
+		(at 285.75 248.92 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid 51623fd1-99f7-5d48-82db-67c1bf9b1478)
+	)
+	(wire
+		(pts
+			(xy 295.91 248.92)
+			(xy 298.45 248.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 30fc7d89-811d-5659-b93f-0c8684f3ad3c)
+	)
+	(label "LED_D2"
+		(at 298.45 248.92 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid e7aa8eb9-cd7f-521e-9743-f9d90ece37c9)
+	)
+	(symbol
+		(lib_id "Device:LED")
+		(at 312.42 248.92 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid bf223734-e743-5b0f-898d-334f9016cae9)
+		(property "Reference" "D2"
+			(at 312.42 251.46 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LED"
+			(at 312.42 246.38 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+			(at 312.42 248.92 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 312.42 248.92 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 312.42 248.92 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 312.42 248.92 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 25a6041c-7820-50ef-bf04-42a9a913e758)
+		)
+		(pin "2"
+			(uuid bcb18b44-1068-5062-a207-df866cec884e)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "D2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 308.61 248.92)
+			(xy 306.07 248.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid f8a579cb-07c6-5ce2-9b14-80552374762d)
+	)
+	(label "LED_D2"
+		(at 306.07 248.92 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid 22bd8095-a267-5997-af9c-65bf4b4046e1)
+	)
+	(wire
+		(pts
+			(xy 316.23 248.92)
+			(xy 318.77 248.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 16d58f5e-3a14-5736-8b35-9616efc1af89)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 318.77 248.92 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid 97954cb1-e36a-5857-9910-52e6f82614a8)
+		(property "Reference" "#PWR081"
+			(at 325.12 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 322.58 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 318.77 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 318.77 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 318.77 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 3ab6e03f-8b71-5afe-ad23-fceee6d8f122)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "#PWR081")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 292.1 256.54 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid f989103a-7772-5040-a2f7-a6b4dc9176cc)
+		(property "Reference" "R3"
+			(at 292.1 254.508 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 292.1 256.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 292.1 258.318 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 292.1 256.54 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 292.1 256.54 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 6b9f3af8-45fe-515a-8389-c2c08302303e)
+		)
+		(pin "2"
+			(uuid 70b42daa-234c-5bba-b598-ccfa2a3705e6)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "R3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 288.29 256.54)
+			(xy 285.75 256.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid dbe1d350-b870-5696-89e2-40b3910b55ce)
+	)
+	(label "SR_LAST"
+		(at 285.75 256.54 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid 4b604cba-b8db-5a58-b48f-e2ccb6e12de8)
+	)
+	(wire
+		(pts
+			(xy 295.91 256.54)
+			(xy 298.45 256.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 891a74b7-a372-53c5-9efd-aba4648f1c39)
+	)
+	(label "LED_D3"
+		(at 298.45 256.54 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid a0b317f4-3bfb-5bdc-b9da-5cd2c6cd17e7)
+	)
+	(symbol
+		(lib_id "Device:LED")
+		(at 312.42 256.54 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid 2715293e-deee-57b5-bcca-3158609576f6)
+		(property "Reference" "D3"
+			(at 312.42 259.08 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LED"
+			(at 312.42 254 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+			(at 312.42 256.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 312.42 256.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 312.42 256.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 312.42 256.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid d4dd38c4-7676-59e4-8e70-4c7894a25b73)
+		)
+		(pin "2"
+			(uuid ede6a90d-9e3a-5f82-8b3f-6b2d2bf7fbcd)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "D3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 308.61 256.54)
+			(xy 306.07 256.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 3554a3b8-f30a-5357-af95-093a16b5510a)
+	)
+	(label "LED_D3"
+		(at 306.07 256.54 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid c77126e5-9931-575e-aafe-a38a83dd96f4)
+	)
+	(wire
+		(pts
+			(xy 316.23 256.54)
+			(xy 318.77 256.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 7822ef1c-d63e-5d5b-95f6-1a0cbaca1d69)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 318.77 256.54 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid ac98e8bc-5cc3-54e3-8577-e3d5e201a70f)
+		(property "Reference" "#PWR082"
+			(at 325.12 256.54 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 322.58 256.54 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 318.77 256.54 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 318.77 256.54 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 318.77 256.54 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid ab6a806e-5fca-5f32-b09e-acfcf368cb1c)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "#PWR082")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 292.1 264.16 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid 4044b120-9bfc-5adf-9fd8-6ec879f7b3d4)
+		(property "Reference" "R4"
+			(at 292.1 262.128 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 292.1 264.16 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 292.1 265.938 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 292.1 264.16 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 292.1 264.16 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 38b94fbf-1a2f-5c57-ab50-b959ec1db019)
+		)
+		(pin "2"
+			(uuid 3b56632d-cf53-5f3b-8a48-990a60eb32a8)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "R4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 288.29 264.16)
+			(xy 285.75 264.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 52327d3e-828f-54d6-a203-41c20ebbb651)
+	)
+	(label "Q165_LOCAL"
+		(at 285.75 264.16 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid 9b565d65-992a-55a6-b257-aa01488477fa)
+	)
+	(wire
+		(pts
+			(xy 295.91 264.16)
+			(xy 298.45 264.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 931fa7bd-33dd-51ff-864c-b693caf24318)
+	)
+	(label "LED_D4"
+		(at 298.45 264.16 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid 5aa7810c-2f12-5a82-a7cc-39e2da1ab25e)
+	)
+	(symbol
+		(lib_id "Device:LED")
+		(at 312.42 264.16 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid 0a65dea3-c3ab-5644-a862-dbe0e5b16924)
+		(property "Reference" "D4"
+			(at 312.42 266.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LED"
+			(at 312.42 261.62 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+			(at 312.42 264.16 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 312.42 264.16 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 312.42 264.16 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 312.42 264.16 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 4933cc49-2656-5c41-9f7c-7a6c21517072)
+		)
+		(pin "2"
+			(uuid 5b958c9d-81a7-5867-b8a0-c8396185e85d)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "D4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 308.61 264.16)
+			(xy 306.07 264.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid e889df3a-4ee5-5834-be48-84b7914e09c8)
+	)
+	(label "LED_D4"
+		(at 306.07 264.16 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid 46cccbe1-e5a9-51ed-b4e0-a8c93dad8d65)
+	)
+	(wire
+		(pts
+			(xy 316.23 264.16)
+			(xy 318.77 264.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 83a958fe-31cf-5e0f-a22e-c762a7f75503)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 318.77 264.16 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid 4cbc9bdb-3453-58f6-a3d2-2dab29f2b14a)
+		(property "Reference" "#PWR083"
+			(at 325.12 264.16 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 322.58 264.16 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 318.77 264.16 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 318.77 264.16 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 318.77 264.16 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid c6106449-215d-58b1-aaf1-94e3f5747321)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "#PWR083")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 292.1 271.78 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid 4adb51c4-ac4f-598f-98b1-2f0f03b6956b)
+		(property "Reference" "R5"
+			(at 292.1 269.748 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 292.1 271.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 292.1 273.558 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 292.1 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 292.1 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 661628b1-80d9-5c94-9196-9020607fda8c)
+		)
+		(pin "2"
+			(uuid ccde691e-d1af-508a-8740-5c9c64eec924)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "R5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 288.29 271.78)
+			(xy 285.75 271.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid d7e8e3f1-33c4-55a8-9ed7-551426356d0d)
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 285.75 271.78 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid b8b00263-575c-5bed-8c7e-121513ba4ad5)
+		(property "Reference" "#PWR084"
+			(at 289.56 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 282.194 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 285.75 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 285.75 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 285.75 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 01069b7a-fde2-519f-95a0-c6db2878d99f)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "#PWR084")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 295.91 271.78)
+			(xy 298.45 271.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 99b54f21-3f38-5e6f-9bc9-7e1d02074cd5)
+	)
+	(label "LED_D5"
+		(at 298.45 271.78 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid 4027742b-45d0-5f4e-a5d2-e05d2d5817ba)
+	)
+	(symbol
+		(lib_id "Device:LED")
+		(at 312.42 271.78 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid 43d9d86e-6eae-5d45-a29c-e7391427ae53)
+		(property "Reference" "D5"
+			(at 312.42 274.32 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LED"
+			(at 312.42 269.24 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+			(at 312.42 271.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 312.42 271.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 312.42 271.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 312.42 271.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 5da74457-cc07-5f4e-8530-40dc5b40770c)
+		)
+		(pin "2"
+			(uuid 176687f3-061f-5312-9d03-27b09ac54bb8)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "D5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 308.61 271.78)
+			(xy 306.07 271.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 2587e70e-2d82-585b-b153-fb53fdea06e2)
+	)
+	(label "LED_D5"
+		(at 306.07 271.78 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid 57719e8b-a28b-5afb-bf91-b18d93ad8d6f)
+	)
+	(wire
+		(pts
+			(xy 316.23 271.78)
+			(xy 318.77 271.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 8a33fe44-5794-518b-861b-24139ff4e6ae)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 318.77 271.78 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid 1dac82b5-b079-55a3-a5e9-efa7b81015ee)
+		(property "Reference" "#PWR085"
+			(at 325.12 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 322.58 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 318.77 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 318.77 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 318.77 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 2f0c5dff-5fba-5a82-bab8-0216f4f1ca0c)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "#PWR085")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x06")
+		(at 353.06 254 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid 9c888891-1787-5ea7-9687-e78f94d33c9b)
+		(property "Reference" "J11"
+			(at 353.06 246.38 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TEST"
+			(at 353.06 264.16 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical"
+			(at 353.06 254 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 353.06 254 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 353.06 254 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 25a093b3-7467-5e26-9670-db6e533ce8d2)
+		)
+		(pin "2"
+			(uuid d051dcb7-fdea-5e62-a939-f902f8592e1d)
+		)
+		(pin "3"
+			(uuid ab6ed3d5-39f4-5414-bd0f-13a35d22f7da)
+		)
+		(pin "4"
+			(uuid b79e5ab4-348a-55b0-aa0e-6cf538e50a72)
+		)
+		(pin "5"
+			(uuid beba3017-db46-538a-ba1e-a2fc074a2cfb)
+		)
+		(pin "6"
+			(uuid ded61064-a711-5fb9-b4b9-72a3a51fa918)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "J11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 347.98 248.92)
+			(xy 345.44 248.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 11293de2-aa3c-5687-9430-2e1e26d6bbb3)
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 345.44 248.92 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid 67b114fa-d74f-5168-96f7-2c9310f03080)
+		(property "Reference" "#PWR086"
+			(at 349.25 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 341.884 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 345.44 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 345.44 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 345.44 248.92 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid 152622ef-268c-5a80-9c03-aaf0c05b1da8)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "#PWR086")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 347.98 251.46)
+			(xy 345.44 251.46)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 97f0e5ba-c6be-5461-90b8-8933108a49d6)
+	)
+	(label "B_DATA"
+		(at 345.44 251.46 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid c87ef683-e0b4-5d07-875d-c72febddf1cb)
+	)
+	(wire
+		(pts
+			(xy 347.98 254)
+			(xy 345.44 254)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 631fc567-a829-58b6-9aeb-687e3998f1eb)
+	)
+	(label "B_CLK"
+		(at 345.44 254 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid bd62fb8a-f0bd-5e2f-9ecb-50cbd0478cc6)
+	)
+	(wire
+		(pts
+			(xy 347.98 256.54)
+			(xy 345.44 256.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid e30716c3-aa23-524a-98e6-4ccfca9f88ba)
+	)
+	(label "B_LATCH"
+		(at 345.44 256.54 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid c8e465ef-84c8-5efb-a6bf-a8a7d3944768)
+	)
+	(wire
+		(pts
+			(xy 347.98 259.08)
+			(xy 345.44 259.08)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid 30ae111f-54e3-5b8d-8651-948b2690ed26)
+	)
+	(label "SR_LAST"
+		(at 345.44 259.08 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid 6fce83da-cc7f-5814-8020-577225b2ad57)
+	)
+	(wire
+		(pts
+			(xy 347.98 261.62)
+			(xy 345.44 261.62)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid c6a1e978-7ab5-59eb-877b-0784ad37ec3f)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 345.44 261.62 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid c5ff7db8-97ca-5de1-82e0-ac93d68763ce)
+		(property "Reference" "#PWR087"
+			(at 339.09 261.62 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 341.63 261.62 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 345.44 261.62 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 345.44 261.62 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 345.44 261.62 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid a911e848-78ce-5978-95e1-81e09de59374)
+		)
+		(instances
+			(project "surrklank-lsm-hdd-module"
+				(path "/3a8b56a4-ec1f-5e00-aada-ab8e4c137710"
+					(reference "#PWR087")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(text "D1-D4 show the level on the serial output of U2, U3, U4 (QH') and the 165 return (QH);\nD5 shows 3.3 V. Use LEDs with Vf up to about 2.2 V (red, yellow, green).\nJ11: 3V3, buffered DATA, CLK, LATCH, end of chain, GND."
+		(exclude_from_sim no)
+		(at 287.02 282.58 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid b2f33fd1-d352-5ef0-9863-6787c775d5b5)
+	)
+	(symbol
 		(lib_id "Mechanical:MountingHole")
 		(at 236.22 279.4 0)
 		(unit 1)
@@ -17124,7 +19743,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 27257e19-c6c2-5861-8b00-6061e4c403a3)
+		(uuid 9237471a-503a-5cf3-8150-2deca83f2d9b)
 		(property "Reference" "H1"
 			(at 236.22 274.32 0)
 			(show_name no)
@@ -17195,7 +19814,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 014b28e5-58e7-5a13-8565-751f2bf86070)
+		(uuid 1494bd6a-9bb1-510a-9881-a36d16f9633d)
 		(property "Reference" "H2"
 			(at 246.38 274.32 0)
 			(show_name no)
@@ -17266,7 +19885,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid c124c9a8-03b6-5ddf-b3df-ebbb0393f685)
+		(uuid d4e0d65b-979c-5543-bdf7-c447706a160f)
 		(property "Reference" "H3"
 			(at 256.54 274.32 0)
 			(show_name no)
@@ -17337,7 +19956,7 @@
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid 6a110b63-0445-5adc-a330-7b9196612c01)
+		(uuid 35bad0e1-490a-560b-9811-35291bb69927)
 		(property "Reference" "H4"
 			(at 266.7 274.32 0)
 			(show_name no)

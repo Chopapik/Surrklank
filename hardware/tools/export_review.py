@@ -5,11 +5,10 @@ For every board writes to hardware/fabrication/review/:
   surrklank-<board>-pins.md           pin-by-pin table of every connector,
                                       module and switch: pin number, pin name,
                                       net and what else is on that net
-  surrklank-<board>-paper-1to1.pdf    copper and silkscreen at 100 % scale for
-                                      a paper dry fit (print "actual size")
 
 The tables come from the schematic netlist, not from WIRING.md, so they can be
-compared against the real breadboard wiring and the physical parts.
+compared against the real breadboard wiring and the physical parts. The paper
+dry-fit sheet is made by export_dryfit.py.
 
 Usage: export_review.py [board ...]     (default: all boards)
 Requires kicad-cli (KiCad 10).
@@ -98,12 +97,8 @@ def export_board(board, work):
 
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / f"surrklank-{board}-pins.md").write_text("\n".join(lines))
-    run("pcb", "export", "pdf", "--output",
-        str(OUT / f"surrklank-{board}-paper-1to1.pdf"), "--mode-single",
-        "--layers", "F.Cu,F.Silkscreen,Edge.Cuts", "--black-and-white",
-        "--scale", "1", str(pcb))
     print(f"{board}: {len([r for r in pins if r.startswith(EXTERNAL)])} "
-          "parts in the pin table, 1:1 PDF written")
+          "parts in the pin table written")
 
 
 def main():

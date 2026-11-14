@@ -81,6 +81,7 @@ def build(path):
     sh.flag("GND", (101.6, 241.3))
 
     mc.decoupling(sh, 5, 134.62, 266.7)
+    mc.diagnostics(sh, 292.1, 241.3)
     mc.mounting_holes(sh, 236.22, 279.4)
     sh.save(path)
 

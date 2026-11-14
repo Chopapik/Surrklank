@@ -13,7 +13,7 @@ or measured).
 
 | # | Check | How | Look for | Result |
 | --- | --- | --- | --- | --- |
-| 1 | Dry fit 1:1 | `python3 hardware/tools/export_review.py`, print the PDF at 100 %, lay the real parts on it | ESP32 row spacing and antenna overhang; **Molex key side (silk chamfers) and pin order**; IDE header; ATX terminal; JST-XH; OLED; buttons | |
+| 1 | Dry fit 1:1 | Run `export_dryfit.py` (KiCad's Python), print the A4 sheet at 100 % and check the 10 cm rulers first, then put foam under the paper and push the real parts through it | ESP32 row spacing and antenna overhang; **Molex key side (silk chamfers) and pin order**; IDE header; ATX terminal; JST-XH; OLED; buttons | |
 | 2 | JLCPCB placement preview | upload the zips from `hardware/fabrication/`, compare pin-1 marks | Rotation of the resistor arrays (90°/270° is fatal, 180° harmless), Q1 (SOT-23), SOIC-28W, SOT-223 | |
 
 ## B. Multimeter on real parts
@@ -32,9 +32,9 @@ or measured).
 | 6 | +5 V on the Molex | **Before** fitting DRV8833 modules: real PSU plug into J5, measure pin 4 to GND | Exactly +5 V. 12 V means the header is soldered the wrong way round: unplug at once | |
 | 7 | Module 3.3 V | 5 V via Molex only, no ESP | 3.3 V ±0.1 V; AMS1117 not hot | |
 | 8 | 3.3 V ripple | Oscilloscope (borrowed), probe with a short ground spring | No oscillation. Datasheet is silent on ceramics: if it misbehaves hand-fit a 22 µF tantalum or polymer (EIA 3216-18) on the C7 pads | |
-| 9 | Back-power | ESP on +5VSB, ATX off, module connected by ribbon only (no Molex): measure the module 3.3 V rail | Above about 1.5 V is a problem. Record the value | |
+| 9 | Back-power | ESP on +5VSB, ATX off, module connected by ribbon only (no Molex): measure the module 3.3 V rail | Above about 1.5 V is a problem. Record the value. D5 on the rail starts to glow near 1.8 V (red), so a lit D5 with ATX off means a back-powered rail | |
 | 10 | Motor current | Bench supply with current limit or ammeter in the +5V line, one motor at a time | Start and hold current against the DRV8833 limit and one Molex pin | |
-| 11 | Long ribbon | Longest planned ribbons, every module connected, motors under load, long run | Wrong or missing steps. Only on errors: oscilloscope on CLK and LATCH at the far end of the longest hop, ringing near 1.65 V | |
+| 11 | Long ribbon | Longest planned ribbons, every module connected, motors under load, long run | Wrong or missing steps. Only on errors: oscilloscope on CLK and LATCH at the far end of the longest hop, ringing near 1.65 V. J11 taps add unterminated branches on CLK and LATCH (routed length, measured on the layout: FDD about 42 and 36 mm, LSM/HDD about 15 and 28 mm); look at these first | |
 
 ## D. Decisions before ordering
 
@@ -43,5 +43,6 @@ or measured).
 | 12 | 74HC595 part | LCSC C18164493 (GR, Chinese datasheet, SOIC-16 body width confirmed 3.9 mm, VIH/VIL given only at 4.5 V) or a branded 74HC595D | |
 | 13 | SMD or THT assembly | Factory assembly covers SMD only; connectors, ESP32 board, buttons, LEDs and DRV8833 modules stay hand-soldered | |
 | 14 | Copper weight of the LSM/HDD board | +5V band is 4.7 to 7.9 mm wide (about 10 A at +20 K for 1 oz by an IPC-2221 estimate); the Molex pin and PSU wire limit first | |
-| 15 | LCSC parts still blank | Mainboard Q1 and resistors, panel parts: match in the JLCPCB BOM editor | |
+| 15 | LCSC parts still blank | Mainboard Q1 and resistors, panel parts: match in the JLCPCB BOM editor; confirm module LED 0603 (C2286) and 1 kΩ 0603 (C21190) | |
+| 17 | Bring-up LEDs and J11 | Check LED polarity and rotation in the JLCPCB preview (a reversed LED stays dark and is not damaged at 3.3 V; CPL has no LED rotation offset yet); later, test firmware shifts a pattern through U2-U4 and the LEDs and J11 pin 5 follow it | |
 | 16 | Mounting hole H2 on the mainboard | Sits under the plugged ATX terminal: move it or accept three holes | |

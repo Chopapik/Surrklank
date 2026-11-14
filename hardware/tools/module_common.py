@@ -147,6 +147,41 @@ def decoupling(sh, count, x0, y):
     sh.text(f"C1-C{count}: 100 nF next to U1-U{count} supply pins.", (x0 - 2.54, y + 15.24))
 
 
+FP_LED = "LED_SMD:LED_0603_1608Metric"
+FP_R = "Resistor_SMD:R_0603_1608Metric"
+FP_TEST = "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical"
+# Bring-up header J11, pin 6 is GND (end pin, easy for a clip lead)
+TEST_PINS = ["+3V3", "B_DATA", "B_CLK", "B_LATCH", "SR_LAST", "GND"]
+# (LED, resistor, net lit, label): the serial output of each 595, the 165 return, the rail
+DIAG_LEDS = [("D1", "R1", "SR1", "U2 QH'"), ("D2", "R2", "SR2", "U3 QH'"),
+             ("D3", "R3", "SR_LAST", "U4 QH'"), ("D4", "R4", "Q165_LOCAL", "U5 QH"),
+             ("D5", "R5", "+3V3", "3V3")]
+
+
+def diagnostics(sh, x, y, last="SR_LAST"):
+    """Bring-up aids: one LED per register output plus a 3V3 LED, and header J11.
+
+    Each LED sits on a net that already exists (no new logic): the serial
+    output of every 595 (QH'), the 165 return (QH) and the 3.3 V rail. The
+    header exposes the buffered bus and the end of the chain for a probe.
+    """
+    for i, (dref, rref, lit, label) in enumerate(DIAG_LEDS):
+        net = last if lit == "SR_LAST" else lit
+        yy = y + i * 7.62
+        r = sh.symbol("Device:R", rref, "1k", x, yy, angle=90, footprint=FP_R)
+        sh.connect(r, "1", net)
+        sh.connect(r, "2", f"LED_{dref}")
+        d = sh.symbol("Device:LED", dref, "LED", x + 20.32, yy, angle=180, footprint=FP_LED)
+        sh.connect(d, "name:A", f"LED_{dref}")
+        sh.connect(d, "name:K", "GND")
+    j = sh.symbol("Connector_Generic:Conn_01x06", "J11", "TEST", x + 60.96, y + 12.7, footprint=FP_TEST)
+    for pin, net in enumerate(TEST_PINS, start=1):
+        sh.connect(j, str(pin), last if net == "SR_LAST" else net)
+    sh.text("D1-D4 show the level on the serial output of U2, U3, U4 (QH') and the 165 return (QH);\n"
+            "D5 shows 3.3 V. Use LEDs with Vf up to about 2.2 V (red, yellow, green).\n"
+            "J11: 3V3, buffered DATA, CLK, LATCH, end of chain, GND.", (x - 5.08, y + 41.28))
+
+
 def mounting_holes(sh, x0, y):
     for i in range(4):
         sh.symbol("Mechanical:MountingHole", f"H{i + 1}", "M3", x0 + i * 10.16, y, footprint=FP_HOLE)

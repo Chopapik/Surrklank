@@ -10,6 +10,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from kicad_sch_lib import Sheet  # noqa: E402
+import module_common as mc  # noqa: E402
 
 FP_SOIC16 = "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm"
 FP_SOIC20W = "Package_SO:SOIC-20W_7.5x12.8mm_P1.27mm"
@@ -203,6 +204,7 @@ def build(path):
         sh.symbol("Mechanical:MountingHole", f"H{i + 1}", "M3", 236.22 + i * 10.16, 279.4,
                   footprint=FP_HOLE)
 
+    mc.diagnostics(sh, 292.1, 241.3, last="SR3")
     sh.save(path)
 
 

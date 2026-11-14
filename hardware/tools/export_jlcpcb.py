@@ -52,6 +52,9 @@ LCSC = {
     ("74HC595", "SOIC-16"): ("C18164493", "74HC595"),
     ("74HC165", "SOIC-16"): ("C5613", "74HC165D,653"),
     ("AMS1117-3.3", "SOT-223"): ("C6186", "AMS1117-3.3"),
+    # Bring-up LEDs: numbers to be confirmed in the JLCPCB BOM editor
+    ("1k", "R_0603"): ("C21190", "0603WAF1001T5E"),
+    ("LED", "LED_0603"): ("C2286", "KT-0603R"),
 }
 
 SMD_MARKERS = ("_SMD", "Package_SO:")
