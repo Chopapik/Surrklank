@@ -11,7 +11,7 @@ KiCad 10 projects:
 | --- | --- |
 | `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
 | `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic and autorouted 120 × 80 mm 2-layer PCB |
-| `mainboard/` | Mainboard v0.1: generated schematic and autorouted 110 × 72 mm 2-layer PCB |
+| `mainboard/` | Mainboard v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB (within the 100 × 100 mm low-cost fab class) |
 | `panel/` | Remote panel v0.1: generated schematic and autorouted 100 × 59 mm 2-layer PCB |
 | `surrklank-controller/` | Empty first KiCad project, superseded by `mainboard/` |
 | `lib/` | Custom symbols (DRV8833 module, ESP32 38-pin board) and footprints (Molex 8981, DRV8833 module, Surrklank logo) |
@@ -157,12 +157,45 @@ SMD (factory assembly) or THT (hand soldering) is not decided. With factory
 assembly, parts would be chosen from the JLCPCB/LCSC stock to limit assembly
 fees; costs are not estimated yet.
 
+`hardware/tools/export_review.py [board ...]` writes review material to
+`hardware/fabrication/review/` (git-ignored): a pin-by-pin table per board from
+the netlist (connectors, modules, switches, LEDs: pin name, net, what else is
+on it) and an A4 PDF of copper and silkscreen at 1:1 for a paper dry fit. The
+tables are generated from the schematic, so they are the thing to compare with
+the real parts and breadboard wiring; `check_*.py` only compares the schematic
+with WIRING.md.
+
+`hardware/tools/export_jlcpcb.py [board ...]` writes JLCPCB upload files to
+`hardware/fabrication/` (git-ignored): one Gerber and drill zip per board
+(separate PTH and NPTH files), an SMD-only BOM and a CPL. Factory assembly
+covers SMD only; connectors, the ESP32 board, buttons, LEDs and the DRV8833
+modules stay hand-soldered.
+
+- LCSC numbers are filled in for the FDD and LSM/HDD parts picked in the
+  JLCPCB BOM editor (resistor arrays 4D03WGJ…, 74HC595/165, 74LVC244A,
+  AMS1117, capacitors); the mainboard and panel parts are left for the editor
+  to match.
+- CPL rotations are KiCad's plus 270° for SOIC and 180° for SOT-223, read off
+  the JLCPCB placement preview of the FDD module (pin-1 marker against the
+  board silkscreen); not tested on a built board. SOIC-28W (panel), SOT-23
+  (mainboard) and other packages are not verified: compare each pin-1 marker
+  in the preview. The BOM comment is the manufacturer part number where it is
+  known, because JLCPCB warns when the comment differs from the part's name.
+
 ## Open items
 
-- +5 V on the mainboard terminal.
-- Values: mainboard series resistors, PWR_OK divider, LSM/HDD bulk capacitor.
-- Parts: LCSC part numbers; LDO output capacitor type.
-- Drive input terminations and MOTOR behaviour on the installed drives.
+- Pending rebuild, decided: remove ATX +3.3 V. Mainboard J1 pin 1 becomes
+  +5 V, R10 (panel LED) feeds from it, JP2/JP3 on the mainboard and JP1 on both
+  modules go away, ribbon pin 15 becomes a pass-through, and `check_*.py` follow.
+  The v0.1 PCB files still contain +3V3 on these parts.
+- Before ordering: dry-fit the 1:1 print (`export_review.py`) with the real ESP32
+  board, salvaged IDE header and Molex, terminal, buttons and OLED; measure the
+  DRV8833 module J1 and EEP pull-up supply with a multimeter; compare every
+  pin-1 marker in the JLCPCB placement preview.
+- Parts: LCSC numbers for mainboard and panel; AMS1117 output-capacitor ESR
+  requirement against the fitted 22 µF 1206 ceramic; SMD or THT assembly.
+- MOTOR behaviour on the installed drives (the hand-wired assembly works with
+  TRACK0 pulled up and no 595 output pull-ups).
 - Motor supply current per LSM/HDD module and wire gauge.
 - Firmware migration after assembly: six outputs per drive and a longer FDD
   chain (48 output bits for two modules), 165 chains with WRITE PROTECT and

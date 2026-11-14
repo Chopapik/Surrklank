@@ -86,8 +86,12 @@ removed). With the pull-down on the GPIO side a module HIGH reads about 3.0 V.
 
 ### Power input
 
-A pluggable (two-part) screw terminal brings +3V3, GND, PS_ON#, +5VSB and
-PWR_OK from the user's ATX distribution. +5 V on this terminal is not decided.
+A pluggable (two-part) screw terminal brings +5V, GND, PS_ON#, +5VSB and
+PWR_OK from the user's ATX distribution. ATX +3.3 V is not used anywhere:
+modules make their own 3.3 V from +5 V. The mainboard uses terminal +5 V only
+for the panel's "main rails up" LED. PCB v0.1 still carries +3V3 on this
+terminal and the bench jumpers JP2/JP3 until the next rebuild (see Open items
+in [hardware/README.md](../hardware/README.md)).
 
 - **+5VSB → ESP32.** The ATX standby rail powers the ESP32 board through a
   removable jumper (JP1) into the board's 5 V pin, so the ESP32 runs while ATX
@@ -97,9 +101,9 @@ PWR_OK from the user's ATX distribution. +5 V on this terminal is not decided.
   plugging in USB**, also with ATX unplugged from the mains: it is the only
   isolation between USB 5 V and the ATX standby rail. The ESP32 board is
   assumed to have no USB VBUS diode (seller warning); this is not verified.
-- **+3V3** from ATX reaches only the ribbons, through normally open solder
-  jumpers (JP2/JP3) for bench use. Never connect ATX +3.3 V to
-  the ESP32 board's 3V3 or 5 V pin.
+- **+5V** from ATX (red) feeds only the panel LED on J6 pin 10. Never connect
+  it to the ESP32 board's 3V3 pin; the board's 5 V pin takes +5VSB through JP1
+  only.
 - **PWR_OK** (grey ATX wire, nominally 5 V logic) reaches GPIO36 through a
   10 kΩ / 20 kΩ divider (about 3.3 V from 5 V). It reports main rails up,
   unlike the GPIO19 request; firmware does not read it yet.
@@ -160,14 +164,14 @@ mainboard connector is J6 (2 × 5 IDC, straight-through ribbon to panel J1):
 | 3 | SDA (GPIO25) | 4 | GND |
 | 5 | SCL (GPIO26) | 6 | GND |
 | 7 | INT (GPIO27) | 8 | ATX button (GPIO13, parallel to J4) |
-| 9 | LED anode, 1 kΩ from +5VSB | 10 | LED anode, 470 Ω from ATX +3.3 V |
+| 9 | LED anode, 1 kΩ from +5VSB | 10 | LED anode, 470 Ω from ATX +5 V |
 
 - I2C runs at 100 kHz with 2.2 kΩ pull-ups to ESP_3V3 on the mainboard, which
   keeps rise time within the standard-mode limit for about 2 m of ribbon; a
   bus buffer is not planned. Planned panel parts: 0.96" SSD1306 OLED (I2C,
   usually address 0x3C) and an MCP23017/PCF8574 expander for buttons and LEDs.
 - Pin 9 lights while +5VSB is present and pin 10 while ATX main rails are up
-  (measured rail, not the GPIO19 request); both work without firmware. Panel
+  (measured rail, not the GPIO19 request); both work without firmware. Pin 10 draws about 6 mA at Vf 2 V. Panel
   LEDs connect to GND and should have Vf about 2 V (red, green or yellow).
 - Panel expander U1 (MCP23017, address 0x20, INTA on the INT line with
   IOCON.MIRROR, internal pull-ups for buttons): GPA0 PREV, GPA1 PLAY, GPA2 STOP,
@@ -193,7 +197,7 @@ a ground wire. Pin assignment is a proposal for the schematic:
 | 9 | /PL | 10 | GND |
 | 11 | CLK165 | 12 | GND |
 | 13 | Q165 | 14 | GND |
-| 15 | +3V3 (bench only, solder jumper) | 16 | GND |
+| 15 | Reserved (spare wire, passes IN to OUT) | 16 | GND |
 
 On each module:
 
@@ -202,10 +206,50 @@ On each module:
 - The last 595's QH′ drives DATA on OUT.
 - The 165's QH drives Q165 on IN; its serial input (SER, pin 10) takes Q165
   from OUT, with a pull resistor so an open OUT reads a defined level.
-- Modules are powered locally; the ribbon +3V3 wire connects only when the
-  bench solder jumper is closed.
+- Modules are powered locally from their own Molex; no power runs on the
+  ribbon. Pin 15 is a spare wire that passes straight through each module (PCB
+  v0.1 still routes it to the bench jumper JP1 until the next rebuild).
 
-Series resistors on mainboard outputs and the buffer part are not chosen.
+Mainboard outputs and module OUT outputs have 33 Ω series resistors (mainboard
+RN4–RN7, module RN3/RN4); the module input buffer is a 74LVC244A (U1). The
+buffer re-drives every signal, so each ribbon hop is an independent
+point-to-point link and lengths do not add up. It has no hysteresis, so it
+repeats ringing that crosses its input threshold instead of filtering it.
+
+### Crimping the ribbon
+
+The ribbon is straight-through: wire *w*, counted from the red wire, lands on
+pin *w* at both ends. The red wire is pin 1 (DATA), wire 2 is GND and wire 16
+is GND.
+
+- Put both IDC sockets on the **same face** of the ribbon, each with its pin-1
+  triangle at the red wire.
+- A socket on the opposite face swaps odd and even pins within each pair (1↔2,
+  3↔4, …), putting every signal on a ground pin and every ground on a signal
+  pin. This is standard IDC behaviour, not tested on this hardware.
+- A socket turned 180° in the plane maps wire *w* to pin 17 − *w*.
+- Check all 16 wires for continuity and neighbour shorts before first use.
+
+### Signal integrity
+
+Expected lengths: about 50 cm from the mainboard to module 1 and up to about
+100 cm between modules; the panel cable is longer (up to about 2 m) but carries
+only slow I2C. No measurement exists, so the following is a plan, not a result.
+
+1. Acceptance is functional: the longest planned ribbons, every module
+   connected, motors under load and long runs of motion, counting wrong or
+   missing steps and unexpected outputs.
+2. Changes that need no new boards, in this order: keep ribbons away from motor
+   supply wires and cross them at right angles; use a thick, short Molex GND
+   wire so the ribbon GND wires carry almost no motor return current; replace
+   the 33 Ω series arrays with 47–68 Ω to slow the edges; add ferrite clamps;
+   slow CLK in firmware if the frame budget allows (not checked).
+3. Diagnosis needs an oscilloscope of at least 100 MHz with a short probe
+   ground spring: look for ringing on CLK and LATCH at the far end of the
+   longest hop crossing about 1.65 V. A logic analyser samples too slowly for
+   this.
+4. Board changes (a Schmitt-trigger buffer or optional RC filters on CLK,
+   LATCH, CLK165 and /PL) are not planned.
 
 ## FDD module
 
@@ -271,7 +315,8 @@ could erase a disk.
 
 - Every line toward a drive (DS0–DS2, MOTOR, DIR, STEP, WRITE DATA, WRITE GATE)
   has a pull-up to 3.3 V, so drives stay deselected and still while 595 outputs
-  are high impedance during startup.
+  are high impedance during startup. The hand-wired assembly runs without
+  pull-ups on the 595 outputs; the PCB keeps them as a cheap precaution.
 - TRACK0 and WRITE PROTECT have pull-ups to 3.3 V; the drive only pulls them LOW.
   The hand-wired assembly uses 5.1 kΩ for TRACK0.
 - Pull-ups are 4 × 0603 resistor arrays: 10 kΩ on drive inputs, 4.7 kΩ on
@@ -285,6 +330,10 @@ Each module has two 40-pin IDE headers; each serves two drives.
 - Split the ribbon lengthwise into two 20-wire halves. Crimp each half into a
   34-pin IDC socket with its first wire on **FDD pin 10**, so it covers FDD pins
   10–29. Socket positions 1–9 and 30–34 stay empty.
+- Socket contact = wire of the half + 9: wires 1–20 land on contacts 10–29, and
+  the first wire sits 9 × 1.27 mm = 11.43 mm from the pin-1 end of the socket.
+- Only the first half has the red wire. Mark wire 21, the first wire of the
+  second half, before splitting the ribbon: it also goes on contact 10.
 - Ribbon wire *n* lands on IDE header pin *n*.
 
 | IDE header pins | Drive | FDD pin |
@@ -395,8 +444,8 @@ compatible.
 ## Power
 
 The ATX supply is used only through its 24-pin connector; the user distributes
-+3.3 V (orange), +5 V (red), GND (black), +5VSB (purple), PS_ON# (green) and
-PWR_OK (grey) with their own wires and Wago-style splice nodes.
++5 V (red), GND (black), +5VSB (purple), PS_ON# (green) and PWR_OK (grey) with
+their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
 
 | Board | Supply |
 | --- | --- |
@@ -405,27 +454,31 @@ PWR_OK (grey) with their own wires and Wago-style splice nodes.
 | LSM/HDD module | One or two male 4-pin Molex connectors for motor +5 V; the same LDO makes the logic supply |
 
 - Each module takes power from exactly one local source. Logic current is
-  estimated at about 10 mA per module, mainly pull-ups; the LDO part is not chosen.
+  estimated at about 10 mA per module, mainly pull-ups. The LDO is an
+  AMS1117-3.3 (SOT-223, 10 µF in, 22 µF out). Some AMS1117 variants need a
+  minimum output-capacitor ESR that a low-ESR ceramic does not give; check the
+  datasheet of the fitted part.
 - The Molex keeps the standard peripheral pinout: +5 V at the red position,
   both middle pins GND, the +12 V (yellow) position unconnected and marked on
   the silkscreen. A standard PSU Molex plugged in by mistake stays harmless;
   +3.3 V is never carried on a Molex.
 - LSM/HDD worst case by DRV8833 rating is 4 × 2 × 1.2 A ≈ 9.6 A per module; the
-  second Molex is fitted only if measured current requires it. Wide copper and a
-  bulk capacitor at the input are planned.
+  second Molex is fitted only if measured current requires it. Both feed the
+  same +5 V band, and the ATX +5 V rail and the wire gauge limit the current as
+  well. Wide copper and a 470 µF bulk capacitor at the input are fitted.
 
 ## Passive components
 
 | Component | Where |
 | --- | --- |
 | 100 nF ceramic, ≥ 6.3 V | One per register and buffer IC, close to its supply pins |
-| LDO input/output capacitors | Each module, per the chosen LDO datasheet |
-| Bulk capacitor | Molex input of each LSM/HDD module; value not chosen |
+| LDO input/output capacitors | Each module: 10 µF in, 22 µF out (ESR to check, see Power) |
+| Bulk capacitor | Molex input of each LSM/HDD module: 470 µF 16 V |
 | 10 kΩ pull resistors | Mainboard control lines (table above) |
 | Pull-up resistor arrays | FDD lines and inputs, DRV8833 FAULT inputs |
-| Series resistors | Mainboard ribbon outputs; value not chosen |
-| PWR_OK divider | Mainboard; values not chosen |
-| S8050, 2.2 kΩ, 47–100 kΩ | Mainboard ATX switch |
+| Series resistors | 33 Ω on mainboard ribbon outputs and module OUT |
+| PWR_OK divider | Mainboard: 10 kΩ / 20 kΩ |
+| MMBT3904, 2.2 kΩ, 100 kΩ | Mainboard ATX switch (S8050 in the hand-wired assembly) |
 
 ## Maintenance
 
