@@ -192,7 +192,8 @@ def panel_board():
              (("POWER", 8.0), ("PREV", 36.0), ("PLAY", 48.0), ("STOP", 60.0), ("NEXT", 72.0))]
     notes += [(t, x + 1.27, 11.6, 0.8) for t, x in
               (("STBY", 64.0), ("RAILS", 71.0), ("ATX ON", 78.0), ("ESP", 85.0))]
-    notes += [("OLED GND VCC SCL SDA", 47.8, 9.4, 0.8)]
+    # one label under each J4 pin, alternate rows so neighbours do not touch
+    notes += [(t, 44.0 + i * 2.54, 9.4 + (i % 2) * 1.3, 0.8) for i, t in enumerate(("GND", "VCC", "SCL", "SDA"))]
     return {
         "size": (100.0, 59.0),
         "place": place,
