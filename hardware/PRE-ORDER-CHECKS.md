@@ -13,7 +13,7 @@ and header J11 on both modules, nothing built or measured).
 
 | # | Check | How | Look for | Result |
 | --- | --- | --- | --- | --- |
-| 1 | Dry fit 1:1 | Run `export_dryfit.py` (KiCad's Python), print the A4 sheet at 100 % and check the 10 cm rulers first, then put foam under the paper and push the real parts through it | ESP32 row spacing and antenna overhang; **Molex key side (silk chamfers) and pin order**; IDE header; ATX terminal; JST-XH; OLED; buttons | |
+| 1 | Dry fit 1:1 | Run `export_dryfit.py` (KiCad's Python), print the A4 sheet at 100 % and check the 10 cm rulers first, then put foam under the paper and push the real parts through it | ESP32 row spacing and antenna overhang; **Molex key side (silk chamfers) and pin order**; IDE header; ATX terminal; JST-XH; OLED; buttons | 2026-11-14, user report: everything fits on the 1:1 print after the ESP32 row spacing was set to 24.85 mm (caliper measurement 24.8 to 24.9 mm). Observation only: the Molex key side was not reported separately | |
 
 ## B. Multimeter on real parts
 
