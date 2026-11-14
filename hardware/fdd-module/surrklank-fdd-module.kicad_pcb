@@ -2689,6 +2689,105 @@
 			)
 		)
 	)
+	(footprint "surrklank:Surrklank_Logo_8mm"
+		(layer "F.Cu")
+		(uuid "40a55b2a-c22e-4808-8cfb-8dc6e0fd0d3d")
+		(at 191 156)
+		(descr "Surrklank logo: square ring, 8 mm, front silkscreen. Proportions from the user-supplied image (outer 150 px, hole 80 px).")
+		(property "Reference" "LOGO1"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "674e2489-3162-4fc5-9945-4685cacf02b1")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Value" "Surrklank_Logo"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "35c12c3e-42d3-478f-be93-3c2784f224a2")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "73bd4b51-1771-439c-b9ee-e767c76308d6")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "d70bf7e2-5631-458e-9452-aab27687f6a6")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr board_only exclude_from_pos_files exclude_from_bom)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_rect
+			(start -4 -4)
+			(end 4 -2.133)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "43ad333c-2df3-4f57-b04b-6bc987678848")
+		)
+		(fp_rect
+			(start -4 -2.133)
+			(end -2.133 2.133)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "fa0673ec-9ab7-46e0-8ad9-80b37e318a78")
+		)
+		(fp_rect
+			(start -4 2.133)
+			(end 4 4)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "d29dc59f-f7f2-4844-8bc1-52277efeb9be")
+		)
+		(fp_rect
+			(start 2.133 -2.133)
+			(end 4 2.133)
+			(stroke
+				(width 0)
+				(type solid)
+			)
+			(fill yes)
+			(layer "F.SilkS")
+			(uuid "ccac90a3-4c3b-4a21-928f-155cced1cafa")
+		)
+		(embedded_fonts no)
+	)
 	(footprint "Capacitor_SMD:C_1206_3216Metric"
 		(layer "F.Cu")
 		(uuid "4174b06e-1c9e-43e1-bb71-0fe795a598e2")
@@ -11004,105 +11103,6 @@
 			)
 		)
 	)
-	(footprint "surrklank:Surrklank_Logo_8mm"
-		(layer "F.Cu")
-		(uuid "e67d1309-cb81-44bc-a0bd-3efcebbe03e7")
-		(at 191 156)
-		(descr "Surrklank logo: square ring, 8 mm, front silkscreen. Proportions from the user-supplied image (outer 150 px, hole 80 px).")
-		(property "Reference" "LOGO1"
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "53dbde83-ac95-4444-bd79-25e6ffcfc77d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Value" "Surrklank_Logo"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "8d21638a-1ca7-4267-9bf4-5a53557038a0")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "2095ac4b-59a3-459b-973a-225439f7eef9")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "d1b2632a-fd07-49e7-9bb5-3015bd514590")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(attr board_only exclude_from_pos_files exclude_from_bom)
-		(duplicate_pad_numbers_are_jumpers no)
-		(fp_rect
-			(start -4 -4)
-			(end 4 -2.133)
-			(stroke
-				(width 0)
-				(type solid)
-			)
-			(fill yes)
-			(layer "F.SilkS")
-			(uuid "f854c164-4270-420c-a46f-d5b1c81f4b30")
-		)
-		(fp_rect
-			(start -4 -2.133)
-			(end -2.133 2.133)
-			(stroke
-				(width 0)
-				(type solid)
-			)
-			(fill yes)
-			(layer "F.SilkS")
-			(uuid "b73f3563-79bf-48fb-86d6-58a7dfa29daa")
-		)
-		(fp_rect
-			(start -4 2.133)
-			(end 4 4)
-			(stroke
-				(width 0)
-				(type solid)
-			)
-			(fill yes)
-			(layer "F.SilkS")
-			(uuid "28fbe294-059c-4631-aa52-f3f574f78537")
-		)
-		(fp_rect
-			(start 2.133 -2.133)
-			(end 4 2.133)
-			(stroke
-				(width 0)
-				(type solid)
-			)
-			(fill yes)
-			(layer "F.SilkS")
-			(uuid "10a10ba7-cc7c-4726-a77f-53c824ead003")
-		)
-		(embedded_fonts no)
-	)
 	(footprint "Resistor_SMD:R_Array_Convex_4x0603"
 		(layer "F.Cu")
 		(uuid "e846d142-c6b7-4cb7-b814-7cb8b65b1581")
@@ -12091,21 +12091,10 @@
 		(layer "Edge.Cuts")
 		(uuid "89637f5a-61d3-4557-a1e6-6fba4ecf7556")
 	)
-	(gr_text "5V POWER ONLY, NO 12V"
-		(at 137.46 115.4 0)
-		(layer "F.SilkS")
-		(uuid "b88618cf-4364-4989-a182-4d2791846b91")
-		(effects
-			(font
-				(size 0.9 0.9)
-				(thickness 0.135)
-			)
-		)
-	)
 	(gr_text "GND"
 		(at 134.92 112.6 0)
 		(layer "F.SilkS")
-		(uuid "3f8abc68-5867-45fe-b0ce-7060cb6db992")
+		(uuid "7f2388a0-6961-4bed-9555-4be33c69633d")
 		(effects
 			(font
 				(size 1 1)
@@ -12116,7 +12105,7 @@
 	(gr_text "+5V"
 		(at 140 112.6 0)
 		(layer "F.SilkS")
-		(uuid "25258b63-41fa-4159-89e6-384d0f217876")
+		(uuid "e9e0e7e7-3a09-4a3d-ba55-dd8b58a25fa4")
 		(effects
 			(font
 				(size 1 1)
@@ -12127,7 +12116,7 @@
 	(gr_text "FDD MODULE v0.1"
 		(at 191 165.6 0)
 		(layer "F.SilkS")
-		(uuid "5e5f4d06-7d10-4754-87ea-eae1af008ea2")
+		(uuid "a01390f5-3d89-4253-b6c0-1a779cea3fb6")
 		(effects
 			(font
 				(size 1 1)
@@ -12138,7 +12127,7 @@
 	(gr_text "SURRKLANK"
 		(at 191 163 0)
 		(layer "F.SilkS")
-		(uuid "565ff4f5-4a37-410c-bbd2-2e175f4ee32f")
+		(uuid "6457aba7-4193-4944-a7fd-05d04293d302")
 		(effects
 			(font
 				(size 1.3 1.3)
@@ -12149,7 +12138,7 @@
 	(gr_text "by"
 		(at 186.6 152 0)
 		(layer "F.SilkS")
-		(uuid "25e1faed-7d8b-4d4e-8946-ff79c48b6184")
+		(uuid "f19fd9bf-2119-4436-9abd-111263f8901d")
 		(effects
 			(font (face "Times New Roman")
 				(size 3 3)

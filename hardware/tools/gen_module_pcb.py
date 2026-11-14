@@ -56,8 +56,7 @@ def fdd_board():
         "power_zones": [],
         "keepouts": [],
         # KF301 J5, wires enter from the top edge: labels sit below the body, clear of it
-        "notes": [("+5V", 40.0, 12.6, 1.0), ("GND", 34.92, 12.6, 1.0),
-                  ("5V POWER ONLY, NO 12V", 37.46, 15.4, 0.9)],
+        "notes": [("+5V", 40.0, 12.6, 1.0), ("GND", 34.92, 12.6, 1.0)],
     }
 
 
@@ -127,8 +126,7 @@ def lsm_hdd_board():
         "keepouts": [((pcbnew.B_Cu,), LSM_HDD_KEEPOUT, True)],
         # Labels right of the terminal body (x > 10), one per pole, plus a warning below it
         "notes": [("+5V", 11.0, 46.0, 1.0, True), ("+5V", 11.0, 51.08, 1.0, True),
-                  ("GND", 11.0, 56.16, 1.0, True), ("GND", 11.0, 61.24, 1.0, True),
-                  ("5V POWER ONLY", 1.5, 66.8, 0.9, True), ("NO 12V", 1.5, 68.6, 0.9, True)],
+                  ("GND", 11.0, 56.16, 1.0, True), ("GND", 11.0, 61.24, 1.0, True)],
     }
 
 
