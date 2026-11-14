@@ -158,9 +158,9 @@ module header.
 
 ## Manufacturing
 
-SMD (factory assembly) or THT (hand soldering) is not decided. With factory
-assembly, parts would be chosen from the JLCPCB/LCSC stock to limit assembly
-fees; costs are not estimated yet.
+There is no factory assembly: bare boards are ordered and every part is bought
+separately and soldered by hand (SOIC, 0603 and SOT-223 included). The BOM
+written by `export_jlcpcb.py` doubles as a shopping list.
 
 `hardware/tools/export_review.py [board ...]` writes review tables to
 `hardware/fabrication/review/` (git-ignored): a pin-by-pin table per board from
@@ -177,34 +177,19 @@ are through-hole pads with their drills; tracks and SMD parts are left out to
 save ink. A 10 cm ruler along both axes shows whether the printer rescaled the
 page: print at 100 % / actual size, never fit to page.
 
-`hardware/tools/export_jlcpcb.py [board ...]` writes JLCPCB upload files to
+`hardware/tools/export_jlcpcb.py [board ...]` writes upload files to
 `hardware/fabrication/` (git-ignored): one Gerber and drill zip per board
-(separate PTH and NPTH files), an SMD-only BOM and a CPL. Factory assembly
-covers SMD only; connectors, the ESP32 board, buttons, LEDs and the DRV8833
-modules stay hand-soldered.
-
-- LCSC numbers are filled in for the FDD and LSM/HDD parts picked in the
-  JLCPCB BOM editor (resistor arrays 4D03WGJ…, 74HC595/165, 74LVC244A,
-  AMS1117, capacitors); the mainboard and panel parts are left for the editor
-  to match.
-- CPL rotations are KiCad's plus 270° for SOIC and 180° for SOT-223, read off
-  the JLCPCB placement preview of the FDD module (pin-1 marker against the
-  board silkscreen); not tested on a built board. SOIC-28W (panel), SOT-23
-  (mainboard) and other packages are not verified: compare each pin-1 marker
-  in the preview. The BOM comment is the manufacturer part number where it is
-  known, because JLCPCB warns when the comment differs from the part's name.
+(separate PTH and NPTH files), plus an SMD BOM and CPL that are only needed if
+factory assembly is ever used again (LCSC numbers and CPL rotations in the
+script are partly unverified and are not maintained for hand assembly).
 
 ## Open items
 
 - Before ordering: dry-fit the 1:1 sheet (`export_dryfit.py`) with the real ESP32
   board, salvaged IDE header and Molex, terminal, buttons and OLED; measure the
-  DRV8833 module J1 and EEP pull-up supply with a multimeter; compare every
-  pin-1 marker in the JLCPCB placement preview.
-- Parts: LCSC numbers for the mainboard Q1 and resistors and the panel parts, and
-  confirm the bring-up LED and 1 kΩ 0603 numbers (C2286, C21190);
-  AMS1117 with the 22 µF 1206 ceramic is untested (datasheet silent on
-  ceramics; scope the 3.3 V rail of the first module); CPL rotation of the
-  resistor arrays and Q1; SMD or THT assembly.
+  DRV8833 module J1 and EEP pull-up supply with a multimeter.
+- Parts: AMS1117 with the 22 µF 1206 ceramic is untested (datasheet silent on
+  ceramics; scope the 3.3 V rail of the first module).
 - Molex footprint key side (silk chamfers) against the real salvaged header.
 - MOTOR behaviour on the installed drives (the hand-wired assembly works with
   TRACK0 pulled up and no 595 output pull-ups).

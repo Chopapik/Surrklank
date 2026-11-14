@@ -14,7 +14,6 @@ and header J11 on both modules, nothing built or measured).
 | # | Check | How | Look for | Result |
 | --- | --- | --- | --- | --- |
 | 1 | Dry fit 1:1 | Run `export_dryfit.py` (KiCad's Python), print the A4 sheet at 100 % and check the 10 cm rulers first, then put foam under the paper and push the real parts through it | ESP32 row spacing and antenna overhang; **Molex key side (silk chamfers) and pin order**; IDE header; ATX terminal; JST-XH; OLED; buttons | |
-| 2 | JLCPCB placement preview | upload the zips from `hardware/fabrication/`, compare pin-1 marks | Rotation of the resistor arrays (90°/270° is fatal, 180° harmless), Q1 (SOT-23), SOIC-28W, SOT-223 | |
 
 ## B. Multimeter on real parts
 
@@ -40,9 +39,8 @@ and header J11 on both modules, nothing built or measured).
 
 | # | Decision | Notes | Result |
 | --- | --- | --- | --- |
-| 12 | 74HC595 part | LCSC C18164493 (GR, Chinese datasheet, SOIC-16 body width confirmed 3.9 mm, VIH/VIL given only at 4.5 V) or a branded 74HC595D | |
-| 13 | SMD or THT assembly | Factory assembly covers SMD only; connectors, ESP32 board, buttons, LEDs and DRV8833 modules stay hand-soldered | |
+| 12 | 74HC595 part | GR part (Chinese datasheet, SOIC-16 body width confirmed 3.9 mm, VIH/VIL given only at 4.5 V) or a branded 74HC595D from a local shop | |
+| 13 | Hand soldering SMD | No factory assembly: 0603 resistor arrays and LEDs, SOIC-16/20W and SOT-223 are soldered by hand (fine-tip iron, flux, tweezers); connectors, ESP32 sockets, buttons and DRV8833 modules were hand-soldered anyway. Practise on a spare board if unsure | |
 | 14 | Copper weight of the LSM/HDD board | +5V band is 4.7 to 7.9 mm wide (about 10 A at +20 K for 1 oz by an IPC-2221 estimate); the Molex pin and PSU wire limit first | |
-| 15 | LCSC parts still blank | Mainboard Q1 and resistors, panel parts: match in the JLCPCB BOM editor; confirm module LED 0603 (C2286) and 1 kΩ 0603 (C21190) | |
-| 17 | Bring-up LEDs and J11 | Check LED polarity and rotation in the JLCPCB preview (a reversed LED stays dark and is not damaged at 3.3 V; CPL has no LED rotation offset yet); later, test firmware shifts a pattern through U2-U4 and the LEDs and J11 pin 5 follow it | |
+| 17 | Bring-up LEDs and J11 | After the first module is built: test firmware shifts a pattern through U2-U4 and the LEDs and J11 pin 5 follow it. Fit the LEDs with the cathode toward GND (flat side or green mark; KiCad pad 1 is the cathode) | |
 | 16 | Mounting hole H2 on the mainboard | Sits under the plugged ATX terminal: move it or accept three holes | |
