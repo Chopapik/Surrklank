@@ -148,8 +148,8 @@ as an FDD module header.
   height, footprint `Surrklank_Mark_10mm` from `gen_logo_footprints.py`) with the
   wordmark "Surrklank" and the board name and revision below it, and the author
   mark (8 mm square ring, `Surrklank_Logo_8mm`) with a small italic "by" in its
-  upper-left corner. The author mark is on the front where there is room
-  (mainboard, LSM/HDD module, panel) and on the back otherwise (FDD module).
+  upper-left corner. The author mark is on the back of every board, the front
+  carries only the Surrklank mark.
   `gen_module_pcb.py <board> brand` re-applies them without rerouting. Wordmark
   and "by" are TrueType text (Arial bold, Georgia bold italic) outlined in the
   Gerbers; a different font on another machine changes their shape.

@@ -117,8 +117,8 @@ def lsm_hdd_board():
     return {
         "size": (120.0, 80.0),
         "place": place,
-        "mark": (44.0, 1.5), "name": "LSM/HDD MODULE v0.1",
-        "author": (92.0, 8.0, "F"),
+        "mark": (38.0, 1.5), "name": "LSM/HDD MODULE v0.1",
+        "author": (92.0, 10.0, "B"),
         "ref_at": {"C8": (20.5, 60.0)},       # keep the label off the M1 outline
         "power_zones": lsm_hdd_zones(),
         "keepouts": [((pcbnew.B_Cu,), LSM_HDD_KEEPOUT, True)],
@@ -151,8 +151,8 @@ def mainboard_board():
     return {
         "size": (100.0, 80.0),                    # within the 100 x 100 mm low-cost fab class
         "place": place,
-        "mark": (44.0, 24.0), "name": "MAINBOARD v0.1",
-        "author": (62.0, 30.0, "F"),
+        "mark": (62.0, 25.0), "name": "MAINBOARD v0.1",   # alone on the front, in the free middle
+        "author": (62.0, 32.0, "B"),                      # author mark on the back of every board
         "ref_at": {},
         "power_zones": [],
         # Below the USB end (y > 56, x 6-36) stays free for the USB plug.
@@ -194,8 +194,8 @@ def panel_board():
     return {
         "size": (100.0, 59.0),
         "place": place,
-        "mark": (12.0, 15.0), "name": "PANEL v0.1",
-        "author": (28.0, 24.0, "F"),
+        "mark": (19.0, 15.0), "name": "PANEL v0.1",
+        "author": (28.0, 24.0, "B"),
         "ref_at": {},
         "power_zones": [],
         "notes": notes,
@@ -251,7 +251,7 @@ def brand(board):
     """Surrklank mark with wordmark and board name, plus the author ring with a small 'by'.
 
     B["mark"] = (centre x, top y) of the 10 mm frame; the wordmark and B["name"] sit below it.
-    B["author"] = (ring centre x, y, "F" or "B"): front if there is room, else the back side.
+    B["author"] = (ring centre x, y, "F" or "B"): every board puts it on the back ("B").
     """
     # Collect first: SWIG item lists become unusable after a Remove() in this process.
     texts = LEGACY_TEXTS | {n[0] for n in B.get("notes", [])}
