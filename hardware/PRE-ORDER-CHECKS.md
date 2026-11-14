@@ -6,8 +6,8 @@ change the design belong in `docs/WIRING.md` and `hardware/README.md`, then this
 file goes. Record measurements (value, conditions, date) separately from
 observations and hypotheses.
 
-Frozen design: commit `4b4027b` (boards generated, ERC/DRC clean, nothing built
-or measured).
+Frozen design: commit `6192162` (boards generated, ERC/DRC clean, bring-up LEDs
+and header J11 on both modules, nothing built or measured).
 
 ## A. Before ordering, no boards needed
 
