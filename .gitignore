@@ -24,3 +24,6 @@ hardware/**/*-backups/
 hardware/**/*.kicad_prl
 hardware/**/*.lck
 hardware/**/fp-info-cache
+
+# Generated fabrication output
+hardware/fabrication/
