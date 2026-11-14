@@ -37,7 +37,7 @@
 		(on_board yes)
 		(property "Reference" "A" (at -7.62 26.67 0) (effects (font (size 1.27 1.27))))
 		(property "Value" "ESP32_DevKitC_38" (at 2.54 26.67 0) (effects (font (size 1.27 1.27)) (justify left)))
-		(property "Footprint" "surrklank:ESP32_DevKitC_38_W25.4mm" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+		(property "Footprint" "surrklank:ESP32_DevKitC_38_W24.85mm" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
 		(property "Datasheet" "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32/esp32-devkitc/user_guide.html" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
 		(property "Description" "38-pin ESP32-WROOM-32 dev board (CP2102, micro-USB) in two 1x19 female headers, rows 25.4 mm apart. Pin order from the seller listing; pins 1 and 20 at the antenna end." (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
 		(symbol "ESP32_DevKitC_38_0_1"

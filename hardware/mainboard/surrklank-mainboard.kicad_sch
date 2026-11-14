@@ -35,7 +35,7 @@
 					(justify left)
 				)
 			)
-			(property "Footprint" "surrklank:ESP32_DevKitC_38_W25.4mm"
+			(property "Footprint" "surrklank:ESP32_DevKitC_38_W24.85mm"
 				(at 0 0 0)
 				(hide yes)
 				(effects
@@ -3864,7 +3864,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "surrklank:ESP32_DevKitC_38_W25.4mm"
+		(property "Footprint" "surrklank:ESP32_DevKitC_38_W24.85mm"
 			(at 76.2 101.6 0)
 			(hide yes)
 			(effects

@@ -81,10 +81,12 @@ ESP32 board as purchased: "ESP32-WROOM-32 38-pin, micro-USB, CP2102"
 (seller code ARD-ESP32-38P), about 55.3 × 28 mm, 2 × 19 pins on 2.54 mm pitch,
 pin order listed by the seller and matching the silkscreen photo.
 
-- Row spacing is **25.4 mm** (as on official DevKitC boards; many 38-pin clones
-  use 22.86 mm). Measured by the user with a caliper on pin outer edges: 46.0 mm
-  across 18 pitches along a row (45.72 mm nominal) and 25.5 mm across the rows,
-  giving about 25.2 mm centre to centre; the nearest standard spacing is 25.4 mm.
+- Row spacing is **24.85 mm** centre to centre (many official DevKitC boards
+  and 38-pin clones differ: 25.4 and 22.86 mm also occur). Measured by the user
+  with a caliper: 25.5 mm across the rows on pin outer edges (minus the 0.64 mm
+  pin width) and 24.8 to 24.9 mm directly centre to centre; along a row 46.0 mm
+  across 18 pitches (45.72 mm nominal). An earlier footprint used 25.4 mm and
+  did not fit a paper dry fit.
 - The board plugs into two 1 × 19 female headers on the left of the PCB. Its
   antenna end is flush with the top edge and the top 3.6 mm under it carries
   no copper on either layer (Surrklank uses BLE). It does not overhang: the
@@ -132,7 +134,7 @@ everything on the front side:
 | DRV8833 module | Custom `DRV8833_Module_2x6_W15.24mm`: 2 × 6, 2.54 mm pitch, rows 15.24 mm apart, 1.0 mm holes, DIP-style numbering |
 | Motor outputs | JST-XH 4-pin vertical (B4B-XH-A, 2.5 mm) per DRV8833 slot; crimped plugs |
 | LSM/HDD bulk capacitor | 470 µF 16 V radial THT, 10 mm diameter, 5 mm pitch |
-| ESP32 board | Two 1 × 19 female headers, 2.54 mm pitch, rows 25.4 mm apart |
+| ESP32 board | Two 1 × 19 female headers, 2.54 mm pitch, rows 24.85 mm apart |
 
 Male Molex connectors may be salvaged from HDD controller boards, where they
 often share one housing with the IDE header and jumpers. Desolder the whole part
