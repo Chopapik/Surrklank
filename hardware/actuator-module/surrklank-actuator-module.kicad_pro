@@ -267,7 +267,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "surrklank-lsm-hdd-module.kicad_pro",
+    "filename": "surrklank-actuator-module.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -348,8 +348,8 @@
     "legacy_lib_list": [],
     "top_level_sheets": [
       {
-        "filename": "surrklank-lsm-hdd-module.kicad_sch",
-        "name": "surrklank-lsm-hdd-module",
+        "filename": "surrklank-actuator-module.kicad_sch",
+        "name": "surrklank-actuator-module",
         "uuid": "00000000-0000-0000-0000-000000000000"
       }
     ]

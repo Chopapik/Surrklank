@@ -29,7 +29,7 @@ RED, BLACK = (0.85, 0.0, 0.0), (0.0, 0.0, 0.0)
 LAYOUT = [                           # board, title, x, y of the board's top-left corner (mm)
     ("mainboard", "MAINBOARD 100 x 80 mm", 10.0, 12.0),
     ("fdd-module", "FDD MODULE 100 x 80 mm", 122.0, 12.0),
-    ("lsm-hdd-module", "LSM/HDD MODULE 120 x 80 mm", 10.0, 106.0),
+    ("actuator-module", "ACTUATOR MODULE 120 x 80 mm", 10.0, 106.0),
     ("panel", "PANEL 100 x 59 mm", 140.0, 106.0),
 ]
 # Back side of a double-sided print: same boards, other places, so the holes pushed through
@@ -38,7 +38,7 @@ LAYOUT_BACK = [
     ("fdd-module", "FDD MODULE 100 x 80 mm", 10.0, 12.0),
     ("mainboard", "MAINBOARD 100 x 80 mm", 122.0, 12.0),
     ("panel", "PANEL 100 x 59 mm", 10.0, 106.0),
-    ("lsm-hdd-module", "LSM/HDD MODULE 120 x 80 mm", 138.0, 106.0),
+    ("actuator-module", "ACTUATOR MODULE 120 x 80 mm", 138.0, 106.0),
 ]
 LABELLED = ("J", "A", "M", "SW", "D", "C8")
 

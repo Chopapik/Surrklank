@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Module PCB steps for the FDD and LSM/HDD boards (run with KiCad's Python).
+"""Module PCB steps for the FDD and actuator boards (run with KiCad's Python).
 
   KIPY=/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3
   $KIPY gen_module_pcb.py <board> place  <netlist.xml> <x.kicad_pcb>  # footprints, nets, outline, zones
@@ -7,7 +7,7 @@
   $KIPY gen_module_pcb.py <board> import <x.kicad_pcb> <in.ses>       # import routes, fill zones
   $KIPY gen_module_pcb.py <board> brand  <x.kicad_pcb> -              # (re)place logo and text only
 
-<board> is `fdd`, `lsm-hdd`, `mainboard` or `panel`. Routing itself is done by Freerouting between
+<board> is `fdd`, `actuator`, `mainboard` or `panel`. Routing itself is done by Freerouting between
 `dsn` and `import` (see hardware/README.md). This script never draws tracks.
 """
 import json
@@ -59,7 +59,7 @@ def fdd_board():
     }
 
 
-# ------------------------------------------------------------ LSM/HDD module
+# ------------------------------------------------------------ actuator module
 # DRV8833 slots are rotated 90 degrees: the top row holds IN1..IN4, VCC (pin 9)
 # and GND (pin 10); the bottom row holds EEP, OUT1..OUT4 and ULT, so the
 # JST-XH motor connectors sit straight below it at the board edge.
@@ -68,7 +68,7 @@ ROW_TOP, ROW_BOT = 50.76, 66.0      # y of pins 7..12 and 1..6
 BAND = (3.5, 44.5, 116.5, 52.4)     # +5V copper band on B_Cu (x1, y1, x2, y2)
 
 
-def lsm_hdd_zones():
+def actuator_zones():
     """+5V band and lower GND plane on B_Cu; both are exported to Freerouting
     as planes, so the router keeps signals off B_Cu there."""
     x1, y1, x2, y2 = BAND
@@ -87,10 +87,10 @@ def lsm_hdd_zones():
 # Freerouting connects pads through the planes but does not treat them as
 # obstacles, so B_Cu tracks and vias are forbidden below the band's top edge.
 # The top 0.8 mm strip of the band stays open for feeds into the plane.
-LSM_HDD_KEEPOUT = (0.0, BAND[1] + 0.8, 120.0, 80.0)
+ACTUATOR_KEEPOUT = (0.0, BAND[1] + 0.8, 120.0, 80.0)
 
 
-def lsm_hdd_board():
+def actuator_board():
     place = {
         "J1": (6.0, 18.5, 0), "J2": (111.5, 20.0, 0),
         "RN1": (15.5, 15.0, 0), "RN2": (20.5, 15.0, 0),
@@ -120,8 +120,8 @@ def lsm_hdd_board():
         "mark": (38.0, 1.5), "name": "ACTUATOR MODULE v0.1",
         "author": (92.0, 10.0, "B"),
         "ref_at": {"C8": (20.5, 60.0)},       # keep the label off the M1 outline
-        "power_zones": lsm_hdd_zones(),
-        "keepouts": [((pcbnew.B_Cu,), LSM_HDD_KEEPOUT, True)],
+        "power_zones": actuator_zones(),
+        "keepouts": [((pcbnew.B_Cu,), ACTUATOR_KEEPOUT, True)],
         # Labels right of the terminal body (x > 10), one per pole, plus a warning below it
         "notes": [("+5V", 11.0, 46.0, 1.0, True), ("+5V", 11.0, 51.08, 1.0, True),
                   ("GND", 11.0, 56.16, 1.0, True), ("GND", 11.0, 61.24, 1.0, True)],
@@ -203,7 +203,7 @@ def panel_board():
     }
 
 
-BOARDS = {"fdd": fdd_board, "lsm-hdd": lsm_hdd_board, "mainboard": mainboard_board, "panel": panel_board}
+BOARDS = {"fdd": fdd_board, "actuator": actuator_board, "mainboard": mainboard_board, "panel": panel_board}
 B = None   # selected board configuration
 
 
@@ -244,7 +244,7 @@ def add_text(board, text, x, y, size, left=False):
 
 BY_FONT, WORD_FONT = "Georgia", "Arial"   # system TrueType fonts; outlined in Gerbers
 LEGACY_TEXTS = {"SURRKLANK", "Surrklank", "by", "MAINBOARD v0.1", "FDD MODULE v0.1",
-                "LSM/HDD MODULE v0.1", "PANEL v0.1"}
+                "ACTUATOR MODULE v0.1", "PANEL v0.1"}
 
 
 def brand(board):

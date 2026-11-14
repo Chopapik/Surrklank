@@ -4096,7 +4096,7 @@
 		)
 		(uuid ae72a56e-44b7-5fb4-8939-466045d5a7c3)
 	)
-	(label "LSM_Q165"
+	(label "ACT_Q165"
 		(at 60.96 91.44 180)
 		(effects
 			(font
@@ -4659,7 +4659,7 @@
 		)
 		(uuid 7bdee15f-f926-5f5e-9c96-4803cc7c9cd0)
 	)
-	(label "LSM_DATA"
+	(label "ACT_DATA"
 		(at 91.44 104.14 0)
 		(effects
 			(font
@@ -4680,7 +4680,7 @@
 		)
 		(uuid ed1a152d-d19b-5a01-8c5d-2881ddaf188a)
 	)
-	(label "LSM_LATCH"
+	(label "ACT_LATCH"
 		(at 91.44 106.68 0)
 		(effects
 			(font
@@ -5131,7 +5131,7 @@
 		)
 		(uuid 574e2c0e-1a9b-5b89-9e8d-f833dafc12bc)
 	)
-	(label "LSM_LATCH"
+	(label "ACT_LATCH"
 		(at 144.78 58.42 270)
 		(effects
 			(font
@@ -5387,7 +5387,7 @@
 		)
 		(uuid 5df75d06-b2ab-5e6c-9b14-81afcf233c31)
 	)
-	(label "LSM_DATA"
+	(label "ACT_DATA"
 		(at 154.94 58.42 270)
 		(effects
 			(font
@@ -5429,7 +5429,7 @@
 		)
 		(uuid 3ce05b43-0f48-5f60-bdaa-519fd7a7d421)
 	)
-	(label "LSM_Q165"
+	(label "ACT_Q165"
 		(at 160.02 58.42 270)
 		(effects
 			(font
@@ -7220,7 +7220,7 @@
 		)
 		(uuid 78c73238-8119-5bbb-bf22-a2a5408206fc)
 	)
-	(label "L_CLK"
+	(label "A_CLK"
 		(at 127 157.48 90)
 		(effects
 			(font
@@ -7262,7 +7262,7 @@
 		)
 		(uuid a41c0214-7288-500a-816d-452c4ba88541)
 	)
-	(label "L_OE"
+	(label "A_OE"
 		(at 129.54 157.48 90)
 		(effects
 			(font
@@ -7304,7 +7304,7 @@
 		)
 		(uuid 2aa783e1-a4f7-5995-b22f-63f5de8deffd)
 	)
-	(label "L_PL"
+	(label "A_PL"
 		(at 132.08 157.48 90)
 		(effects
 			(font
@@ -7346,7 +7346,7 @@
 		)
 		(uuid 5e80d0d4-a476-5b4e-b879-95d4f1190495)
 	)
-	(label "L_CLK165"
+	(label "A_CLK165"
 		(at 134.62 157.48 90)
 		(effects
 			(font
@@ -7462,7 +7462,7 @@
 		)
 		(uuid 3a3dc8d8-463e-54fc-98d6-1261f0b9c43b)
 	)
-	(label "LSM_DATA"
+	(label "ACT_DATA"
 		(at 147.32 172.72 270)
 		(effects
 			(font
@@ -7483,7 +7483,7 @@
 		)
 		(uuid ba77a0e4-fe6c-5e27-bf76-514884c1eb16)
 	)
-	(label "L_DATA"
+	(label "A_DATA"
 		(at 147.32 157.48 90)
 		(effects
 			(font
@@ -7504,7 +7504,7 @@
 		)
 		(uuid 211a6dbb-393c-59a7-af24-9b3412f14ce1)
 	)
-	(label "LSM_LATCH"
+	(label "ACT_LATCH"
 		(at 149.86 172.72 270)
 		(effects
 			(font
@@ -7525,7 +7525,7 @@
 		)
 		(uuid 90a7e1ee-79f7-5b1e-9b10-340531d257ff)
 	)
-	(label "L_LATCH"
+	(label "A_LATCH"
 		(at 149.86 157.48 90)
 		(effects
 			(font
@@ -7570,7 +7570,7 @@
 				)
 			)
 		)
-		(property "Value" "RIBBON_LSM"
+		(property "Value" "RIBBON_ACT"
 			(at 204.47 190.5 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7681,7 +7681,7 @@
 		)
 		(uuid 05538721-2952-530d-a411-8b21d3b4cba9)
 	)
-	(label "L_DATA"
+	(label "A_DATA"
 		(at 195.58 170.18 180)
 		(effects
 			(font
@@ -7788,7 +7788,7 @@
 		)
 		(uuid 0fac1747-ed4a-52fb-9433-3f8a9b557e32)
 	)
-	(label "L_CLK"
+	(label "A_CLK"
 		(at 195.58 172.72 180)
 		(effects
 			(font
@@ -7895,7 +7895,7 @@
 		)
 		(uuid f4fc2e0e-44ce-5fba-a64e-f718abf03645)
 	)
-	(label "L_LATCH"
+	(label "A_LATCH"
 		(at 195.58 175.26 180)
 		(effects
 			(font
@@ -8002,7 +8002,7 @@
 		)
 		(uuid d7175904-d418-5665-998a-3b9a18011570)
 	)
-	(label "L_OE"
+	(label "A_OE"
 		(at 195.58 177.8 180)
 		(effects
 			(font
@@ -8109,7 +8109,7 @@
 		)
 		(uuid 701dc10f-d9c0-5ef1-b6a1-59edb68e29df)
 	)
-	(label "L_PL"
+	(label "A_PL"
 		(at 195.58 180.34 180)
 		(effects
 			(font
@@ -8216,7 +8216,7 @@
 		)
 		(uuid 79a1e26b-ecb9-5255-a389-127cc08c716b)
 	)
-	(label "L_CLK165"
+	(label "A_CLK165"
 		(at 195.58 182.88 180)
 		(effects
 			(font
@@ -8323,7 +8323,7 @@
 		)
 		(uuid 34c0e034-ae26-59dc-b12c-712022ecb06c)
 	)
-	(label "L_Q165"
+	(label "A_Q165"
 		(at 195.58 185.42 180)
 		(effects
 			(font
@@ -8597,7 +8597,7 @@
 		)
 		(uuid 2ff02ff9-6b35-5c47-8d2c-63edf9706743)
 	)
-	(label "L_Q165"
+	(label "A_Q165"
 		(at 172.72 158.75 90)
 		(effects
 			(font
@@ -8618,7 +8618,7 @@
 		)
 		(uuid 6250722d-1ac9-5a51-a069-d76521cefed8)
 	)
-	(label "LSM_Q165"
+	(label "ACT_Q165"
 		(at 172.72 171.45 270)
 		(effects
 			(font
@@ -8628,7 +8628,7 @@
 		)
 		(uuid d8b59c46-4d59-5b9f-ae29-e3041beb762b)
 	)
-	(text "J2: FDD branch, J3: LSM/HDD branch (same 16-pin ribbon).\nPin 15 is a spare wire; no power runs on the ribbons."
+	(text "J2: FDD branch, J3: actuator branch (same 16-pin ribbon).\nPin 15 is a spare wire; no power runs on the ribbons."
 		(exclude_from_sim no)
 		(at 190.5 66.04 0)
 		(effects

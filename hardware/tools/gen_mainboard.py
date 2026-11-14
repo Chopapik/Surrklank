@@ -19,10 +19,10 @@ FP_JUMPER = "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
 FP_IDC10 = "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical"
 
 # ESP32 board pin -> net (pin numbers of surrklank:ESP32_DevKitC_38); others not connected
-ESP = {"1": "ESP_3V3", "3": "PWR_OK_IN", "5": "FDD_Q165", "6": "LSM_Q165", "7": "CLK165",
+ESP = {"1": "ESP_3V3", "3": "PWR_OK_IN", "5": "FDD_Q165", "6": "ACT_Q165", "7": "CLK165",
        "8": "PL", "9": "PANEL_SDA", "10": "PANEL_SCL", "11": "PANEL_INT", "14": "GND", "15": "BUTTON", "19": "ESP_5V",
        "20": "GND", "21": "FDD_DATA", "22": "FDD_LATCH", "25": "OE", "26": "GND",
-       "27": "ATX_EN", "28": "CLK", "30": "LSM_DATA", "31": "LSM_LATCH"}
+       "27": "ATX_EN", "28": "CLK", "30": "ACT_DATA", "31": "ACT_LATCH"}
 # Remote panel cable (2 x 5 IDC): I2C with a GND between SDA and SCL
 PANEL = {1: "ESP_3V3", 2: "GND", 3: "PANEL_SDA", 4: "GND", 5: "PANEL_SCL", 6: "GND",
          7: "PANEL_INT", 8: "BUTTON", 9: "PANEL_LED_SB", 10: "PANEL_LED_ON"}
@@ -62,11 +62,11 @@ def build(path):
 
     # Default levels on the GPIO side (ESP32 boot / high impedance)
     mc.pack(sh, "RN1", "10k", 127.0, 50.8, ["OE", "PL", "BUTTON", "PANEL_INT"], rail="ESP_3V3")
-    mc.pack(sh, "RN2", "10k", 142.24, 50.8, ["CLK", "CLK165", "FDD_LATCH", "LSM_LATCH"], rail="GND")
-    mc.pack(sh, "RN3", "10k", 157.48, 50.8, ["FDD_DATA", "LSM_DATA", "FDD_Q165", "LSM_Q165"], rail="GND")
+    mc.pack(sh, "RN2", "10k", 142.24, 50.8, ["CLK", "CLK165", "FDD_LATCH", "ACT_LATCH"], rail="GND")
+    mc.pack(sh, "RN3", "10k", 157.48, 50.8, ["FDD_DATA", "ACT_DATA", "FDD_Q165", "ACT_Q165"], rail="GND")
 
     # Two ribbon branches with series resistors on every output
-    for k, (pre, name, ref, y) in enumerate((("F", "FDD", "J2", 101.6), ("L", "LSM", "J3", 177.8))):
+    for k, (pre, name, ref, y) in enumerate((("F", "FDD", "J2", 101.6), ("A", "ACT", "J3", 177.8))):
         rna, rnb = f"RN{4 + 2 * k}", f"RN{5 + 2 * k}"
         mc.pack(sh, rna, "33", 132.08, y - 12.7, ["CLK", "OE", "PL", "CLK165"],
                 top=[f"{pre}_CLK", f"{pre}_OE", f"{pre}_PL", f"{pre}_CLK165"])
@@ -85,7 +85,7 @@ def build(path):
                 sh.connect(j, str(p), f"{pre}_{RIBBON[p]}")
         # Q165 return: 1k limits current if a powered module drives an unpowered ESP32
         resistor(sh, f"R{5 + k}", "1k", 172.72, y - 12.7, f"{pre}_Q165", f"{name}_Q165")
-    sh.text("J2: FDD branch, J3: LSM/HDD branch (same 16-pin ribbon).\n"
+    sh.text("J2: FDD branch, J3: actuator branch (same 16-pin ribbon).\n"
             "Pin 15 is a spare wire; no power runs on the ribbons.", (190.5, 66.04))
 
     # ATX power terminal

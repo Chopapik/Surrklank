@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Check an exported LSM/HDD-module netlist against the rules in docs/WIRING.md.
+"""Check an exported actuator-module netlist against the rules in docs/WIRING.md.
 
-Usage: python3 -I check_lsm_hdd_module.py <netlist.xml>
+Usage: python3 -I check_actuator_module.py <netlist.xml>
 Rules are written out here independently of the generator.
 """
 import sys

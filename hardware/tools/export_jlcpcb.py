@@ -21,7 +21,7 @@ from pathlib import Path
 
 HARDWARE = Path(__file__).resolve().parent.parent
 OUT = HARDWARE / "fabrication"
-BOARDS = ["mainboard", "fdd-module", "lsm-hdd-module", "panel"]
+BOARDS = ["mainboard", "fdd-module", "actuator-module", "panel"]
 
 # F.Paste/B.Paste are the solder paste layers JLCPCB uses to make a stencil.
 GERBER_LAYERS = ("F.Cu,B.Cu,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask,"

@@ -17,7 +17,7 @@ FP_IDC10 = "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical"
 FP_SW = "Button_Switch_THT:SW_PUSH_6mm"
 FP_LED = "LED_THT:LED_D3.0mm"
 FP_SOCKET4 = "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
-# Expansion connectors: keyed JST-XH like the LSM/HDD motor outputs
+# Expansion connectors: keyed JST-XH like the actuator module outputs
 FP_XH4 = "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
 FP_XH6 = "Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical"
 

@@ -22,7 +22,7 @@ from pathlib import Path
 
 HARDWARE = Path(__file__).resolve().parent.parent
 OUT = HARDWARE / "fabrication" / "review"
-BOARDS = ["mainboard", "fdd-module", "lsm-hdd-module", "panel"]
+BOARDS = ["mainboard", "fdd-module", "actuator-module", "panel"]
 # Reference prefixes that face the outside world (connectors, modules, controls).
 EXTERNAL = ("J", "A", "M", "SW", "D", "JP")
 MAX_PEERS = 6

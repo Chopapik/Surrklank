@@ -1,10 +1,10 @@
 # Wiring map
 
 This branch (`pcb-modules`) describes the **planned PCB wiring**: a mainboard
-and chained FDD and LSM/HDD modules. Nothing here is built or tested yet.
+and chained FDD and actuator modules. Nothing here is built or tested yet.
 Firmware on this branch still implements the hand-wired mapping recorded in
 `docs/WIRING.md` on `main` (commit `30f4cbc`): four 595s for FDD1–8 with three
-outputs per drive, one 165 for TRACK0 and no LSM/HDD playback. Firmware moves
+outputs per drive, one 165 for TRACK0 and no LSM or HDD playback. Firmware moves
 to this wiring after the modules are assembled. Board-level design (footprints,
 salvaged connectors, manufacturing) is in [hardware/README.md](../hardware/README.md).
 
@@ -27,7 +27,7 @@ The display terminology does not add LSM playback support.
 
 ```text
 mainboard ──16-pin ribbon── FDD module 1 ──ribbon── FDD module 2 ── … FDD module N
-          └─16-pin ribbon── LSM/HDD module 1 ──ribbon── … LSM/HDD module N
+          └─16-pin ribbon── actuator module 1 ──ribbon── … actuator module N
 ```
 
 - Two branches leave the mainboard on separate long, flexible ribbons
@@ -35,7 +35,7 @@ mainboard ──16-pin ribbon── FDD module 1 ──ribbon── FDD module 2
 - Every module has identical IN and OUT connectors; modules of one branch are
   daisy-chained. Module 1 is closest to the mainboard.
 - An FDD module serves four drives; two FDD modules serve the current eight.
-- An LSM/HDD module carries up to four DRV8833 driver modules.
+- An actuator module carries up to four DRV8833 driver modules.
 - ESP32, modules, drivers and drives share GND.
 
 ## Mainboard
@@ -47,9 +47,9 @@ mainboard ──16-pin ribbon── FDD module 1 ──ribbon── FDD module 2
 | 23 | FDD branch DATA | as today |
 | 22 | FDD branch LATCH | as today |
 | 34 | FDD branch Q165 (input only) | as today |
-| 17 | LSM/HDD branch DATA | as today |
-| 16 | LSM/HDD branch LATCH | as today |
-| 35 | LSM/HDD branch Q165 (input only) | new, proposed |
+| 17 | actuator branch DATA | as today |
+| 16 | actuator branch LATCH | as today |
+| 35 | actuator branch Q165 (input only) | new, proposed |
 | 18 | CLK, both branches | as today |
 | 21 | /OE, both branches | as today |
 | 33 | /PL, both branches | as today (FDD only) |
@@ -363,7 +363,7 @@ each IDC socket, because wire 1 on FDD pin 1 shifts every signal.
 
 Drives keep their own power connectors from the ATX supply.
 
-## LSM/HDD module
+## actuator module
 
 Each module carries up to four DRV8833 driver modules soldered on header pins,
 3 × 74HC595 (20 of 24 outputs used) and 1 × 74HC165 (4 of 8 inputs used).
@@ -377,7 +377,7 @@ Each module carries up to four DRV8833 driver modules soldered on header pins,
 All registers are always fitted; a module may carry only two or three drivers.
 Unused outputs drive nothing and empty FAULT inputs read HIGH (no fault), so the
 chain length stays constant without jumpers. Firmware configuration says which
-slots are used. Schematic: `hardware/lsm-hdd-module/surrklank-lsm-hdd-module.kicad_sch`
+slots are used. Schematic: `hardware/actuator-module/surrklank-actuator-module.kicad_sch`
 (generated, v0.1).
 
 ### Register bit order
@@ -468,7 +468,7 @@ their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
 | --- | --- |
 | Mainboard | KF301 screw terminal, 5 poles (see [Power input](#power-input)) |
 | FDD module | One KF301, 2 poles (+5 V, GND); an on-board 3.3 V LDO makes the logic supply |
-| LSM/HDD module | One KF301, 4 poles (2 × +5 V, 2 × GND) for motor +5 V; the same LDO makes the logic supply |
+| actuator module | One KF301, 4 poles (2 × +5 V, 2 × GND) for motor +5 V; the same LDO makes the logic supply |
 
 - Each module takes power from exactly one local source. Logic current is
   estimated at about 10 mA per module, mainly pull-ups. The LDO is an
@@ -487,15 +487,15 @@ their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
   | --- | --- | --- |
   | Mainboard J1 | 5 | +5V red, GND black, PS_ON# green, +5VSB purple, PWR_OK grey |
   | FDD module J5 | 2 | +5V red, GND black |
-  | LSM/HDD module J5 | 4 | +5V red, +5V red, GND black, GND black |
+  | actuator module J5 | 4 | +5V red, +5V red, GND black, GND black |
 
   There is no +12 V position on any of them and no plug to confuse with a PSU
   Molex; a yellow +12 V wire is never connected. Use 18 AWG wire from the PSU;
-  on the LSM/HDD module one wire per pole, two per rail. Measure +5 V at the
+  on the actuator module one wire per pole, two per rail. Measure +5 V at the
   terminal poles before fitting the DRV8833 modules. +3.3 V is never carried.
   Pole and body dimensions in the footprints are generic KF301 values: check
   the bought part against the 1:1 print.
-- LSM/HDD worst case by DRV8833 rating is 4 × 2 × 1.2 A ≈ 9.6 A per module,
+- Actuator module worst case by DRV8833 rating is 4 × 2 × 1.2 A ≈ 9.6 A per module,
   shared by two +5 V and two GND poles and the same +5 V band. The ATX +5 V
   rail, the terminal rating and the wire gauge limit the current as well. Wide
   copper and a 470 µF bulk capacitor at the input are fitted.
@@ -506,7 +506,7 @@ their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
 | --- | --- |
 | 100 nF ceramic, ≥ 6.3 V | One per register and buffer IC, close to its supply pins |
 | LDO input/output capacitors | Each module: 10 µF in, 22 µF out (ESR to check, see Power) |
-| Bulk capacitor | Power input of each LSM/HDD module: 470 µF 16 V |
+| Bulk capacitor | Power input of each actuator module: 470 µF 16 V |
 | 10 kΩ pull resistors | Mainboard control lines (table above) |
 | Pull-up resistor arrays | FDD lines and inputs, DRV8833 FAULT inputs |
 | Series resistors | 33 Ω on mainboard ribbon outputs and module OUT |

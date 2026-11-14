@@ -10,7 +10,7 @@ KiCad 10 projects:
 | Folder | Content |
 | --- | --- |
 | `fdd-module/` | FDD module v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB |
-| `lsm-hdd-module/` | LSM/HDD module v0.1: generated schematic and autorouted 120 × 80 mm 2-layer PCB |
+| `actuator-module/` | actuator module v0.1: generated schematic and autorouted 120 × 80 mm 2-layer PCB |
 | `mainboard/` | Mainboard v0.1: generated schematic and autorouted 100 × 80 mm 2-layer PCB (within the 100 × 100 mm low-cost fab class) |
 | `panel/` | Remote panel v0.1: generated schematic and autorouted 100 × 59 mm 2-layer PCB |
 | `surrklank-controller/` | Empty first KiCad project, superseded by `mainboard/` |
@@ -23,12 +23,12 @@ schematic parity and all severities):
 
 ```sh
 hardware/tools/build_fdd_module.sh [work_dir]
-hardware/tools/build_lsm_hdd_module.sh [work_dir]
+hardware/tools/build_actuator_module.sh [work_dir]
 hardware/tools/build_mainboard.sh [work_dir]
 hardware/tools/build_panel.sh [work_dir]
 ```
 
-All wrap `build_module.sh fdd|lsm-hdd|mainboard|panel`, which stops at the first
+All wrap `build_module.sh fdd|actuator|mainboard|panel`, which stops at the first
 failing step. Placement, zones and branding of all boards live in
 `gen_module_pcb.py`.
 
@@ -38,7 +38,7 @@ SHA-256 `f6f51bb0…5de3c7`) and Java 25 (`brew install openjdk@25`). The script
 runs Freerouting headless with analytics and telemetry disabled. The native
 Freerouting 2.5.0 CLI build fails on board serialization and is not used.
 
-- `check_fdd_module.py`, `check_lsm_hdd_module.py`, `check_mainboard.py` and
+- `check_fdd_module.py`, `check_actuator_module.py`, `check_mainboard.py` and
   `check_panel.py` verify the netlist against WIRING.md rules written
   independently of the generator (drive header pins, pull-ups, register chain,
   ribbon, supplies).
@@ -51,7 +51,7 @@ Freerouting 2.5.0 CLI build fails on board serialization and is not used.
   any remaining track under 0.15 mm is widened and re-checked by DRC.
 - GND is poured on both layers with solid pad connections; dense IDE header
   pins left no room for thermal spokes.
-- LSM/HDD motor supply: a +5V band on B_Cu (7.9 mm at its widest, 4.7 mm at the
+- Actuator module load supply: a +5V band on B_Cu (7.9 mm at its widest, 4.7 mm at the
   four GND notches, about 10 A at +20 K for 1 oz copper by an IPC-2221 estimate;
   the terminal and the PSU wire limit first, so consider 2 oz copper) runs from the two +5V
   poles of KF301 J5 past C8 (+) and the VCC pins of all four DRV8833 slots. Below it
@@ -70,7 +70,7 @@ Freerouting 2.5.0 CLI build fails on board serialization and is not used.
 | --- | --- |
 | Mainboard | ESP32 board, ATX switch and button, PWR_OK input, 5VSB supply, one ribbon connector per branch, remote panel connector |
 | FDD module | 3 × 74HC595, 1 × 74HC165, input buffer, LDO, two 40-pin IDE headers, IN/OUT ribbon connectors, one 2-pole KF301 |
-| LSM/HDD module | Four DRV8833 module positions, 3 × 74HC595, 1 × 74HC165, input buffer, LDO, IN/OUT ribbon connectors, one 4-pole KF301 |
+| actuator module | Four DRV8833 module positions, 3 × 74HC595, 1 × 74HC165, input buffer, LDO, IN/OUT ribbon connectors, one 4-pole KF301 |
 
 At least two module designs are needed. Whether the mainboard is a third design
 or is merged into one of them is not decided.
@@ -95,12 +95,12 @@ pin order listed by the seller and matching the silkscreen photo.
 - Below the USB end the PCB is left free (only the silkscreen note
   "REMOVE JP1 BEFORE USB") so the micro-USB plug clears the ATX terminal (KF301 J1, x 37-63 mm, y 66-74 mm).
 - PCB v0.1 layout: register control resistor arrays in the middle, ribbon
-  J2 (FDD) and J3 (LSM/HDD) on the right edge, ATX terminal J1 (KF301, 5 poles) at the bottom
+  J2 (FDD) and J3 (actuator module) on the right edge, ATX terminal J1 (KF301, 5 poles) at the bottom
   edge with the wire entry outward and labelled poles above it, button J4 bottom right, remote panel
   connector J6 (2 × 5 IDC, see WIRING.md) at the top edge. Autorouted, not
   hand-optimised.
 - Power input: KF301 screw terminal on every board that takes power (mainboard 5 poles,
-  FDD module 2, LSM/HDD module 4); ATX button on a two-pin connector.
+  FDD module 2, actuator module 4); ATX button on a two-pin connector.
 
 ## Remote panel
 
@@ -116,7 +116,7 @@ everything on the front side:
 - J2 (JST-XH 6-pin): +3V3, GND and GPA4–GPA7 (GPA7 is output only, so three
   more buttons); J3
   (JST-XH 4-pin): I2C extension (GND, VCC, SCL, SDA) for another expander or
-  sensor. Keyed JST-XH as on the LSM/HDD motor outputs, at the bottom edge. GPB2–GPB7 are unused: routing
+  sensor. Keyed JST-XH as on the actuator module outputs, at the bottom edge. GPB2–GPB7 are unused: routing
   them to a header blocked the autorouter.
 - All panel nets use the Default 0.25 mm class; the panel draws tens of mA
   and GND is poured on both layers. With 0.6 mm Power tracks Freerouting
@@ -134,7 +134,7 @@ everything on the front side:
 | Power input | Custom `TerminalBlock_KF301_1xNN_P5.08mm_Horizontal` (2, 4 and 5 poles, from `gen_terminal_footprints.py`): 5.08 mm pitch, 3.0 mm pads, 1.4 mm holes, generic body about 8 mm deep with the wires entering from the +y side; check against the bought part |
 | DRV8833 module | Custom `DRV8833_Module_2x6_W15.24mm`: 2 × 6, 2.54 mm pitch, rows 15.24 mm apart, 1.0 mm holes, DIP-style numbering |
 | Motor outputs | JST-XH 4-pin vertical (B4B-XH-A, 2.5 mm) per DRV8833 slot; crimped plugs |
-| LSM/HDD bulk capacitor | 470 µF 16 V radial THT, 10 mm diameter, 5 mm pitch |
+| Actuator module bulk capacitor | 470 µF 16 V radial THT, 10 mm diameter, 5 mm pitch |
 | ESP32 board | Two 1 × 19 female headers, 2.54 mm pitch, rows 24.85 mm apart |
 
 Salvaged male Molex headers turned out to be SMD, so every power input is a
@@ -153,7 +153,7 @@ as an FDD module header.
   `gen_module_pcb.py <board> brand` re-applies them without rerouting. Wordmark
   and "by" are TrueType text (Arial bold, Georgia bold italic) outlined in the
   Gerbers; a different font on another machine changes their shape.
-- LSM/HDD module: ribbon IN/OUT on the left and right edges, registers in a
+- actuator module: ribbon IN/OUT on the left and right edges, registers in a
   row above four DRV8833 slots (rotated so OUT1–OUT4 face the bottom edge),
   JST-XH motor connectors at the bottom edge, 4-pole KF301 J5 at the left edge
   with C8 beside it. Every pole is labelled with its function (+5V or GND) to
@@ -201,9 +201,9 @@ script are partly unverified and are not maintained for hand assembly).
 - Power input: KF301 pole and body size against the bought terminals (generic values in the footprints).
 - MOTOR behaviour on the installed drives (the hand-wired assembly works with
   TRACK0 pulled up and no 595 output pull-ups).
-- Motor supply current per LSM/HDD module and wire gauge.
+- Motor supply current per actuator module and wire gauge.
 - Firmware migration after assembly: six outputs per drive and a longer FDD
   chain (48 output bits for two modules), 165 chains with WRITE PROTECT and
   FAULT bits, configurable select line, EEP control, PWR_OK input on GPIO36,
-  LSM/HDD Q165 on GPIO35, DATA, CLK, LATCH and CLK165 held LOW (and /OE and
+  actuator Q165 on GPIO35, DATA, CLK, LATCH and CLK165 held LOW (and /OE and
   /PL HIGH) while ATX is off.

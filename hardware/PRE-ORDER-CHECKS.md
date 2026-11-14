@@ -41,6 +41,6 @@ and header J11 on both modules, nothing built or measured).
 | --- | --- | --- | --- |
 | 12 | 74HC595 part | GR part (Chinese datasheet, SOIC-16 body width confirmed 3.9 mm, VIH/VIL given only at 4.5 V) or a branded 74HC595D from a local shop | |
 | 13 | Hand soldering SMD | No factory assembly: 0603 resistor arrays and LEDs, SOIC-16/20W and SOT-223 are soldered by hand (fine-tip iron, flux, tweezers); connectors, ESP32 sockets, buttons and DRV8833 modules were hand-soldered anyway. Practise on a spare board if unsure | |
-| 14 | Copper weight of the LSM/HDD board | +5V band is 4.7 to 7.9 mm wide (about 10 A at +20 K for 1 oz by an IPC-2221 estimate); the KF301 pole and PSU wire limit first | |
+| 14 | Copper weight of the actuator module board | +5V band is 4.7 to 7.9 mm wide (about 10 A at +20 K for 1 oz by an IPC-2221 estimate); the KF301 pole and PSU wire limit first | |
 | 17 | Bring-up LEDs and J11 | After the first module is built: test firmware shifts a pattern through U2-U4 and the LEDs and J11 pin 5 follow it. Fit the LEDs with the cathode toward GND (flat side or green mark; KiCad pad 1 is the cathode) | |
 | 16 | Mounting hole H2 on the mainboard | Moved to x 70 mm so it clears the KF301 ATX terminal J1 (x 37-63 mm, y 66-74 mm): confirm that three or four holes fit the enclosure plan | |
