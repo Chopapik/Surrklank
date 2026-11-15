@@ -13,7 +13,7 @@ import module_common as mc  # noqa: E402
 
 FP_R = "Resistor_SMD:R_0805_2012Metric"
 FP_C = "Capacitor_SMD:C_0805_2012Metric"
-FP_TERM = "surrklank:TerminalBlock_KF301_1x05_P5.08mm_Horizontal"
+FP_TERM = "surrklank:TerminalBlock_KF301_1x04_P5.08mm_Horizontal"
 FP_JST2 = "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical"
 FP_JUMPER = "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
 FP_IDC10 = "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical"
@@ -89,13 +89,13 @@ def build(path):
             "Pin 15 is a spare wire; no power runs on the ribbons.", (190.5, 66.04))
 
     # ATX power terminal
-    j1 = sh.symbol("Connector:Screw_Terminal_01x05", "J1", "ATX_IN", 38.1, 190.5, footprint=FP_TERM)
-    for pin, n in zip("12345", ["+5V", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]):
+    j1 = sh.symbol("Connector:Screw_Terminal_01x04", "J1", "ATX_IN", 38.1, 190.5, footprint=FP_TERM)
+    for pin, n in zip("1234", ["GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]):
         sh.connect(j1, pin, n)
     sh.text("J1: KF301 screw terminal from the ATX 24-pin distribution:\n"
-            "1 +5V (red), 2 GND, 3 PS_ON# (green), 4 +5VSB (purple), 5 PWR_OK (grey).",
+            "1 GND (black), 2 PS_ON# (green), 3 +5VSB (purple), 4 PWR_OK (grey).\n"
+            "ATX +5V and +3.3V are not used on this board.",
             (20.32, 213.36))
-    sh.flag("+5V", (25.4, 233.68))
     sh.flag("GND", (38.1, 241.3))
     label_flag(sh, "ATX_5VSB", (50.8, 233.68))
 
@@ -145,11 +145,19 @@ def build(path):
     resistor(sh, "R7", "2.2k", 279.4, 81.28, "PANEL_SDA", "ESP_3V3")
     resistor(sh, "R8", "2.2k", 289.56, 81.28, "PANEL_SCL", "ESP_3V3")
     resistor(sh, "R9", "1k", 279.4, 127.0, "ATX_5VSB", "PANEL_LED_SB")
-    resistor(sh, "R10", "470", 289.56, 127.0, "+5V", "PANEL_LED_ON")
+    # "Main rails up" LED: emitter follower from +5VSB, base driven by PWR_OK through R11
+    # (base current about 50 uA, so the weak PWR_OK output is not loaded)
+    q2 = sh.symbol("Transistor_BJT:MMBT3904", "Q2", "MMBT3904", 254.0, 127.0,
+                   footprint="Package_TO_SOT_SMD:SOT-23")
+    sh.connect(q2, "name:C", "ATX_5VSB")
+    sh.connect(q2, "name:B", "Q2_B")
+    sh.connect(q2, "name:E", "LED_ON_DRV")
+    resistor(sh, "R11", "1k", 241.3, 127.0, "PWR_OK", "Q2_B")
+    resistor(sh, "R10", "470", 289.56, 127.0, "LED_ON_DRV", "PANEL_LED_ON")
     sh.text("J6: remote panel, cable up to about 2 m. I2C at 100 kHz with 2.2k\n"
             "pull-ups (GPIO25 SDA, GPIO26 SCL); GPIO27 = expander INT (RN1 pull-up).\n"
             "Pin 9: LED anode via R9 from +5VSB (standby present).\n"
-            "Pin 10: LED anode via R10 from ATX +5V (main rails up).\n"
+            "Pin 10: LED anode via R10 from Q2 (emitter follower on +5VSB, base from PWR_OK).\n"
             "Panel LEDs to GND; use red/green/yellow (Vf about 2 V).", (264.16, 147.32))
 
     mc.mounting_holes(sh, 236.22, 279.4)

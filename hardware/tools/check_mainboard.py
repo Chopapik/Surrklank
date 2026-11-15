@@ -85,13 +85,13 @@ def main(path):
     if gpio_net("3V3") != "ESP_3V3" or gpio_net("3V3") in ("+5V", "ATX_5VSB"):
         errors.append("ESP32 3V3 must stay separate from ATX +5V and +5VSB")
     # +5VSB path: terminal pin 4 -> removable jumper -> ESP32 5V, nothing else
-    j1 = {p: where.get(("J1", p)) for p in "12345"}
-    if [j1[p] for p in "12345"] != ["+5V", "GND", "PS_ON#", "ATX_5VSB", "PWR_OK"]:
+    j1 = {p: where.get(("J1", p)) for p in "1234"}
+    if [j1[p] for p in "1234"] != ["GND", "PS_ON#", "ATX_5VSB", "PWR_OK"] or ("J1", "5") in where:
         errors.append(f"J1 order wrong: {j1}")
     # +5VSB may also feed the panel standby LED resistor (checked below)
-    on_5vsb = {(r, q) for r, q in nets.get("ATX_5VSB", set()) - {("J1", "4")}
-               if not (r.startswith("R") and where.get((r, "2" if q == "1" else "1"))
-                       == where.get(("J6", "9")))}
+    on_5vsb = {(r, q) for r, q in nets.get("ATX_5VSB", set()) - {("J1", "3")}
+               if r != "Q2" and not (r.startswith("R") and where.get((r, "2" if q == "1" else "1"))
+                                     == where.get(("J6", "9")))}
     if len(on_5vsb) != 1 or not next(iter(on_5vsb))[0].startswith("JP"):
         errors.append(f"+5VSB must go only to one removable jumper, got {sorted(on_5vsb)}")
     else:
@@ -101,8 +101,9 @@ def main(path):
     if gpio_net("5V") != "ESP_5V":
         errors.append("ESP32 5V pin must be on ESP_5V")
     # PWR_OK divider into GPIO36
-    rs = [r for r, _ in nets.get("PWR_OK", set()) if r.startswith("R")]
-    if len(rs) != 1 or gpio_net("GPIO36") not in {where.get((rs[0], q)) for q in ("1", "2")}:
+    rs = [r for r, _ in nets.get("PWR_OK", set()) if r.startswith("R")
+          and gpio_net("GPIO36") in {where.get((r, q)) for q in ("1", "2")}]
+    if len(rs) != 1:
         errors.append("PWR_OK must reach GPIO36 through a series resistor")
     # ATX switch: GPIO19 -> R -> base, base -> R -> GND, emitter GND, collector PS_ON#
     q = next(r for r, _ in nets["PS_ON#"] if r.startswith("Q"))
@@ -136,11 +137,23 @@ def main(path):
                and where.get((r, "2" if q == "1" else "1")) == gpio_net("3V3")]
         if len(ups) != 1:
             errors.append(f"{g} (I2C) needs one pull-up to the ESP32 3V3")
-    for p, rail in (("9", "ATX_5VSB"), ("10", "+5V")):
-        feed = [r for r, q in peers("J6", p) if r.startswith("R") and not r.startswith("RN")
-                and where.get((r, "2" if q == "1" else "1")) == rail]
-        if len(feed) != 1 or len(peers("J6", p)) != 1:
-            errors.append(f"J6.{p} must be fed only through one resistor from {rail}")
+    feed = [r for r, q in peers("J6", "9") if r.startswith("R") and not r.startswith("RN")
+            and where.get((r, "2" if q == "1" else "1")) == "ATX_5VSB"]
+    if len(feed) != 1 or len(peers("J6", "9")) != 1:
+        errors.append("J6.9 must be fed only through one resistor from ATX_5VSB")
+    # J6.10: one resistor from the emitter of Q2 (collector +5VSB, base from PWR_OK via a resistor)
+    feed = [(r, q) for r, q in peers("J6", "10") if r.startswith("R") and not r.startswith("RN")]
+    if len(feed) != 1 or len(peers("J6", "10")) != 1:
+        errors.append("J6.10 must be fed only through one resistor")
+    else:
+        r, q = feed[0]
+        drv = where.get((r, "2" if q == "1" else "1"))
+        q2 = {func[("Q2", p)]: where[("Q2", p)] for p in ("1", "2", "3")}
+        if q2.get("E") != drv or q2.get("C") != "ATX_5VSB":
+            errors.append(f"Q2 must be an emitter follower on +5VSB feeding J6.10, got {q2}")
+        elif not any(r2.startswith("R") and "PWR_OK" in {where.get((r2, x)) for x in ("1", "2")}
+                     for r2, _ in nets[q2["B"]]):
+            errors.append("Q2 base must be driven from PWR_OK through a resistor")
 
     if errors:
         print(f"{len(errors)} problem(s):")

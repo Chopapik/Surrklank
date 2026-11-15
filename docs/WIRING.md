@@ -86,10 +86,9 @@ removed). With the pull-down on the GPIO side a module HIGH reads about 3.0 V.
 
 ### Power input
 
-A KF301 screw terminal (5 poles, 5.08 mm, J1) brings +5V, GND, PS_ON#, +5VSB and
-PWR_OK from the user's ATX distribution. ATX +3.3 V is not used anywhere:
-modules make their own 3.3 V from +5 V. The mainboard uses terminal +5 V only
-for the panel's "main rails up" LED.
+A KF301 screw terminal (4 poles, 5.08 mm, J1) brings GND, PS_ON#, +5VSB and
+PWR_OK from the user's ATX distribution. ATX +5 V and +3.3 V do not reach the
+mainboard: the modules take +5 V from their own terminals and make their own 3.3 V.
 
 - **+5VSB → ESP32.** The ATX standby rail powers the ESP32 board through a
   removable jumper (JP1) into the board's 5 V pin, so the ESP32 runs while ATX
@@ -99,9 +98,8 @@ for the panel's "main rails up" LED.
   plugging in USB**, also with ATX unplugged from the mains: it is the only
   isolation between USB 5 V and the ATX standby rail. The ESP32 board is
   assumed to have no USB VBUS diode (seller warning); this is not verified.
-- **+5V** from ATX (red) feeds only the panel LED on J6 pin 10. Never connect
-  it to the ESP32 board's 3V3 pin; the board's 5 V pin takes +5VSB through JP1
-  only.
+- Never connect any supply to the ESP32 board's 3V3 pin; the board's 5 V pin
+  takes +5VSB through JP1 only.
 - **PWR_OK** (grey ATX wire, nominally 5 V logic) reaches GPIO36 through a
   10 kΩ / 20 kΩ divider (about 3.3 V from 5 V). It reports main rails up,
   unlike the GPIO19 request; firmware does not read it yet.
@@ -166,14 +164,17 @@ mainboard connector is J6 (2 × 5 IDC, straight-through ribbon to panel J1):
 | 3 | SDA (GPIO25) | 4 | GND |
 | 5 | SCL (GPIO26) | 6 | GND |
 | 7 | INT (GPIO27) | 8 | ATX button (GPIO13, parallel to J4) |
-| 9 | LED anode, 1 kΩ from +5VSB | 10 | LED anode, 470 Ω from ATX +5 V |
+| 9 | LED anode, 1 kΩ from +5VSB | 10 | LED anode, 470 Ω from Q2 emitter |
 
 - I2C runs at 100 kHz with 2.2 kΩ pull-ups to ESP_3V3 on the mainboard, which
   keeps rise time within the standard-mode limit for about 2 m of ribbon; a
   bus buffer is not planned. Planned panel parts: 0.96" SSD1306 OLED (I2C,
   usually address 0x3C) and an MCP23017/PCF8574 expander for buttons and LEDs.
 - Pin 9 lights while +5VSB is present and pin 10 while ATX main rails are up
-  (measured rail, not the GPIO19 request); both work without firmware. Pin 10 draws about 6 mA at Vf 2 V. Panel
+  (measured rail, not the GPIO19 request); both work without firmware. Pin 10
+  is driven by Q2 (MMBT3904 emitter follower, collector +5VSB, base from PWR_OK
+  through 1 kΩ), so the weak PWR_OK output carries only the base current
+  (about 50 µA). It draws about 5 mA at Vf 2 V and follows PWR_OK, not +5 V. Panel
   LEDs connect to GND and should have Vf about 2 V (red, green or yellow).
 - Panel expander U1 (MCP23017, address 0x20, INTA on the INT line with
   IOCON.MIRROR, internal pull-ups for buttons): GPA0 PREV, GPA1 PLAY, GPA2 STOP,
@@ -461,12 +462,13 @@ compatible.
 ## Power
 
 The ATX supply is used only through its 24-pin connector; the user distributes
-+5 V (red), GND (black), +5VSB (purple), PS_ON# (green) and PWR_OK (grey) with
-their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
+GND (black), +5VSB (purple), PS_ON# (green) and PWR_OK (grey) to the mainboard and
++5 V (red) and GND to each module with their own wires and Wago-style splice
+nodes. +3.3 V (orange) is not used.
 
 | Board | Supply |
 | --- | --- |
-| Mainboard | KF301 screw terminal, 5 poles (see [Power input](#power-input)) |
+| Mainboard | KF301 screw terminal, 4 poles (see [Power input](#power-input)) |
 | FDD module | One KF301, 2 poles (+5 V, GND); an on-board 3.3 V LDO makes the logic supply |
 | actuator module | One KF301, 4 poles (2 × +5 V, 2 × GND) for motor +5 V; the same LDO makes the logic supply |
 
@@ -485,7 +487,7 @@ their own wires and Wago-style splice nodes. +3.3 V (orange) is not used.
 
   | Board, part | Poles | Order (pin 1 first) |
   | --- | --- | --- |
-  | Mainboard J1 | 5 | +5V red, GND black, PS_ON# green, +5VSB purple, PWR_OK grey |
+  | Mainboard J1 | 4 | GND black, PS_ON# green, +5VSB purple, PWR_OK grey |
   | FDD module J5 | 2 | +5V red, GND black |
   | actuator module J5 | 4 | +5V red, +5V red, GND black, GND black |
 

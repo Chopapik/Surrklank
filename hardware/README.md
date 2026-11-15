@@ -93,13 +93,13 @@ pin order listed by the seller and matching the silkscreen photo.
   body outline in the footprint is approximate, so the antenna position on
   the real board is not checked.
 - Below the USB end the PCB is left free (only the silkscreen note
-  "REMOVE JP1 BEFORE USB") so the micro-USB plug clears the ATX terminal (KF301 J1, x 37-63 mm, y 66-74 mm).
+  "REMOVE JP1 BEFORE USB") so the micro-USB plug clears the ATX terminal (KF301 J1, x 37-58 mm, y 66-74 mm).
 - PCB v0.1 layout: register control resistor arrays in the middle, ribbon
-  J2 (FDD) and J3 (actuator module) on the right edge, ATX terminal J1 (KF301, 5 poles) at the bottom
+  J2 (FDD) and J3 (actuator module) on the right edge, ATX terminal J1 (KF301, 4 poles) at the bottom
   edge with the wire entry outward and labelled poles above it, button J4 bottom right, remote panel
   connector J6 (2 × 5 IDC, see WIRING.md) at the top edge. Autorouted, not
   hand-optimised.
-- Power input: KF301 screw terminal on every board that takes power (mainboard 5 poles,
+- Power input: KF301 screw terminal on every board that takes power (mainboard 4 poles,
   FDD module 2, actuator module 4); ATX button on a two-pin connector.
 
 ## Remote panel
@@ -131,7 +131,7 @@ everything on the front side:
 | --- | --- |
 | Ribbon IN/OUT | 2 × 8 IDC box header, 2.54 mm |
 | FDD drive cable | Salvaged 40-pin IDE header; standard DIN 41651 2 × 20 footprint (2.54 mm pitch, 1.0 mm holes, body about 58.5 × 8.9 mm in KiCad) with extra clearance for a cut-down housing |
-| Power input | Custom `TerminalBlock_KF301_1xNN_P5.08mm_Horizontal` (2, 4 and 5 poles, from `gen_terminal_footprints.py`): 5.08 mm pitch, 3.0 mm pads, 1.4 mm holes, generic body about 8 mm deep with the wires entering from the +y side; check against the bought part |
+| Power input | Custom `TerminalBlock_KF301_1xNN_P5.08mm_Horizontal` (2 and 4 poles, from `gen_terminal_footprints.py`): 5.08 mm pitch, 3.0 mm pads, 1.4 mm holes, generic body about 8 mm deep with the wires entering from the +y side; check against the bought part |
 | DRV8833 module | Custom `DRV8833_Module_2x6_W15.24mm`: 2 × 6, 2.54 mm pitch, rows 15.24 mm apart, 1.0 mm holes, DIP-style numbering |
 | Motor outputs | JST-XH 4-pin vertical (B4B-XH-A, 2.5 mm) per DRV8833 slot; crimped plugs |
 | Actuator module bulk capacitor | 470 µF 16 V radial THT, 10 mm diameter, 5 mm pitch |

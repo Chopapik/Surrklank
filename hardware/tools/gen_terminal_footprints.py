@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write the KF301 screw-terminal footprints (5.08 mm pitch, 2, 4 and 5 poles).
+"""Write the KF301 screw-terminal footprints (5.08 mm pitch, 2 and 4 poles).
 
 Usage: python3 -I gen_terminal_footprints.py
 The footprints go to hardware/lib/surrklank.pretty/. Pin 1 is at the origin and
@@ -50,7 +50,7 @@ def footprint(n):
 
 
 if __name__ == "__main__":
-    for n in (2, 4, 5):
+    for n in (2, 4):
         name, text = footprint(n)
         with open(os.path.join(OUT, name + ".kicad_mod"), "w", encoding="utf-8") as f:
             f.write(text)

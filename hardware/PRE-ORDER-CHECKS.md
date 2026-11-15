@@ -33,7 +33,7 @@ and header J11 on both modules, nothing built or measured).
 | 8 | 3.3 V ripple | Oscilloscope (borrowed), probe with a short ground spring | No oscillation. Datasheet is silent on ceramics: if it misbehaves hand-fit a 22 µF tantalum or polymer (EIA 3216-18) on the C7 pads | |
 | 9 | Back-power | ESP on +5VSB, ATX off, module connected by ribbon only (no J5 supply): measure the module 3.3 V rail | Above about 1.5 V is a problem. Record the value. D5 on the rail starts to glow near 1.8 V (red), so a lit D5 with ATX off means a back-powered rail | |
 | 10 | Motor current | Bench supply with current limit or ammeter in the +5V line, one motor at a time | Start and hold current against the DRV8833 limit and one KF301 pole (rating of the bought part) | |
-| 11 | Long ribbon | Longest planned ribbons, every module connected, motors under load, long run | Wrong or missing steps. Only on errors: oscilloscope on CLK and LATCH at the far end of the longest hop, ringing near 1.65 V. J11 taps add unterminated branches on CLK and LATCH (routed length, measured on the layout: FDD about 42 and 36 mm, LSM/HDD about 15 and 28 mm); look at these first | |
+| 11 | Long ribbon | Longest planned ribbons, every module connected, motors under load, long run | Wrong or missing steps. Only on errors: oscilloscope on CLK and LATCH at the far end of the longest hop, ringing near 1.65 V. J11 taps add unterminated branches on CLK and LATCH (routed length, measured on the layout: FDD about 42 and 36 mm, actuator module about 15 and 28 mm); look at these first | |
 
 ## D. Decisions before ordering
 
@@ -43,4 +43,4 @@ and header J11 on both modules, nothing built or measured).
 | 13 | Hand soldering SMD | No factory assembly: 0603 resistor arrays and LEDs, SOIC-16/20W and SOT-223 are soldered by hand (fine-tip iron, flux, tweezers); connectors, ESP32 sockets, buttons and DRV8833 modules were hand-soldered anyway. Practise on a spare board if unsure | |
 | 14 | Copper weight of the actuator module board | +5V band is 4.7 to 7.9 mm wide (about 10 A at +20 K for 1 oz by an IPC-2221 estimate); the KF301 pole and PSU wire limit first | |
 | 17 | Bring-up LEDs and J11 | After the first module is built: test firmware shifts a pattern through U2-U4 and the LEDs and J11 pin 5 follow it. Fit the LEDs with the cathode toward GND (flat side or green mark; KiCad pad 1 is the cathode) | |
-| 16 | Mounting hole H2 on the mainboard | Moved to x 70 mm so it clears the KF301 ATX terminal J1 (x 37-63 mm, y 66-74 mm): confirm that three or four holes fit the enclosure plan | |
+| 16 | Mounting hole H2 on the mainboard | Moved to x 70 mm so it clears the KF301 ATX terminal J1 (x 37-58 mm, y 66-74 mm): confirm that three or four holes fit the enclosure plan | |
