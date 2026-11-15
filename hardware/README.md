@@ -197,8 +197,9 @@ Promotional option and stay without a number, listed in `UNRESOLVED` in the
 script with their Extended candidates (extra fee per unique part type):
 74LVC244A (SOIC-20W) on both modules, the 33 Ω 0603 × 4 array (mainboard and
 both modules), the 100 k 0603 × 4 array (actuator module) and the panel's
-MCP23017-E/SO. Every board uses at least one of them, so the export reports
-each board's assembly BOM as blocked. CPL rotation offsets are verified only for
+MCP23017-E/SO. These parts are left out of the assembly BOM and CPL and listed
+in `bom/surrklank-<board>-hand-solder.csv`: the factory places only Basic and
+Promotional parts and these are soldered by hand. CPL rotation offsets are verified only for
 SOIC-16/20 and SOT-223; SOT-23, resistor arrays and SOIC-28W must be checked
 in the JLCPCB placement preview.
 

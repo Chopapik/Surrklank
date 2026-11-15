@@ -5,6 +5,9 @@ For every board writes to hardware/fabrication/:
   surrklank-<board>.zip                   Gerbers (incl. paste) + PTH/NPTH drill
   bom/surrklank-<board>-bom-smd.csv       SMD parts, JLCPCB BOM format
   bom/surrklank-<board>-cpl.csv           placements, JLCPCB CPL format
+  bom/surrklank-<board>-hand-solder.csv   SMD parts left out of the BOM and CPL
+                                          (no Basic/Promotional LCSC part): the
+                                          owner solders these by hand
 
 Usage: export_jlcpcb.py [board ...]     (default: all boards)
 
@@ -68,9 +71,9 @@ LCSC = {
 }
 
 # No Basic or Promotional Extended part found for these (checked 2026-11-15).
-# The BOM leaves the LCSC column empty and the board's assembly BOM is
-# reported as blocked: choosing a plain Extended part (a fee per unique type)
-# or hand-soldering the part is the owner's decision. Candidates are Extended.
+# They are left out of the assembly BOM and CPL and listed in the board's
+# hand-solder file: the owner solders them by hand (the alternative, a plain
+# Extended part, costs a fee per unique type). Candidates are Extended.
 UNRESOLVED = {
     ("74LVC244A", "SOIC-20W"): "C548504 74LVC244AD,118 (Nexperia)",
     ("33", "R_Array"): "C25508 4D03WGJ0330T5E (Uniroyal), C165956 YC164-JR-0733RL (Yageo)",
@@ -146,7 +149,7 @@ def export_board(board, work):
     bom_dir = OUT / "bom"
     bom_dir.mkdir(exist_ok=True)
     parts = 0
-    blocked = []
+    hand = []
     with open(bom_raw, newline="") as src, \
             open(bom_dir / f"surrklank-{board}-bom-smd.csv", "w",
                  newline="") as dst:
@@ -158,9 +161,18 @@ def export_board(board, work):
             parts += int(row["Qty"])
             comment, number = lcsc_for(row["Comment"], row["Footprint"])
             if not number:
-                blocked.append(f"{comment} ({row['Designator']})")
+                hand.append((comment, row["Designator"],
+                             row["Footprint"].split(":", 1)[-1]))
+                parts -= int(row["Qty"])
+                continue
             writer.writerow([comment, row["Designator"],
                              row["Footprint"].split(":", 1)[-1], number])
+    hand_refs = {r.strip() for _, refs, _ in hand for r in refs.split(",")}
+    with open(bom_dir / f"surrklank-{board}-hand-solder.csv", "w",
+              newline="") as dst:
+        writer = csv.writer(dst)
+        writer.writerow(["Comment", "Designator", "Footprint"])
+        writer.writerows(hand)
     with open(pos_raw, newline="") as src, \
             open(bom_dir / f"surrklank-{board}-cpl.csv", "w",
                  newline="") as dst:
@@ -168,21 +180,22 @@ def export_board(board, work):
         writer.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
         placed = 0
         for row in csv.DictReader(src):
+            if row["Ref"] in hand_refs:
+                continue
             rotation = (float(row["Rot"]) + rotation_offset(row["Package"])) % 360
             writer.writerow([row["Ref"], f"{float(row['PosX']):.4f}mm",
                              f"{float(row['PosY']):.4f}mm",
                              "Top" if row["Side"] == "top" else "Bottom",
                              f"{rotation:g}"])
             placed += 1
-    print(f"{board}: gerbers zipped, {parts} SMD parts in BOM, "
-          f"{placed} placements")
-    # Ready means every SMD part has a Basic or Promotional Extended number.
-    # CPL rotations for SOT-23 and resistor arrays are unverified either way.
-    if blocked:
-        print(f"{board}: assembly BOM BLOCKED, no LCSC number for "
-              f"{', '.join(blocked)}")
-    else:
-        print(f"{board}: assembly BOM ready (Basic/Promotional only)")
+    print(f"{board}: gerbers zipped, {parts} SMD parts in the assembly BOM, "
+          f"{placed} placements (hand-solder parts left out)")
+    # The assembly BOM only holds Basic or Promotional Extended parts. CPL
+    # rotations for SOT-23 and resistor arrays are unverified either way.
+    print(f"{board}: assembly BOM has Basic/Promotional parts only")
+    if hand:
+        print(f"{board}: solder by hand: "
+              f"{', '.join(f'{c} ({r})' for c, r, _ in hand)}")
 
 
 def main():
