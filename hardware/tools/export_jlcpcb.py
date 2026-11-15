@@ -36,27 +36,44 @@ ROTATION_OFFSETS = [
     ("SOT-223", 180),
 ]
 
-# LCSC parts chosen in the JLCPCB BOM editor (Basic or Extended, 2026-11-13):
+# LCSC parts, library class checked on jlcpcb.com/partdetail/<number> on
+# 2026-11-15. Only Basic parts are listed here: Extended parts add a fee per
+# unique part type and are never put into the BOM automatically.
 # (BOM comment, footprint-name prefix) -> (LCSC number, manufacturer part).
 # JLCPCB warns when the BOM comment differs from the part's own name, so the
-# manufacturer part replaces the comment when it is known. Unlisted parts stay
-# empty so the editor can match them.
+# manufacturer part replaces the comment when it is known.
 LCSC = {
     ("100n", "C_0805"): ("C49678", "CC0805KRX7R9BB104"),
     ("10u", "C_0805"): ("C15850", "CL21A106KAYNNNE"),
     ("22u", "C_1206"): ("C12891", "CL31A226KAHNNNE"),
     ("10k", "R_Array"): ("C29718", "4D03WGJ0103T5E"),
-    ("33", "R_Array"): ("C25508", ""),
     ("4.7k", "R_Array"): ("C1980", "4D03WGJ0472T5E"),
-    ("74LVC244A", "SOIC-20W"): ("C548504", "74LVC244AD,118"),
-    ("74HC595", "SOIC-16"): ("C18164493", "74HC595"),
-    ("74HC165", "SOIC-16"): ("C5613", "74HC165D,653"),
+    ("74HC595", "SOIC-16"): ("C5947", "74HC595D,118"),
     ("AMS1117-3.3", "SOT-223"): ("C6186", "AMS1117-3.3"),
-    # Bring-up LEDs: numbers to be confirmed in the JLCPCB BOM editor
+    ("MMBT3904", "SOT-23"): ("C20526", "MMBT3904(RANGE:100-300)"),
     ("1k", "R_0603"): ("C21190", "0603WAF1001T5E"),
     ("LED", "LED_0603"): ("C2286", "KT-0603R"),
+    ("10k", "R_0805"): ("C17414", "0805W8F1002T5E"),
+    ("20k", "R_0805"): ("C4328", "0805W8F2002T5E"),
+    ("2.2k", "R_0805"): ("C17520", "0805W8F2201T5E"),
+    ("100k", "R_0805"): ("C149504", "0805W8F1003T5E"),
+    ("1k", "R_0805"): ("C17513", "0805W8F1001T5E"),
+    ("470", "R_0805"): ("C17710", "0805W8F4700T5E"),
+    ("330", "R_0805"): ("C17630", "0805W8F3300T5E"),
 }
 
+# No Basic part found for these (checked 2026-11-15). The BOM leaves the LCSC
+# column empty and the export prints a warning: choosing an Extended part
+# (a fee per unique type) is the owner's decision. Candidate -> class Extended.
+UNRESOLVED = {
+    ("74HC165", "SOIC-16"): "C5613 74HC165D,653 (Nexperia)",
+    ("74LVC244A", "SOIC-20W"): "C548504 74LVC244AD,118 (Nexperia)",
+    ("33", "R_Array"): "C25508 4D03WGJ0330T5E (Uniroyal)",
+    ("100k", "R_Array"): "C1996 4D03WGJ0104T5E (Uniroyal)",
+    ("MCP23017-E/SO", "SOIC-28W"): "C47023 MCP23017-E/SO (Microchip)",
+}
+
+UNRESOLVED_USED = set()
 SMD_MARKERS = ("_SMD", "Package_SO:")
 
 
@@ -88,6 +105,9 @@ def lcsc_for(comment, footprint):
     for (value, prefix), (number, mpn) in LCSC.items():
         if comment == value and name.startswith(prefix):
             return mpn or comment, number
+    for (value, prefix), candidate in UNRESOLVED.items():
+        if comment == value and name.startswith(prefix):
+            UNRESOLVED_USED.add(f"{comment} {name}: Extended only, candidate {candidate}")
     return comment, ""
 
 
@@ -157,6 +177,8 @@ def main():
             sys.exit(f"unknown board {board}; choose from {', '.join(BOARDS)}")
         with tempfile.TemporaryDirectory() as tmp:
             export_board(board, Path(tmp))
+    for line in sorted(UNRESOLVED_USED):
+        print("no Basic part:", line)
 
 
 if __name__ == "__main__":

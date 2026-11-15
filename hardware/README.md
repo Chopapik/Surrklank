@@ -187,9 +187,16 @@ page: print at 100 % / actual size, never fit to page.
 
 `hardware/tools/export_jlcpcb.py [board ...]` writes upload files to
 `hardware/fabrication/` (git-ignored): one Gerber and drill zip per board
-(separate PTH and NPTH files), plus an SMD BOM and CPL that are only needed if
-factory assembly is ever used again (LCSC numbers and CPL rotations in the
-script are partly unverified and are not maintained for hand assembly).
+(separate PTH and NPTH files, paste layers included), plus an SMD BOM and CPL
+that are only needed if factory assembly is used. The BOM carries only
+LCSC numbers whose JLCPCB class was read as Basic on 2026-11-15 (class and
+stock change, recheck before ordering). Five parts have no Basic option and
+stay without a number, listed in `UNRESOLVED` in the script with their
+Extended candidate (extra fee per unique part type): 74HC165 and 74LVC244A on
+both modules, the 33 Ω and 100 k 0603 resistor arrays, and the panel's
+MCP23017-E/SO. CPL rotation offsets are verified only for SOIC-16/20 and
+SOT-223; SOT-23, resistor arrays and SOIC-28W must be checked in the JLCPCB
+placement preview.
 
 ## Open items
 
