@@ -187,7 +187,7 @@ page: print at 100 % / actual size, never fit to page.
 
 `hardware/tools/export_jlcpcb.py [board ...]` writes upload files to
 `hardware/fabrication/` (git-ignored): one Gerber and drill zip per board
-(separate PTH and NPTH files, paste layers included), plus an SMD BOM and CPL
+(separate PTH and NPTH files, paste layers included), plus an SMD BOM (`bom/`) and CPL (`cpl/`)
 that are only needed if factory assembly is used. The BOM carries only
 LCSC numbers whose JLCPCB class was read as Basic or Promotional (Preferred)
 Extended on 2026-11-15 (class and stock change, recheck before ordering);

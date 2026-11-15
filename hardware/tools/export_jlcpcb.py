@@ -4,7 +4,7 @@
 For every board writes to hardware/fabrication/:
   surrklank-<board>.zip                   Gerbers (incl. paste) + PTH/NPTH drill
   bom/surrklank-<board>-bom-smd.csv       SMD parts, JLCPCB BOM format
-  bom/surrklank-<board>-cpl.csv           placements, JLCPCB CPL format
+  cpl/surrklank-<board>-cpl.csv           placements, JLCPCB CPL format
   bom/surrklank-<board>-hand-solder.csv   SMD parts left out of the BOM and CPL
                                           (no Basic/Promotional LCSC part): the
                                           owner solders these by hand
@@ -148,6 +148,8 @@ def export_board(board, work):
 
     bom_dir = OUT / "bom"
     bom_dir.mkdir(exist_ok=True)
+    cpl_dir = OUT / "cpl"
+    cpl_dir.mkdir(exist_ok=True)
     parts = 0
     hand = []
     with open(bom_raw, newline="") as src, \
@@ -174,7 +176,7 @@ def export_board(board, work):
         writer.writerow(["Comment", "Designator", "Footprint"])
         writer.writerows(hand)
     with open(pos_raw, newline="") as src, \
-            open(bom_dir / f"surrklank-{board}-cpl.csv", "w",
+            open(cpl_dir / f"surrklank-{board}-cpl.csv", "w",
                  newline="") as dst:
         writer = csv.writer(dst)
         writer.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
