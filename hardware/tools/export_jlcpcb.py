@@ -36,9 +36,12 @@ ROTATION_OFFSETS = [
     ("SOT-223", 180),
 ]
 
-# LCSC parts, library class checked on jlcpcb.com/partdetail/<number> on
-# 2026-11-15. Only Basic parts are listed here: Extended parts add a fee per
-# unique part type and are never put into the BOM automatically.
+# LCSC parts, library class checked on the JLCPCB parts library on
+# 2026-11-15. Only Basic and Promotional (Preferred) Extended parts are listed
+# here: plain Extended parts add a feeder loading fee per unique part type and
+# are never put into the BOM automatically. Promotional Extended parts carry
+# no loading fee in Economic assembly only; their part page still says
+# "Extended", the category page and the library search show the promotion.
 # (BOM comment, footprint-name prefix) -> (LCSC number, manufacturer part).
 # JLCPCB warns when the BOM comment differs from the part's own name, so the
 # manufacturer part replaces the comment when it is known.
@@ -49,6 +52,8 @@ LCSC = {
     ("10k", "R_Array"): ("C29718", "4D03WGJ0103T5E"),
     ("4.7k", "R_Array"): ("C1980", "4D03WGJ0472T5E"),
     ("74HC595", "SOIC-16"): ("C5947", "74HC595D,118"),
+    # Promotional Extended (Shift Registers category page, 2026-11-15).
+    ("74HC165", "SOIC-16"): ("C5613", "74HC165D,653"),
     ("AMS1117-3.3", "SOT-223"): ("C6186", "AMS1117-3.3"),
     ("MMBT3904", "SOT-23"): ("C20526", "MMBT3904(RANGE:100-300)"),
     ("1k", "R_0603"): ("C21190", "0603WAF1001T5E"),
@@ -62,14 +67,14 @@ LCSC = {
     ("330", "R_0805"): ("C17630", "0805W8F3300T5E"),
 }
 
-# No Basic part found for these (checked 2026-11-15). The BOM leaves the LCSC
-# column empty and the export prints a warning: choosing an Extended part
-# (a fee per unique type) is the owner's decision. Candidate -> class Extended.
+# No Basic or Promotional Extended part found for these (checked 2026-11-15).
+# The BOM leaves the LCSC column empty and the board's assembly BOM is
+# reported as blocked: choosing a plain Extended part (a fee per unique type)
+# or hand-soldering the part is the owner's decision. Candidates are Extended.
 UNRESOLVED = {
-    ("74HC165", "SOIC-16"): "C5613 74HC165D,653 (Nexperia)",
     ("74LVC244A", "SOIC-20W"): "C548504 74LVC244AD,118 (Nexperia)",
-    ("33", "R_Array"): "C25508 4D03WGJ0330T5E (Uniroyal)",
-    ("100k", "R_Array"): "C1996 4D03WGJ0104T5E (Uniroyal)",
+    ("33", "R_Array"): "C25508 4D03WGJ0330T5E (Uniroyal), C165956 YC164-JR-0733RL (Yageo)",
+    ("100k", "R_Array"): "C1996 4D03WGJ0104T5E (Uniroyal), C192933 YC164-JR-07100KL (Yageo)",
     ("MCP23017-E/SO", "SOIC-28W"): "C47023 MCP23017-E/SO (Microchip)",
 }
 
@@ -107,7 +112,7 @@ def lcsc_for(comment, footprint):
             return mpn or comment, number
     for (value, prefix), candidate in UNRESOLVED.items():
         if comment == value and name.startswith(prefix):
-            UNRESOLVED_USED.add(f"{comment} {name}: Extended only, candidate {candidate}")
+            UNRESOLVED_USED.add(f"{comment} {name}: Extended only, candidates {candidate}")
     return comment, ""
 
 
@@ -141,6 +146,7 @@ def export_board(board, work):
     bom_dir = OUT / "bom"
     bom_dir.mkdir(exist_ok=True)
     parts = 0
+    blocked = []
     with open(bom_raw, newline="") as src, \
             open(bom_dir / f"surrklank-{board}-bom-smd.csv", "w",
                  newline="") as dst:
@@ -151,6 +157,8 @@ def export_board(board, work):
                 continue
             parts += int(row["Qty"])
             comment, number = lcsc_for(row["Comment"], row["Footprint"])
+            if not number:
+                blocked.append(f"{comment} ({row['Designator']})")
             writer.writerow([comment, row["Designator"],
                              row["Footprint"].split(":", 1)[-1], number])
     with open(pos_raw, newline="") as src, \
@@ -168,6 +176,13 @@ def export_board(board, work):
             placed += 1
     print(f"{board}: gerbers zipped, {parts} SMD parts in BOM, "
           f"{placed} placements")
+    # Ready means every SMD part has a Basic or Promotional Extended number.
+    # CPL rotations for SOT-23 and resistor arrays are unverified either way.
+    if blocked:
+        print(f"{board}: assembly BOM BLOCKED, no LCSC number for "
+              f"{', '.join(blocked)}")
+    else:
+        print(f"{board}: assembly BOM ready (Basic/Promotional only)")
 
 
 def main():
@@ -178,7 +193,7 @@ def main():
         with tempfile.TemporaryDirectory() as tmp:
             export_board(board, Path(tmp))
     for line in sorted(UNRESOLVED_USED):
-        print("no Basic part:", line)
+        print("no Basic/Promotional part:", line)
 
 
 if __name__ == "__main__":
