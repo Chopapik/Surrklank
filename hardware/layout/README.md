@@ -36,6 +36,20 @@ millimetres and converted with `MM = 0.001`.
   board top at z = 128), centred on it, set back from row 2 by the same
   109.5 mm as row 2 from row 1 (drives at y = 219..365; the rolls just clear
   row 2's rear at y = 255.5; 36 mm left to the ATX fronts).
+  `SUPPORT` selects how rows 2 and 3 are raised: `"rolls"` is the current
+  real setup (tape rolls under 400 mm boards); `"cheeks"` (default) is the
+  proposed replacement: two stepped 12 mm plywood side plates outside the
+  rows, built for maintenance. The rows rise in equal `STEP_Z` = 64 mm steps
+  (drives at z = 0, 64, 128); all rows shift right by the plate thickness.
+  - Frame (permanent): each plate is a lower and an upper part joined by two
+    flat plates with four 3.5x10 screws each; an 18x30 rear stretcher,
+    screwed through the plates (3.5x30), keeps the frame square.
+  - Trays (lift-off): each full-width board carries its row and lies on the
+    plates, located by two 6x20 dowels per end; no screws. Lift tray C,
+    then tray B. Row 1 stands loose on the table.
+  - Table: two 6x20 dowels under each plate go 10 mm into the table top;
+    they only stop sliding (an IKEA LACK top is honeycomb-filled).
+  Nothing stands behind the rear connectors.
   The table is black. The LED rims of row 1 stick out 0.35 mm past the table front edge.
 - `live_server.py` / `send.py` — optional live view (see below).
 
