@@ -27,6 +27,10 @@ from fdd_model import MM, DEPTH as FDD_D, WIDTH as FDD_W, build_fdd
 import vcr_cover
 importlib.reload(vcr_cover)
 from vcr_cover import build_vcr_cover
+import pcbs
+importlib.reload(pcbs)
+import cables
+importlib.reload(cables)
 
 TABLE = (550, 550, 50)         # IKEA table, X, Y, Z
 BOARD = (400, 73, 28)          # X, Y, Z
@@ -40,6 +44,8 @@ BLACK = (0.03, 0.03, 0.03, 1)
 # stands behind the drives' rear connectors
 SUPPORT = "cheeks"
 CHEEK_T = 12                   # plywood side plate; 12 mm leaves 3 mm walls round a 6 mm dowel
+PCB_PARK_GAP = 40              # parked boards: gap from the table's right edge
+CABLE_PARK_X = 760             # cables laid flat beyond the parked boards
 STEP_Z = 64                    # equal row-to-row height step with cheeks
 WOOD = (0.6, 0.4, 0.2, 1)
 STEEL = (0.55, 0.57, 0.6, 1)
@@ -111,6 +117,11 @@ def build_scene(clear=True):
     # than the shelf is deep, so they overhang 2.5 mm front and back)
     build_vcr_cover("vcr_cover", ((SHELF[0] - vcr_cover.LENGTH) / 2,
                                   sy + (SHELF[1] - vcr_cover.WALL_L) / 2, ATX[2] + SHELF[2]))
+    # KiCad boards (export_pcbs.py); parked beside the table's right edge
+    # until pcbs.PLACEMENTS holds their real positions
+    pcbs.build_pcbs(default_origin=(TABLE[0] + PCB_PARK_GAP, 0, 0))
+    # WIRING.md cables laid straight beside the boards until routed
+    cables.build_cables(origin=(CABLE_PARK_X, 0, 0))
     row_w = FDD_COUNT * FDD_W
     cheeks = SUPPORT == "cheeks"
     x0 = CHEEK_T if cheeks else 0           # rows sit between the cheeks

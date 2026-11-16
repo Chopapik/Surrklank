@@ -27,3 +27,4 @@ hardware/**/fp-info-cache
 
 # Generated fabrication output
 hardware/fabrication/
+hardware/layout/pcb/

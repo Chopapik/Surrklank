@@ -64,6 +64,34 @@ millimetres and converted with `MM = 0.001`.
     they only stop sliding (an IKEA LACK top is honeycomb-filled).
   Nothing stands behind the rear connectors.
   The table is black. The LED rims of row 1 stick out 0.35 mm past the table front edge.
+- `export_pcbs.py` — run with plain `python3`: exports every KiCad board
+  with an outline to `pcb/<board>.glb` through `kicad-cli pcb export glb`
+  (`pcb/` is ignored by Git). `--light` leaves out tracks, pads, zones,
+  silkscreen and soldermask. Boards without Edge.Cuts are skipped.
+- `pcbs.py` — `build_pcbs()` imports those GLBs under `pcb_<board>` Empties
+  with the origin at each board's left-front-bottom corner. `PLACEMENTS`
+  maps a board to `(x, y, z, rot_z_deg)`; boards without an entry are parked
+  in a row beside the table's right edge. `layout.py` calls it; with no
+  exports the stack builds without boards.
+- `cables.py` — `build_cables()` lays the `docs/WIRING.md` cables flat and
+  straight beyond the parked boards (`CABLE_PARK_X`), each along +Y with its
+  first connector at Y = 0; routing comes later. Ribbons are cut from
+  recycled 40-wire IDE cables, so all are shown at the stock 370 mm
+  (measured, about ±40 mm), red wire 1 on the left:
+  - four 16-wire module ribbons with 2x8 IDC sockets: mainboard → FDD
+    module 1, FDD 1 → FDD 2, mainboard → actuator module 1, actuator 1 →
+    LED board (proposed);
+  - one 10-wire panel ribbon with 2x5 sockets (WIRING.md plans 1–2 m, so a
+    stock length is too short for a remote panel);
+  - four 40-wire drive ribbons, one per IDE header of the two FDD modules:
+    a 40-pin socket at the module, the last 150 mm (assumed) split into two
+    20-wire halves, each on contacts 10–29 of a 34-pin FDD socket; the
+    halves are folded flat on 45° creases into a T, one arm to each side,
+    both the same length;
+  - four 4-wire LSM leads, 440 mm (measured, about ±40 mm), with a JST-XH
+    housing at the DRV8833 slot; lead colours are assumed.
+  The panel and one actuator module are assumed; edit `CABLES` for other
+  counts.
 - `live_server.py` / `send.py` — optional live view (see below).
 
 ## Dimensions
@@ -84,6 +112,12 @@ No drive was measured. Check hole positions and bezel features with calipers
 before ordering or printing parts.
 
 ## Run headless
+
+Export the boards first (again after KiCad changes):
+
+```bash
+python3 hardware/layout/export_pcbs.py
+```
 
 ```bash
 /Applications/Blender.app/Contents/MacOS/Blender -b --python hardware/layout/layout.py -- <out_dir>
