@@ -29,6 +29,9 @@ TABLE = (550, 550, 50)         # IKEA table, X, Y, Z
 BOARD = (400, 73, 28)          # X, Y, Z
 ROLL_D, ROLL_H = 70, 50        # [ASSUMED] diameter; height from layout
 FDD_COUNT = 4
+ATX = (85, 149, 140)           # ATX PSU case standing upright, X, Y, Z (plain box)
+SHELF = (455, 285, 15)         # black shelf on the two ATX cases, X, Y, Z
+BLACK = (0.03, 0.03, 0.03, 1)
 
 
 def _mat(name, color):
@@ -64,20 +67,42 @@ def clear_scene():
 def build_scene(clear=True):
     if clear:
         clear_scene()
-    _box("table", TABLE, (0, 0, -TABLE[2]), (0.8, 0.7, 0.5, 1))
+    _box("table", TABLE, (0, 0, -TABLE[2]), BLACK)
+    # shelf bridge in the left-rear corner: left ATX flush with the table's
+    # left and rear edges, shelf front and left edges flush with it (the shelf
+    # overhangs the table's rear edge), right ATX mirrored under its right end
+    ay = TABLE[1] - ATX[1]
+    sy = ay
+    _box("atx1", ATX, (0, ay, 0), BLACK)
+    _box("atx2", ATX, (SHELF[0] - ATX[0], ay, 0), BLACK)
+    _box("shelf", SHELF, (0, sy, ATX[2]), BLACK)
     for i in range(FDD_COUNT):  # row 1: on the table from the origin
         build_fdd(f"fdd_a{i + 1}", (i * FDD_W, 0, 0))
     row_w = FDD_COUNT * FDD_W
-    by = FDD_D                              # board directly behind row 1
     bx = (row_w - BOARD[0]) / 2
-    for k, rx in enumerate((bx + ROLL_D / 2 + 10, bx + BOARD[0] - ROLL_D / 2 - 10)):
-        _cyl(f"roll{k + 1}", ROLL_D, ROLL_H, (rx, by + BOARD[1] / 2), 0, (0.85, 0.8, 0.3, 1))
-    _box("board", BOARD, (bx, by, ROLL_H), (0.6, 0.4, 0.2, 1))
-    z2 = ROLL_H + BOARD[2]
-    y2 = by + BOARD[1] - FDD_D              # rear-aligned with the board's back edge
+    # row 2: board on single rolls directly behind row 1
+    by2 = FDD_D
+    z2 = _riser("", bx, by2, 1)
+    y2 = by2 + (BOARD[1] - FDD_D) / 2       # centred on the board in depth
     for i in range(FDD_COUNT):
         build_fdd(f"fdd_b{i + 1}", (i * FDD_W, y2, z2))
+    # row 3: same board on double rolls, set back from row 2 by the same
+    # depth step as row 2 from row 1; must stay in front of the ATX/shelf
+    y3 = 2 * y2
+    by3 = y3 + (FDD_D - BOARD[1]) / 2
+    z3 = _riser("c", bx, by3, 2)
+    for i in range(FDD_COUNT):
+        build_fdd(f"fdd_c{i + 1}", (i * FDD_W, y3, z3))
 
+
+def _riser(tag, bx, by, stack):
+    """Board BOARD at (bx, by) on two piles of `stack` tape rolls; returns its top z."""
+    for k, rx in enumerate((bx + ROLL_D / 2 + 10, bx + BOARD[0] - ROLL_D / 2 - 10)):
+        for j in range(stack):
+            _cyl(f"roll{tag}{k + 1}" + (f"_{j + 1}" if stack > 1 else ""), ROLL_D, ROLL_H,
+                 (rx, by + BOARD[1] / 2), j * ROLL_H, (0.85, 0.8, 0.3, 1))
+    _box(f"board{tag}", BOARD, (bx, by, stack * ROLL_H), (0.6, 0.4, 0.2, 1))
+    return stack * ROLL_H + BOARD[2]
 
 def setup_render(res=(1400, 1000)):
     sc = bpy.context.scene

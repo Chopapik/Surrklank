@@ -26,8 +26,17 @@ millimetres and converted with `MM = 0.001`.
 - `layout.py` — the stack: IKEA table 550x550x50, row 1 of four drives on the
   table from the origin (left-front corner of the table top), two vertical
   rolls (height 50, assumed diameter 70) carrying a 73x400x28 board (top at
-  z = 78), row 2 of four drives on the board, rear-aligned to its back edge.
-  The LED rims of row 1 stick out 0.35 mm past the table front edge.
+  z = 78), row 2 of four drives on the board, centred on it in depth.
+  Two ATX PSU cases (140x85x149, standing upright: 85 wide, 149 deep, 140
+  high; plain black boxes) stand in the left-rear corner and at the mirrored
+  position under the right end of a black 455x285x15 shelf that rests on
+  them with its front and left edges flush with the left one (top at
+  z = 155); the shelf overhangs the table's rear edge by 136 mm. Row 3 of
+  four drives stands on an identical board on double rolls (two stacked,
+  board top at z = 128), centred on it, set back from row 2 by the same
+  109.5 mm as row 2 from row 1 (drives at y = 219..365; the rolls just clear
+  row 2's rear at y = 255.5; 36 mm left to the ATX fronts).
+  The table is black. The LED rims of row 1 stick out 0.35 mm past the table front edge.
 - `live_server.py` / `send.py` — optional live view (see below).
 
 ## Dimensions
