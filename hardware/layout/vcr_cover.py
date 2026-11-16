@@ -4,7 +4,8 @@
 
 An inverted U: a flat top plate with two side walls on the short sides; front
 and back are open, and only the rear long edge has a folded lip. origin is the min corner (left-front-bottom) in millimetres;
-X = long side, Y = wall length, Z = height. Steppers are not modelled yet.
+X = long side, Y = wall length, Z = height. With steppers=True the four corner linear steppers
+(linear_stepper.py) are added on top.
 Tags:
   [MEAS]     measured by the user with a tape measure
   [PHOTO]    read from photos, roughly +-3 mm
@@ -14,6 +15,10 @@ import bpy
 import bmesh
 
 from fdd_model import MM, _box, _cyl, _boolean, _v
+import importlib
+import linear_stepper
+importlib.reload(linear_stepper)
+from linear_stepper import build_linear_stepper
 
 LENGTH = 398.0     # [MEAS] long side of the top plate
 TOP_W = 284.0      # [MEAS] short side of the top plate
@@ -27,6 +32,10 @@ TAB_HOLE_D, TAB_HOLE_Z = 4.0, 15.0    # [ASSUMED] hole d, depth below the top
 WALL_HOLE_D, WALL_HOLE_Z = 4.0, 12.0  # [PHOTO] screw holes near the foot
 WALL_HOLE_Y = (25.0, WALL_L - 25.0)   # [PHOTO]
 COLOR = (0.06, 0.06, 0.065, 1)
+# four linear steppers, one per corner: brackets start at the short edges and
+# run inward along X, cans overhang the edges outward
+STEPPER_IN_FROM_FRONT = 20.0   # [PHOTO] screw axis from the front long edge
+STEPPER_IN_FROM_REAR = 25.0    # [MEAS] screw axis from the rear long edge
 
 _Y0 = (WALL_L - TOP_W) / 2            # top plate is centred on the walls
 _LIP_Y = _Y0 + TOP_W - T              # the front edge (Y = _Y0) has no lip
@@ -55,7 +64,7 @@ def _parts():
     return parts
 
 
-def build_vcr_cover(name, origin=(0.0, 0.0, 0.0), collection=None):
+def build_vcr_cover(name, origin=(0.0, 0.0, 0.0), collection=None, steppers=True):
     """Create the cover as an Empty with one child per sheet piece."""
     coll = collection or bpy.context.scene.collection
     root = bpy.data.objects.new(name, None)
@@ -83,4 +92,9 @@ def build_vcr_cover(name, origin=(0.0, 0.0, 0.0), collection=None):
         obj = bpy.data.objects.new(f"{name}.{part}", me)
         coll.objects.link(obj)
         obj.parent = root
+    if steppers:
+        for side, x, facing in (("l", 0.0, 1), ("r", LENGTH, -1)):
+            for end, y in (("f", _Y0 + STEPPER_IN_FROM_FRONT), ("r", _Y0 + TOP_W - STEPPER_IN_FROM_REAR)):
+                build_linear_stepper(f"{name}.stepper_{side}{end}", (x, y, HEIGHT), facing,
+                                     parent=root, collection=coll)
     return root

@@ -28,8 +28,14 @@ millimetres and converted with `MM = 0.001`.
   plate, two 290x90 side walls on the short sides, 0.5 mm sheet (all
   measured); front and back open. A lip along the rear long edge (none at
   the front) with three deeper screw tabs and screw holes near the wall feet are read from
-  photos (`[PHOTO]`). Steppers are not modelled yet. In the layout it stands
-  centred on the shelf.
+  photos (`[PHOTO]`). Four linear steppers sit at its corners. In the layout it
+  stands centred on the shelf.
+- `linear_stepper.py` — `build_linear_stepper(name, origin, facing)`: a 15 mm
+  can-stack linear stepper (CHIHAI SM15xx class, M3 x 0.5 brass lead screw)
+  on a bent steel bracket, 61 mm from motor face to end flange, screwed flat
+  to the cover with two screws; no carriage. On the cover each bracket starts
+  at a short edge and runs inward, the can overhangs the edge; screw axes
+  25 mm from the rear edge (measured) and 20 mm from the front (photo).
 - `layout.py` — the stack: IKEA table 550x550x50, row 1 of four drives on the
   table from the origin (left-front corner of the table top), two vertical
   rolls (height 50, assumed diameter 70) carrying a 73x400x28 board (top at
