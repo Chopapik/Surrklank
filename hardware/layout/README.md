@@ -23,6 +23,13 @@ millimetres and converted with `MM = 0.001`.
     4-pin mini power connector at the rear.
   - Meshes, including the boolean cut-outs, are built once per module load
     and shared by all drives, so eight drives build quickly.
+- `vcr_cover.py` — `build_vcr_cover(name, origin)`: the Samsung VCR top cover
+  used as a resonance box for stepper motors. An inverted U, 398x284 top
+  plate, two 290x90 side walls on the short sides, 0.5 mm sheet (all
+  measured); front and back open. A lip along the rear long edge (none at
+  the front) with three deeper screw tabs and screw holes near the wall feet are read from
+  photos (`[PHOTO]`). Steppers are not modelled yet. In the layout it stands
+  centred on the shelf.
 - `layout.py` — the stack: IKEA table 550x550x50, row 1 of four drives on the
   table from the origin (left-front corner of the table top), two vertical
   rolls (height 50, assumed diameter 70) carrying a 73x400x28 board (top at

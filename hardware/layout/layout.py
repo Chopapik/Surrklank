@@ -24,6 +24,9 @@ import importlib
 import fdd_model
 importlib.reload(fdd_model)  # pick up edits in a long-running GUI session
 from fdd_model import MM, DEPTH as FDD_D, WIDTH as FDD_W, build_fdd
+import vcr_cover
+importlib.reload(vcr_cover)
+from vcr_cover import build_vcr_cover
 
 TABLE = (550, 550, 50)         # IKEA table, X, Y, Z
 BOARD = (400, 73, 28)          # X, Y, Z
@@ -104,6 +107,10 @@ def build_scene(clear=True):
     _box("atx1", ATX, (0, ay, 0), BLACK)
     _box("atx2", ATX, (SHELF[0] - ATX[0], ay, 0), BLACK)
     _box("shelf", SHELF, (0, sy, ATX[2]), BLACK)
+    # VCR cover resonance box centred on the shelf (its walls are 5 mm longer
+    # than the shelf is deep, so they overhang 2.5 mm front and back)
+    build_vcr_cover("vcr_cover", ((SHELF[0] - vcr_cover.LENGTH) / 2,
+                                  sy + (SHELF[1] - vcr_cover.WALL_L) / 2, ATX[2] + SHELF[2]))
     row_w = FDD_COUNT * FDD_W
     cheeks = SUPPORT == "cheeks"
     x0 = CHEEK_T if cheeks else 0           # rows sit between the cheeks
