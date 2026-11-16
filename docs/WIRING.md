@@ -27,7 +27,7 @@ The display terminology does not add LSM playback support.
 
 ```text
 mainboard ──16-pin ribbon── FDD module 1 ──ribbon── FDD module 2 ── … FDD module N
-          └─16-pin ribbon── actuator module 1 ──ribbon── … actuator module N
+          └─16-pin ribbon── actuator module 1 ──ribbon── … actuator module N ── LED board
 ```
 
 - Two branches leave the mainboard on separate long, flexible ribbons
@@ -36,6 +36,8 @@ mainboard ──16-pin ribbon── FDD module 1 ──ribbon── FDD module 2
   daisy-chained. Module 1 is closest to the mainboard.
 - An FDD module serves four drives; two FDD modules serve the current eight.
 - An actuator module carries up to four DRV8833 driver modules.
+- A proposed perfboard LED board ends the actuator branch (see
+  [Running-LED board](#running-led-board-proposed)).
 - ESP32, modules, drivers and drives share GND.
 
 ## Mainboard
@@ -459,6 +461,62 @@ compatible.
   (marked 10 µF tantalum, 0.01 µF and 2.2 µF), so they are not repeated on the
   carrier board.
 
+### Running-LED board (proposed)
+
+Actuator module v0.1 has no indicator per motor. A hand-built perfboard at the
+**end of the actuator branch** shows which bridges are driving. Not built yet.
+
+```text
+mainboard ── actuator module 1 ── … ── actuator module N ──ribbon── LED board
+                                       OUT (J2)                     IN
+```
+
+- One or two 74HC595 (DIP-16): 8 or 16 LEDs, one LED per bridge. A second 595
+  takes its SER from the first one's QH′; CLK, LATCH and /OE are shared.
+- Ribbon IN only: pin 1 DATA → SER (pin 14), pin 3 CLK → SRCLK (pin 11),
+  pin 5 LATCH → RCLK (pin 12), pin 7 /OE → /OE (pin 13), even pins GND.
+  Pins 9, 11, 13 and 15 are not connected; the last QH′ is not connected.
+  /MR (pin 10) to 3.3 V.
+- Power: +5 V and GND wires like every module, a THT LDO to 3.3 V
+  (MCP1700-3302E/TO, 1 µF in and out; not a 78L33, whose dropout is too high),
+  100 nF at each 595. Each LED through 330 Ω from a 595 output to GND
+  (red, yellow or green; about 4 mA).
+- The board has no input buffer, so it must stay last in the branch: a
+  mid-chain position would pass CLK, LATCH and /OE unbuffered to the next
+  module, and a 74HC595 without Ioff would be back-powered while unpowered.
+  It is powered together with the modules. /OE (pull-up on the mainboard)
+  keeps the LEDs off while the ESP32 boots.
+
+Bit assignment with two modules and two 595s (A = OUT1/OUT2, B = OUT3/OUT4):
+
+| LED 595 | QA | QB | QC | QD | QE | QF | QG | QH |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1st (SER from module N) | 1 M1A | 1 M1B | 1 M2A | 1 M2B | 1 M3A | 1 M3B | 1 M4A | 1 M4B |
+| 2nd | 2 M1A | 2 M1B | 2 M2A | 2 M2B | 2 M3A | 2 M3B | 2 M4A | 2 M4B |
+
+The prefix is the actuator module number. With one 595, map the eight LEDs to
+the bridges in use.
+
+Firmware rules:
+
+- The actuator branch frame is `N × 24 + 8 × LED registers` bits. The LED
+  registers are the last stages in the chain, so their bits are shifted
+  first in each frame.
+- A bridge drives its coil only at IN1/IN2 (or IN3/IN4) = 10 or 01; 00 is coast
+  and 11 is brake. The LED of a bridge is `IN1 XOR IN2` (bridge A) or
+  `IN3 XOR IN4` (bridge B) of the same frame, so the rule needs no LSM, HDD or
+  electromagnet configuration. An LSM lights both LEDs of its slot.
+- Hold an LED for about 50 ms after the last driving frame so short pulses
+  stay visible.
+- Describe the chain as an ordered list of stages (for example
+  `[actuator, actuator, led8, led8]`), not as a module count.
+- The LEDs show the commanded state, not measured coil current; a broken coil
+  or cable still lights its LED. ULT (nFAULT) reports driver faults.
+
+A later actuator module revision is planned with a fourth 595 (U7) after U4
+(U4 QH′ → U7 SER → OUT DATA) carrying eight on-board bridge LEDs; the U2–U4 bit
+order above stays unchanged.
+
 ## Power
 
 The ATX supply is used only through its 24-pin connector; the user distributes
@@ -471,6 +529,7 @@ nodes. +3.3 V (orange) is not used.
 | Mainboard | KF301 screw terminal, 4 poles (see [Power input](#power-input)) |
 | FDD module | One KF301, 2 poles (+5 V, GND); an on-board 3.3 V LDO makes the logic supply |
 | actuator module | One KF301, 4 poles (2 × +5 V, 2 × GND) for motor +5 V; the same LDO makes the logic supply |
+| LED board (proposed, perfboard) | +5 V and GND wires; THT MCP1700-3302E/TO makes 3.3 V |
 
 - Each module takes power from exactly one local source. Logic current is
   estimated at about 10 mA per module, mainly pull-ups. The LDO is an
