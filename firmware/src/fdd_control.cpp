@@ -28,8 +28,11 @@ std::atomic<Listener> listener{nullptr};
 constexpr gpio_num_t data = GPIO_NUM_23, clock595 = GPIO_NUM_18, latch = GPIO_NUM_22, oe = GPIO_NUM_21,
                      dvd_data = GPIO_NUM_17, dvd_latch = GPIO_NUM_16;
 constexpr gpio_num_t load = GPIO_NUM_33, clock165 = GPIO_NUM_32, input = GPIO_NUM_34;
+// Zero clocks for the actuator branch: more than four actuator modules plus a
+// 16-LED board. Extra zeros only pass out of the chain end.
+constexpr int actuator_clear_bits = 128;
 bool powered = false;
-uint32_t previous = 0;
+uint64_t previous = 0;
 // Temporary bench instrumentation. Captures software latch timestamps only;
 // printing happens in the report task after a drive reaches a terminal state.
 struct CadenceProbe {
@@ -39,11 +42,11 @@ struct CadenceProbe {
     bool plateau = false, toward_zero = false, reported = false;
 };
 CadenceProbe probes[8];
-void probe_edges(uint32_t before, uint32_t after, int64_t edge) {
+void probe_edges(uint64_t before, uint64_t after, int64_t edge) {
     for (int i = 0; i < 8; ++i) {
         const auto &drive = engine.drives[i];
         const auto &s = drive.state;
-        const uint32_t bit = 1UL << ((i / 2) * 8 + (i % 2 ? 1 : 4));
+        const uint64_t bit = fdd::output_mask(i, fdd::Line::step);
         auto &p = probes[i];
         if ((before & bit) && !(after & bit) && s.phase == fdd::Phase::playing) {
             if (p.batch != s.batch) {
@@ -73,34 +76,44 @@ void probe_edges(uint32_t before, uint32_t after, int64_t edge) {
         }
     }
 }
-void setup() {
+// Idle bus while ATX is off (docs/WIRING.md): DATA, CLK, LATCH and CLK165 LOW,
+// /OE and /PL HIGH, so nothing back-powers or enables an unpowered module.
+void idle_bus() {
+    gpio_set_level(oe, 1);
+    gpio_set_level(load, 1);
+    for (auto pin : {data, clock595, latch, clock165, dvd_data, dvd_latch})
+        gpio_set_level(pin, 0);
+}
+void configure_bus() {
+    idle_bus();
     gpio_config_t config = {};
     config.pin_bit_mask = (1ULL << data) | (1ULL << clock595) | (1ULL << latch) | (1ULL << oe) | (1ULL << load) |
                           (1ULL << clock165) | (1ULL << dvd_data) | (1ULL << dvd_latch);
-    gpio_set_level(oe, 1);
-    gpio_set_level(latch, 0);
-    gpio_set_level(clock595, 0);
-    gpio_set_level(clock165, 0);
-    gpio_set_level(load, 1);
-    gpio_set_level(dvd_data, 0);
-    gpio_set_level(dvd_latch, 0);
     config.mode = GPIO_MODE_OUTPUT;
     ESP_ERROR_CHECK(gpio_config(&config));
-    for (int i = 0; i < 24; ++i) {
+    config.pin_bit_mask = 1ULL << input;
+    config.mode = GPIO_MODE_INPUT;
+    ESP_ERROR_CHECK(gpio_config(&config));
+}
+// LSM/HDD playback is not implemented: all-zero IN and EEP keep every DRV8833
+// asleep and coasting, and LED board outputs dark.
+void clear_actuators() {
+    gpio_set_level(dvd_data, 0);
+    for (int i = 0; i < actuator_clear_bits; ++i) {
         gpio_set_level(clock595, 1);
         esp_rom_delay_us(1);
         gpio_set_level(clock595, 0);
         esp_rom_delay_us(1);
     }
     gpio_set_level(dvd_latch, 1);
+    esp_rom_delay_us(1);
     gpio_set_level(dvd_latch, 0);
-    config.pin_bit_mask = 1ULL << input;
-    config.mode = GPIO_MODE_INPUT;
-    ESP_ERROR_CHECK(gpio_config(&config));
 }
-int64_t write(uint32_t image) {
+// Shares CLK with the actuator branch; its DATA stays LOW and its LATCH is not
+// pulsed, so actuator outputs keep the cleared frame.
+int64_t write(uint64_t image) {
     gpio_set_level(latch, 0);
-    for (int bit = 31; bit >= 0; --bit) {
+    for (int bit = fdd::frame_bits - 1; bit >= 0; --bit) {
         gpio_set_level(data, (image >> bit) & 1);
         esp_rom_delay_us(1);
         gpio_set_level(clock595, 1);
@@ -113,26 +126,24 @@ int64_t write(uint32_t image) {
     gpio_set_level(latch, 0);
     return edge;
 }
-uint8_t read() {
+// Module 1's 165 is read first, D7 to D0, then module 2. Active LOW inputs
+// become set bits.
+uint16_t read() {
     gpio_set_level(load, 0);
     esp_rom_delay_us(1);
     gpio_set_level(load, 1);
     esp_rom_delay_us(1);
-    uint8_t bits = 0;
-    for (int bit = 7; bit >= 0; --bit) {
-        if (!gpio_get_level(input))
-            bits |= 1 << bit;
-        gpio_set_level(clock165, 1);
-        esp_rom_delay_us(1);
-        gpio_set_level(clock165, 0);
-        esp_rom_delay_us(1);
-    }
+    uint16_t bits = 0;
+    for (int module = 0; module < fdd::modules; ++module)
+        for (int bit = 7; bit >= 0; --bit) {
+            if (!gpio_get_level(input))
+                bits |= 1u << (module * 8 + bit);
+            gpio_set_level(clock165, 1);
+            esp_rom_delay_us(1);
+            gpio_set_level(clock165, 0);
+            esp_rom_delay_us(1);
+        }
     return bits;
-}
-void release_pins() {
-    gpio_set_level(oe, 1);
-    for (auto pin : {data, clock595, latch, load, clock165, dvd_data, dvd_latch})
-        gpio_set_direction(pin, GPIO_MODE_INPUT);
 }
 bool timer_alarm(gptimer_handle_t, const gptimer_alarm_event_data_t *, void *context) {
     BaseType_t wake = pdFALSE;
@@ -168,22 +179,22 @@ void worker(void *) {
         int64_t now = esp_timer_get_time();
         bool on = atx::is_on();
         if (on && !powered) {
-            setup();
+            clear_actuators();
             previous = engine.outputs();
             write(previous);
             gpio_set_level(oe, 0);
             powered = true;
         }
         if (!on && powered) {
-            release_pins();
+            idle_bus();
             powered = false;
             engine.power_lost();
         }
         if (powered) {
-            const uint8_t sensors = read();
+            const uint8_t track0 = fdd::track0_inputs(read());
             now = esp_timer_get_time();
-            engine.tick(now, sensors);
-            uint32_t image = engine.outputs();
+            engine.tick(now, track0);
+            uint64_t image = engine.outputs();
             if (image != previous) {
                 const int64_t edge = write(image);
                 probe_edges(previous, image, edge);
@@ -196,7 +207,7 @@ void worker(void *) {
                 if (pulsing) {
                     esp_rom_delay_us(fdd::step_low_us);
                     engine.finish_pulses();
-                    const uint32_t low = previous;
+                    const uint64_t low = previous;
                     previous = engine.outputs();
                     const int64_t high = write(previous);
                     probe_edges(low, previous, high);
@@ -262,6 +273,7 @@ void report_worker(void *) {
 } // namespace
 esp_err_t laboratory::init() {
     boot_id = esp_random();
+    configure_bus();
     mutex = xSemaphoreCreateMutex();
     if (!mutex)
         return ESP_ERR_NO_MEM;

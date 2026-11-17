@@ -109,10 +109,15 @@ checks this firmware lock. Stop and finish parking before maintenance.
 `fdd_engine.cpp` owns platform-independent drive state and pulse scheduling;
 `fdd_control.cpp` owns the ESP-IDF task, GPIO and 595/165 transfer. One scheduler
 maintains a full 32-bit FDD output image, preserving the other drives when one
-changes. The implemented mapping is the hand-wired one in `docs/WIRING.md` on
-`main` (commit `30f4cbc`); [WIRING.md](WIRING.md) on this branch describes the
-planned PCB modules, which firmware does not support yet. DIR HIGH means toward
-TRACK0 in this software profile; /SELECT LOW selects the drive. SELECT is
+changes. The implemented mapping is the PCB module wiring in
+[WIRING.md](WIRING.md): two chained FDD modules form a 48-bit 595 frame (six
+outputs per drive, bit 0 = module 1 U2 QA, shifted last) and a 16-bit 165 read
+(module 1 first, TRACK0 on even inputs, WRITE PROTECT on odd inputs, unused).
+`fdd_engine.h` holds this bit map and the per-drive select line
+(`select_lines`, DS1 by default); MOTOR and unused select lines stay HIGH. The
+hand-wired assembly on `main` is no longer supported by this firmware. DIR HIGH
+means toward TRACK0 in this software profile; the selected DSx LOW selects the
+drive. SELECT is
 asserted before preparation, kept through playing/manual parking and released at a
 terminal state. Each DIR change precedes the next STEP by at least 5 ms.
 
@@ -191,10 +196,13 @@ offline tests do not establish acoustic improvement or timing under radio load.
 FFF2 telemetry and one-shot commands are
 described in [BLE-PROTOCOL.md](BLE-PROTOCOL.md).
 
-The adapter initializes register outputs only while ATX output is requested
-ON. It shifts an inactive FDD image and zeroes the LSM/HDD branch before
-enabling the shared /OE. LSM/HDD playback is not implemented. On ATX OFF it
-disables /OE, releases driven bus pins and invalidates positions. While a
+At startup the adapter drives the idle bus: /OE and /PL HIGH; DATA, CLK, LATCH
+and CLK165 of both branches LOW. When ATX output is requested ON it clocks 128
+zeros into the actuator branch (more than four modules plus a 16-LED board),
+latches them, shifts an inactive FDD image and then enables the shared /OE.
+LSM/HDD playback is not implemented, so every DRV8833 stays asleep (EEP LOW)
+and coasting. FDD frames share CLK with the actuator branch but never pulse its
+latch. On ATX OFF it returns to the idle bus and invalidates positions. While a
 drive is active, firmware rejects ATX OFF/maintenance and ignores the GPIO13
 button. ATX output is not a supply measurement; external power loss cannot
 be detected directly by this design.

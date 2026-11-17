@@ -7,11 +7,17 @@ bool claim_instruments() { return true; }
 void release_instruments() {}
 }
 
+uint64_t step_mask() {
+    uint64_t mask = 0;
+    for (int i = 0; i < fdd::count; ++i)
+        mask |= fdd::output_mask(i, fdd::Line::step);
+    return mask;
+}
 unsigned callbacks = 0;
 void slow_ble(int, fdd::State) {
     // A slow notification must run outside motion and never hold STEP LOW.
     assert(!locked);
-    assert((latched & 0x12121212) == 0x12121212);
+    assert((latched & step_mask()) == step_mask());
     ++callbacks;
     fake_now += 750;
 }
@@ -23,10 +29,17 @@ int main() {
     assert(laboratory::init() == ESP_OK);
     assert(task_cores.at("fdd") == 1);
     laboratory::set_listener(slow_ble);
-    setup();
-    input_image = 0xa5;
-    assert(read() == 0x5a); // H is sampled before the first rising clock edge.
-    input_image = 255;
+    // Init drives the idle bus: /OE and /PL HIGH, everything else LOW.
+    assert(levels[21] == 1 && levels[33] == 1);
+    for (int pin : {23, 18, 22, 32, 17, 16})
+        assert(levels[pin] == 0);
+    clear_actuators();
+    assert(actuator_latched == 0 && actuator_shifted == 0);
+    // H is sampled before the first rising clock edge; module 1 comes first.
+    module_inputs[0] = 0xa5;
+    module_inputs[1] = 0xfe;
+    assert(read() == 0x015a);
+    module_inputs[0] = module_inputs[1] = 255;
     previous = engine.outputs();
     write(previous);
     powered = true;
@@ -42,12 +55,13 @@ int main() {
     one_iteration(tasks.at("fdd"));
     assert(callbacks == 0); // BLE cannot delay completion of this step.
     assert(!drive.step_low);
-    assert(latched & (1UL << 4));
+    assert(latched & fdd::output_mask(0, fdd::Line::step));
+    assert(actuator_latched == 0);
 
     // Two complete 595 frames: one falling and one rising STEP edge.
     unsigned clocks = 0, latches = 0;
     int64_t falling = 0, rising = 0, clock_high = -1, data_at = -1, load_low = -1;
-    uint32_t image = 0;
+    uint64_t image = 0;
     for (const auto &event : gpio_events) {
         if(event.pin == 23) data_at = event.at;
         if(event.pin == 18 && event.level) {
@@ -64,12 +78,12 @@ int main() {
         if(event.pin == 23) image = (image << 1) | event.level;
         if(event.pin == 22 && event.level) {
             ++latches;
-            if(!(image & (1UL << 4))) falling = event.at;
+            if(!(image & fdd::output_mask(0, fdd::Line::step))) falling = event.at;
             else rising = event.at;
         }
     }
-    assert(clocks == 64 && latches == 2);
-    assert(falling > 0 && rising - falling >= 30 + 64);
+    assert(clocks == 2 * fdd::frame_bits && latches == 2);
+    assert(falling > 0 && rising - falling >= 30 + 2 * fdd::frame_bits);
     const auto next_step = drive.due;
     // No GPIO may change while the simulated BLE callback stalls.
     const auto edges = gpio_events.size();
@@ -94,7 +108,7 @@ int main() {
         write(previous);
         // All eight STEP bits fall together and must rise before any report.
         one_iteration(tasks.at("fdd"));
-        assert((latched & 0x12121212) == 0x12121212);
+        assert((latched & step_mask()) == step_mask());
         for (const auto &d : engine.drives) {
             assert(d.state.steps == 1 && !d.step_low);
             assert(d.due > fake_now);

@@ -2,10 +2,10 @@
 
 This branch (`pcb-modules`) describes the **planned PCB wiring**: a mainboard
 and chained FDD and actuator modules. Nothing here is built or tested yet.
-Firmware on this branch still implements the hand-wired mapping recorded in
-`docs/WIRING.md` on `main` (commit `30f4cbc`): four 595s for FDD1–8 with three
-outputs per drive, one 165 for TRACK0 and no LSM or HDD playback. Firmware moves
-to this wiring after the modules are assembled. Board-level design (footprints,
+Firmware on this branch implements this wiring for two FDD modules (FDD1–8) and
+keeps the actuator branch cleared; it no longer matches the hand-wired assembly
+recorded in `docs/WIRING.md` on `main` (commit `30f4cbc`). See
+[FIRMWARE.md](FIRMWARE.md#fdd-laboratory). Board-level design (footprints,
 salvaged connectors, manufacturing) is in [hardware/README.md](../hardware/README.md).
 
 Keep the assembly isolated from the ESP32 during firmware maintenance (see
@@ -104,7 +104,8 @@ mainboard: the modules take +5 V from their own terminals and make their own 3.3
   takes +5VSB through JP1 only.
 - **PWR_OK** (grey ATX wire, nominally 5 V logic) reaches GPIO36 through a
   10 kΩ / 20 kΩ divider (about 3.3 V from 5 V). It reports main rails up,
-  unlike the GPIO19 request; firmware does not read it yet.
+  unlike the GPIO19 request; firmware does not read it yet. Firmware does not
+read actuator Q165 (GPIO35) yet either.
 
 ### ATX power switch and button
 
@@ -323,8 +324,10 @@ this project uses FDD pin numbers.
 | TRACK0 | 26 | drive → 165 | Open collector from the drive |
 | WRITE PROTECT | 28 | drive → 165 | Open collector from the drive |
 
-Odd FDD pins are GND. Firmware will choose the select line per drive, so PC and
-Amiga drives share the same cable without rewiring.
+Odd FDD pins are GND. Firmware chooses the select line per drive
+(`fdd::select_lines`, a build-time table; every drive uses DS1 by default), so
+PC and Amiga drives share the same cable without rewiring. Firmware keeps MOTOR
+and the other select lines HIGH and reads WRITE PROTECT without using it.
 
 WRITE DATA and WRITE GATE are not connected to registers: a software-shifted
 595 chain cannot produce floppy write timing, and a controllable WRITE GATE

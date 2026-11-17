@@ -89,18 +89,27 @@ struct gpio_config_t { uint64_t pin_bit_mask; int mode; };
 struct GpioEvent { int pin, level; int64_t at; };
 inline std::vector<GpioEvent> gpio_events;
 inline int levels[40]={};
-inline uint32_t shifted=0, latched=0;
-inline uint8_t input_image=255;
-inline int input_bit=7;
+inline uint64_t shifted=0, latched=0, actuator_shifted=~0ULL, actuator_latched=~0ULL;
+// Two chained 165s: module 1 QH is read first, then module 2; past the end the
+// OUT pull-up reads HIGH.
+inline uint8_t module_inputs[2]={255,255};
+inline int input_index=0;
 inline int gpio_set_level(int pin, int value) {
     gpio_events.push_back({pin,value,fake_now});
-    if(pin==18 && value && !levels[pin]) shifted=(shifted<<1)|levels[23];
+    if(pin==18 && value && !levels[pin]) {
+        shifted=(shifted<<1)|levels[23];
+        actuator_shifted=(actuator_shifted<<1)|levels[17];
+    }
     if(pin==22 && value && !levels[pin]) latched=shifted;
-    if(pin==33 && value) input_bit=7;
-    if(pin==32 && value && !levels[pin] && input_bit>0) --input_bit;
+    if(pin==16 && value && !levels[pin]) actuator_latched=actuator_shifted;
+    if(pin==33 && !value) input_index=0;
+    if(pin==32 && value && !levels[pin]) ++input_index;
     levels[pin]=value; return 0;
 }
-inline int gpio_get_level(int) { return (input_image >> input_bit)&1; }
+inline int gpio_get_level(int) {
+    const int module=input_index/8;
+    return module>=2 ? 1 : (module_inputs[module] >> (7-input_index%8))&1;
+}
 inline int gpio_config(const gpio_config_t*) { return 0; }
 inline int gpio_set_direction(int,int) { return 0; }
 """,

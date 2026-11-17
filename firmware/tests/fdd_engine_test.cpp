@@ -20,9 +20,9 @@ struct Simulation {
         engine.tick(now, sensors);
         auto after = engine.outputs();
         for (int i = 0; i < 8; ++i) {
-            int bit = (i / 2) * 8 + (i % 2 ? 1 : 4);
-            if (!(before & (1UL << bit)) && (after & (1UL << bit))) {
-                bool back = after & (1UL << (bit + 1));
+            const uint64_t step = fdd::output_mask(i, fdd::Line::step);
+            if (!(before & step) && (after & step)) {
+                bool back = after & fdd::output_mask(i, fdd::Line::dir);
                 auto &state = engine.drives[i].state;
                 if (state.phase == fdd::Phase::playing) {
                     ++played[i];
@@ -218,14 +218,39 @@ int main() {
         assert(history.after(history.latest) == nullptr);
     }
 
-    // SELECT is active LOW at the documented QG/QD outputs, independently of STEP/DIR.
+    // Bit positions follow the FDD module tables in docs/WIRING.md.
+    {
+        assert(fdd::frame_bits == 48 && fdd::sensor_bits == 16);
+        assert(fdd::output_bit(0, fdd::Line::ds0) == 0);   // module 1 U2 QA: D1 DS0
+        assert(fdd::output_bit(1, fdd::Line::ds0) == 6);   // module 1 U2 QG: D2 DS0
+        assert(fdd::output_bit(2, fdd::Line::motor) == 15); // module 1 U3 QH: D3 MOTOR
+        assert(fdd::output_bit(3, fdd::Line::step) == 23); // module 1 U4 QH: D4 STEP
+        assert(fdd::output_bit(4, fdd::Line::ds0) == 24);  // module 2 U2 QA: D1 DS0
+        assert(fdd::output_bit(7, fdd::Line::step) == 47); // module 2 U4 QH: D4 STEP
+        assert(fdd::track0_bit(0) == 0 && fdd::track0_bit(3) == 6); // module 1 U5 D0, D6
+        assert(fdd::track0_bit(4) == 8 && fdd::track0_bit(7) == 14); // module 2 U5 D0, D6
+        // WRITE PROTECT (odd inputs) never reads as TRACK0.
+        assert(fdd::track0_inputs(0xaaaa) == 0);
+        assert(fdd::track0_inputs(0x0041) == 0x09);
+        assert(fdd::track0_inputs(0x4100) == 0x90);
+    }
+    // Only the configured SELECT is active LOW; MOTOR and other selects stay HIGH.
     {
         Simulation s;
-        constexpr uint32_t select_mask = 0x48484848;
+        uint64_t select_mask = 0, idle_mask = 0;
+        for (int i = 0; i < 8; ++i) {
+            select_mask |= fdd::output_mask(i, fdd::select_lines[i]);
+            for (auto line : {fdd::Line::ds0, fdd::Line::ds1, fdd::Line::ds2, fdd::Line::motor})
+                if (line != fdd::select_lines[i])
+                    idle_mask |= fdd::output_mask(i, line);
+        }
+        assert(select_mask == 0x082082082082ULL); // DS1 of every drive
         assert((s.engine.outputs() & select_mask) == select_mask);
+        assert((s.engine.outputs() >> fdd::frame_bits) == 0);
         s.prepare(1, 255);
         assert(s.ready(255));
         assert((s.engine.outputs() & select_mask) == 0);
+        assert((s.engine.outputs() & idle_mask) == idle_mask);
         assert(s.engine.commit(1, s.now));
         s.engine.stop_all(s.now);
         s.run(100000);

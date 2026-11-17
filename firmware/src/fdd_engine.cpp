@@ -275,11 +275,10 @@ void fdd::Engine::tick(int64_t now, uint8_t track0) {
         }
     }
 }
-void fdd::Engine::steps_latched(uint32_t before, uint32_t after, int64_t scheduled_at, int64_t latched_at) {
+void fdd::Engine::steps_latched(uint64_t before, uint64_t after, int64_t scheduled_at, int64_t latched_at) {
     const int64_t delay = latched_at - scheduled_at;
     for (int i = 0; i < count; ++i) {
-        const int bit = (i / 2) * 8 + (i % 2 ? 1 : 4);
-        const uint32_t step = 1UL << bit;
+        const uint64_t step = output_mask(i, Line::step);
         if ((before & step) && !(after & step)) {
             drives[i].raised += delay;
         }
@@ -289,19 +288,28 @@ void fdd::Engine::finish_pulses() {
     for (auto &drive : drives)
         drive.step_low = false;
 }
-uint32_t fdd::Engine::outputs() const {
-    uint32_t image = 0;
+uint64_t fdd::Engine::outputs() const {
+    uint64_t image = 0;
     for (int i = 0; i < count; ++i) {
-        int base = (i / 2) * 8 + (i % 2 ? 1 : 4);
         const auto &d = drives[i];
+        // Every select line and MOTOR stay inactive (HIGH) except the configured select.
+        image |= output_mask(i, Line::ds0) | output_mask(i, Line::ds1) | output_mask(i, Line::ds2) |
+                 output_mask(i, Line::motor);
+        if (active(d.state.phase))
+            image &= ~output_mask(i, select_lines[i]);
         if (!d.step_low)
-            image |= 1UL << base;
+            image |= output_mask(i, Line::step);
         if (d.state.toward_zero)
-            image |= 1UL << (base + 1);
-        if (!active(d.state.phase))
-            image |= 1UL << (base + 2);
+            image |= output_mask(i, Line::dir);
     }
     return image;
+}
+uint8_t fdd::track0_inputs(uint16_t sensors) {
+    uint8_t track0 = 0;
+    for (int i = 0; i < count; ++i)
+        if (sensors & (1u << track0_bit(i)))
+            track0 |= 1 << i;
+    return track0;
 }
 const char *fdd::name(Phase p) {
     switch (p) {
