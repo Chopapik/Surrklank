@@ -1,5 +1,6 @@
 #include "fdd_control.h"
 #include "atx_power.h"
+#include "drive_settings.h"
 #include "driver/gpio.h"
 #include "driver/gptimer.h"
 #include "esp_timer.h"
@@ -27,12 +28,23 @@ using Listener = void (*)(int, fdd::State);
 std::atomic<Listener> listener{nullptr};
 constexpr gpio_num_t data = GPIO_NUM_23, clock595 = GPIO_NUM_18, latch = GPIO_NUM_22, oe = GPIO_NUM_21,
                      dvd_data = GPIO_NUM_17, dvd_latch = GPIO_NUM_16;
-constexpr gpio_num_t load = GPIO_NUM_33, clock165 = GPIO_NUM_32, input = GPIO_NUM_34;
+constexpr gpio_num_t load = GPIO_NUM_33, clock165 = GPIO_NUM_32, input = GPIO_NUM_34,
+                     actuator_input = GPIO_NUM_35;
 // Zero clocks for the actuator branch: more than four actuator modules plus a
 // 16-LED board. Extra zeros only pass out of the chain end.
 constexpr int actuator_clear_bits = 128;
+// Actuator modules read for ULT (nFAULT); LSM1-4 and HDD1-4 need six slots.
+constexpr int actuator_modules = 2;
+constexpr int input_modules = fdd::modules > actuator_modules ? fdd::modules : actuator_modules;
+// Bring-up wave: 8 ones then 8 zeros, one CLK every 125 ms. Each 595 QH' LED
+// blinks at 0.5 Hz in the opposite phase of its neighbour.
+constexpr int64_t bus_test_step_us = 125000;
 bool powered = false;
 uint64_t previous = 0;
+std::atomic<bool> bus_test{false};
+std::atomic<int> actuator_fault_mask{-1};
+unsigned bus_test_step = 0;
+int64_t bus_test_due = 0;
 // Temporary bench instrumentation. Captures software latch timestamps only;
 // printing happens in the report task after a drive reaches a terminal state.
 struct CadenceProbe {
@@ -91,7 +103,7 @@ void configure_bus() {
                           (1ULL << clock165) | (1ULL << dvd_data) | (1ULL << dvd_latch);
     config.mode = GPIO_MODE_OUTPUT;
     ESP_ERROR_CHECK(gpio_config(&config));
-    config.pin_bit_mask = 1ULL << input;
+    config.pin_bit_mask = (1ULL << input) | (1ULL << actuator_input);
     config.mode = GPIO_MODE_INPUT;
     ESP_ERROR_CHECK(gpio_config(&config));
 }
@@ -126,24 +138,54 @@ int64_t write(uint64_t image) {
     gpio_set_level(latch, 0);
     return edge;
 }
-// Module 1's 165 is read first, D7 to D0, then module 2. Active LOW inputs
-// become set bits.
-uint16_t read() {
+struct Inputs {
+    uint16_t fdd = 0, actuator = 0;
+};
+// Both branches share /PL and CLK165, so one pass reads both chains. Module 1
+// is read first, D7 to D0, then module 2. Active LOW inputs become set bits.
+Inputs read() {
     gpio_set_level(load, 0);
     esp_rom_delay_us(1);
     gpio_set_level(load, 1);
     esp_rom_delay_us(1);
-    uint16_t bits = 0;
-    for (int module = 0; module < fdd::modules; ++module)
+    Inputs bits;
+    for (int module = 0; module < input_modules; ++module)
         for (int bit = 7; bit >= 0; --bit) {
             if (!gpio_get_level(input))
-                bits |= 1u << (module * 8 + bit);
+                bits.fdd |= 1u << (module * 8 + bit);
+            if (!gpio_get_level(actuator_input))
+                bits.actuator |= 1u << (module * 8 + bit);
             gpio_set_level(clock165, 1);
             esp_rom_delay_us(1);
             gpio_set_level(clock165, 0);
             esp_rom_delay_us(1);
         }
     return bits;
+}
+// ULT of slots M1-M4 sits on D0-D3; D4-D7 are tied to GND and ignored.
+// Result bit k is module k / 4, slot k % 4.
+int actuator_faults(uint16_t inputs) {
+    int faults = 0;
+    for (int module = 0; module < actuator_modules; ++module)
+        faults |= ((inputs >> (module * 8)) & 0x0f) << (module * 4);
+    return faults;
+}
+// Clocks one wave bit into both branches without LATCH: only the shift
+// registers and their QH' outputs change, never the drive or DRV8833 lines.
+void step_bus_test() {
+    const int level = (bus_test_step / 8) % 2 == 0;
+    gpio_set_level(data, level);
+    gpio_set_level(dvd_data, level);
+    esp_rom_delay_us(1);
+    gpio_set_level(clock595, 1);
+    esp_rom_delay_us(1);
+    gpio_set_level(clock595, 0);
+    ++bus_test_step;
+}
+void stop_bus_test() {
+    bus_test = false;
+    gpio_set_level(data, 0);
+    gpio_set_level(dvd_data, 0);
 }
 bool timer_alarm(gptimer_handle_t, const gptimer_alarm_event_data_t *, void *context) {
     BaseType_t wake = pdFALSE;
@@ -177,21 +219,31 @@ void worker(void *) {
         bool report_ready = false;
         xSemaphoreTake(mutex, portMAX_DELAY);
         int64_t now = esp_timer_get_time();
-        bool on = atx::is_on();
-        if (on && !powered) {
+        // The bus is live only with the ATX request ON and PWR_OK HIGH, so the
+        // modules are powered before the safe frame and after every PWR_OK return.
+        const bool live = atx::is_on() && atx::rails_ok();
+        if (live && !powered) {
             clear_actuators();
             previous = engine.outputs();
             write(previous);
             gpio_set_level(oe, 0);
             powered = true;
         }
-        if (!on && powered) {
+        if (!live && powered) {
+            bus_test = false;
             idle_bus();
             powered = false;
-            engine.power_lost();
+            actuator_fault_mask = -1;
+            engine.power_lost(now);
         }
         if (powered) {
-            const uint8_t track0 = fdd::track0_inputs(read());
+            const Inputs inputs = read();
+            const uint8_t track0 = fdd::track0_inputs(inputs.fdd);
+            actuator_fault_mask = actuator_faults(inputs.actuator);
+            if (bus_test && now >= bus_test_due) {
+                step_bus_test();
+                bus_test_due += bus_test_step_us;
+            }
             now = esp_timer_get_time();
             engine.tick(now, track0);
             uint64_t image = engine.outputs();
@@ -273,6 +325,7 @@ void report_worker(void *) {
 } // namespace
 esp_err_t laboratory::init() {
     boot_id = esp_random();
+    drive_settings::load(engine.select);
     configure_bus();
     mutex = xSemaphoreCreateMutex();
     if (!mutex)
@@ -330,7 +383,7 @@ void laboratory::command(const char *text, char *reply, size_t capacity) {
         return;
     }
     if (sscanf(text, "LAB BEGIN %u %u %c", &batch, &mask, &end) == 2 && mask > 0 && mask <= 255) {
-        if (atx::claim_instruments())
+        if (!bus_test && powered && atx::claim_instruments())
             ok = engine.begin(batch, (uint8_t)mask, now);
     } else if (sscanf(text, "LAB SET %u %u %u %u %c", &batch, &device, &rate, &duration, &end) == 4)
         ok = engine.configure(batch, device, rate, duration);
@@ -353,5 +406,47 @@ void laboratory::command(const char *text, char *reply, size_t capacity) {
     if (!engine.busy())
         atx::release_instruments();
     snprintf(reply, capacity, "%s", ok ? "LAB OK" : "ERR LAB BUSY OR INVALID");
+    xSemaphoreGive(mutex);
+}
+bool laboratory::set_bus_test(bool enabled) {
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    // The test needs powered modules and never shares the bus with motion.
+    const bool accepted = !enabled || (powered && !engine.busy());
+    if (accepted && enabled && !bus_test) {
+        bus_test_step = 0;
+        bus_test_due = esp_timer_get_time();
+        bus_test = true;
+    } else if (accepted && !enabled && bus_test)
+        stop_bus_test();
+    xSemaphoreGive(mutex);
+    return accepted;
+}
+bool laboratory::bus_test_active() {
+    return bus_test;
+}
+int laboratory::actuator_faults() {
+    return actuator_fault_mask;
+}
+laboratory::SelectResult laboratory::set_select(int device, fdd::Line line) {
+    if (device < 1 || device > fdd::count || !fdd::is_select(line))
+        return SelectResult::invalid;
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    SelectResult result = SelectResult::busy;
+    if (!engine.busy() && !engine.pending) {
+        fdd::Line lines[fdd::count];
+        for (int i = 0; i < fdd::count; ++i)
+            lines[i] = engine.select[i];
+        lines[device - 1] = line;
+        // No drive moves while idle, so the NVS write may hold the mutex.
+        result = drive_settings::store(lines) == ESP_OK && engine.set_select(device, line)
+            ? SelectResult::ok : SelectResult::storage;
+    }
+    xSemaphoreGive(mutex);
+    return result;
+}
+void laboratory::select_lines(fdd::Line (&lines)[fdd::count]) {
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    for (int i = 0; i < fdd::count; ++i)
+        lines[i] = engine.select[i];
     xSemaphoreGive(mutex);
 }

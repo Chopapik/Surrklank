@@ -65,5 +65,11 @@ export const connectionSnapshotSchema = z.object({
   subscribed: z.boolean().optional().default(false),
   operation: z.string().nullable().optional().default(null),
   device_firmware: deviceFirmwareSchema.nullable().optional().default(null),
+  // Measured main rails, unlike atx_on (the GPIO19 request).
+  pwr_ok: z.boolean().nullable().optional().default(null),
+  // DRV8833 ULT mask, bit k = actuator module k / 4 + 1, slot M(k % 4 + 1); null while the bus is not live.
+  actuator_faults: z.number().nullable().optional().default(null),
+  select_lines: z.array(z.enum(['DS0', 'DS1', 'DS2'])).nullable().optional().default(null),
+  bus_test: z.boolean().nullable().optional().default(null),
 });
 export type ConnectionSnapshot = z.infer<typeof connectionSnapshotSchema>;

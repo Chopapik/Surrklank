@@ -22,12 +22,12 @@ constexpr int ESP_OK=0, ESP_ERR_NO_MEM=1;
             (root / "driver/gpio.h").write_text('''#pragma once
 #include <cstdint>
 using gpio_num_t = int;
-constexpr int GPIO_NUM_19=19, GPIO_NUM_13=13;
-constexpr int GPIO_MODE_OUTPUT=1, GPIO_MODE_INPUT=2, GPIO_PULLUP_ENABLE=1;
+constexpr int GPIO_NUM_19=19, GPIO_NUM_13=13, GPIO_NUM_36=36;
+constexpr int GPIO_MODE_OUTPUT=1, GPIO_MODE_INPUT=2, GPIO_PULLUP_DISABLE=0, GPIO_PULLUP_ENABLE=1;
 struct gpio_config_t { uint64_t pin_bit_mask; int mode; int pull_up_en; };
-inline int outputLevel=-1, buttonLevel=1;
+inline int outputLevel=-1, buttonLevel=1, powerGoodLevel=0;
 inline int gpio_set_level(int pin, int value) { assert(pin==19); outputLevel=value; return 0; }
-inline int gpio_get_level(int pin) { assert(pin==13); return buttonLevel; }
+inline int gpio_get_level(int pin) { assert(pin==13 || pin==36); return pin==36 ? powerGoodLevel : buttonLevel; }
 inline int gpio_config(const gpio_config_t*) { return 0; }
 ''')
             (root / "freertos/FreeRTOS.h").write_text('''#pragma once
@@ -57,14 +57,40 @@ void press_samples(std::vector<int> values) {
     samples=values; nextSample=0;
     try { buttonTask(nullptr); } catch(const EndSamples&) {}
 }
-int reports=0;
+int reports=0, railReports=0;
 atx::State lastReport={};
+atx::Rails lastRails={};
 void receive(atx::State state) { ++reports; lastReport=state; }
+void receiveRails(atx::Rails rails) { ++railReports; lastRails=rails; }
 int main() {
     atx::set_listener(receive);
+    atx::set_rails_listener(receiveRails);
     assert(atx::init()==ESP_OK);
     assert(!atx::is_on() && outputLevel==0);
+    // PWR_OK is a separate measured input: the request alone does not set it.
+    assert(!atx::rails_ok());
     assert(atx::set(true) && atx::is_on() && outputLevel==1);
+    assert(!atx::rails_ok());
+    // PWR_OK needs five stable 10 ms samples; a shorter pulse is ignored.
+    powerGoodLevel=1;
+    press_samples({1,1,1,1});
+    assert(!atx::rails_ok() && railReports==0);
+    powerGoodLevel=0;
+    press_samples({1,1,1,1,1,1});
+    assert(!atx::rails_ok() && railReports==0);
+    powerGoodLevel=1;
+    press_samples({1,1,1,1,1});
+    assert(atx::rails_ok() && railReports==1 && lastRails.ok && lastRails.sequence==1);
+    press_samples({1,1,1,1,1,1,1,1});
+    assert(railReports==1);
+    powerGoodLevel=0;
+    press_samples({1,1,1,1,1});
+    assert(!atx::rails_ok() && railReports==2 && !lastRails.ok && atx::rails().sequence==2);
+    // The request is independent of the measured rails.
+    assert(atx::is_on());
+    powerGoodLevel=1;
+    press_samples({1,1,1,1,1});
+    assert(atx::rails_ok() && railReports==3);
     assert(reports==1 && lastReport.on && lastReport.sequence==1);
     assert(atx::set(true) && outputLevel==1);
     assert(reports==1);

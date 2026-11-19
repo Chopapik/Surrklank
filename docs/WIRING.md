@@ -104,8 +104,11 @@ mainboard: the modules take +5 V from their own terminals and make their own 3.3
   takes +5VSB through JP1 only.
 - **PWR_OK** (grey ATX wire, nominally 5 V logic) reaches GPIO36 through a
   10 kΩ / 20 kΩ divider (about 3.3 V from 5 V). It reports main rails up,
-  unlike the GPIO19 request; firmware does not read it yet. Firmware does not
-read actuator Q165 (GPIO35) yet either.
+  unlike the GPIO19 request. Firmware enables the module bus only while it is
+  HIGH, because module logic runs from the main rails: earlier writes would
+  reach unpowered modules, and their 595s power up in an undefined state. It
+  reports the level as `pwr_ok`. It reads actuator Q165 (GPIO35) for DRV8833
+  ULT faults; see [FIRMWARE.md](FIRMWARE.md#fdd-laboratory).
 
 ### ATX power switch and button
 
@@ -304,7 +307,8 @@ through a 33 Ω resistor.
   DATA, CLK, LATCH, the end of the chain and GND for a probe or clip lead. A
   test firmware that shifts a known pattern through the chain therefore shows
   where it stops, before any drive or motor is connected. The LEDs show data
-  levels, not activity: all registers share CLK and LATCH.
+  levels, not activity: all registers share CLK and LATCH. `BUS TEST ON` is
+  that test (see [FIRMWARE.md](FIRMWARE.md#bring-up-chain-test)).
 
 ### Outputs and inputs per drive
 
@@ -325,8 +329,8 @@ this project uses FDD pin numbers.
 | WRITE PROTECT | 28 | drive → 165 | Open collector from the drive |
 
 Odd FDD pins are GND. Firmware chooses the select line per drive
-(`fdd::select_lines`, a build-time table; every drive uses DS1 by default), so
-PC and Amiga drives share the same cable without rewiring. Firmware keeps MOTOR
+(set per drive in the UI and stored on the ESP32; DS1 by default), so PC and
+Amiga drives share the same cable without rewiring or rebuilding firmware. Firmware keeps MOTOR
 and the other select lines HIGH and reads WRITE PROTECT without using it.
 
 WRITE DATA and WRITE GATE are not connected to registers: a software-shifted

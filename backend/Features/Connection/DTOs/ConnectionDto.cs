@@ -15,7 +15,11 @@ public sealed record ConnectionDto(
     bool? AtxOn = null,
     DeviceFirmwareDto? DeviceFirmware = null,
     bool Subscribed = false,
-    string? Operation = null)
+    string? Operation = null,
+    bool? PwrOk = null,
+    int? ActuatorFaults = null,
+    IReadOnlyList<string>? SelectLines = null,
+    bool? BusTest = null)
 {
     public bool Connected => State == "connected";
 }

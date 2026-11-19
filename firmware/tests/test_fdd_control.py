@@ -83,22 +83,25 @@ inline int gptimer_start(int) { return 0; }
 #include <vector>
 using gpio_num_t = int;
 constexpr int GPIO_NUM_23=23, GPIO_NUM_18=18, GPIO_NUM_22=22, GPIO_NUM_21=21,
-    GPIO_NUM_17=17, GPIO_NUM_16=16, GPIO_NUM_33=33, GPIO_NUM_32=32, GPIO_NUM_34=34;
+    GPIO_NUM_17=17, GPIO_NUM_16=16, GPIO_NUM_33=33, GPIO_NUM_32=32, GPIO_NUM_34=34, GPIO_NUM_35=35;
 constexpr int GPIO_MODE_INPUT=1, GPIO_MODE_OUTPUT=2;
 struct gpio_config_t { uint64_t pin_bit_mask; int mode; };
 struct GpioEvent { int pin, level; int64_t at; };
 inline std::vector<GpioEvent> gpio_events;
 inline int levels[40]={};
 inline uint64_t shifted=0, latched=0, actuator_shifted=~0ULL, actuator_latched=~0ULL;
-// Two chained 165s: module 1 QH is read first, then module 2; past the end the
-// OUT pull-up reads HIGH.
+// Two chained 165s per branch: module 1 QH is read first, then module 2; past
+// the end the OUT pull-up reads HIGH. Actuator D4-D7 are tied to GND.
 inline uint8_t module_inputs[2]={255,255};
+inline uint8_t actuator_inputs[2]={0x0f,0x0f};
+inline unsigned clock_edges=0;
 inline int input_index=0;
 inline int gpio_set_level(int pin, int value) {
     gpio_events.push_back({pin,value,fake_now});
     if(pin==18 && value && !levels[pin]) {
         shifted=(shifted<<1)|levels[23];
         actuator_shifted=(actuator_shifted<<1)|levels[17];
+        ++clock_edges;
     }
     if(pin==22 && value && !levels[pin]) latched=shifted;
     if(pin==16 && value && !levels[pin]) actuator_latched=actuator_shifted;
@@ -106,9 +109,10 @@ inline int gpio_set_level(int pin, int value) {
     if(pin==32 && value && !levels[pin]) ++input_index;
     levels[pin]=value; return 0;
 }
-inline int gpio_get_level(int) {
+inline int gpio_get_level(int pin) {
     const int module=input_index/8;
-    return module>=2 ? 1 : (module_inputs[module] >> (7-input_index%8))&1;
+    const uint8_t* inputs = pin==35 ? actuator_inputs : module_inputs;
+    return module>=2 ? 1 : (inputs[module] >> (7-input_index%8))&1;
 }
 inline int gpio_config(const gpio_config_t*) { return 0; }
 inline int gpio_set_direction(int,int) { return 0; }

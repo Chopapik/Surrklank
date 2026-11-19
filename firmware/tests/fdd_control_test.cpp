@@ -1,12 +1,30 @@
 #include "fdd_control.cpp"
 #include <cassert>
 
+bool atx_on = true, rails_up = true;
 namespace atx {
-bool is_on() { return true; }
+bool is_on() { return atx_on; }
+bool rails_ok() { return rails_up; }
 bool claim_instruments() { return true; }
 void release_instruments() {}
 }
 
+// NVS stand-in for drive_settings.cpp.
+uint8_t stored_select[fdd::count] = {1, 1, 0, 1, 1, 1, 1, 2};
+bool storage_fails = false;
+namespace drive_settings {
+void load(fdd::Line (&lines)[fdd::count]) {
+    for (int i = 0; i < fdd::count; ++i)
+        lines[i] = static_cast<fdd::Line>(stored_select[i]);
+}
+esp_err_t store(const fdd::Line (&lines)[fdd::count]) {
+    if (storage_fails)
+        return ESP_ERR_NO_MEM;
+    for (int i = 0; i < fdd::count; ++i)
+        stored_select[i] = static_cast<uint8_t>(lines[i]);
+    return ESP_OK;
+}
+}
 uint64_t step_mask() {
     uint64_t mask = 0;
     for (int i = 0; i < fdd::count; ++i)
@@ -27,6 +45,9 @@ void one_iteration(void (*function)(void*)) {
 }
 int main() {
     assert(laboratory::init() == ESP_OK);
+    // Settings stored in NVS reach the engine at init.
+    assert(engine.select[2] == fdd::Line::ds0 && engine.select[7] == fdd::Line::ds2 &&
+           engine.select[0] == fdd::Line::ds1);
     assert(task_cores.at("fdd") == 1);
     laboratory::set_listener(slow_ble);
     // Init drives the idle bus: /OE and /PL HIGH, everything else LOW.
@@ -38,8 +59,14 @@ int main() {
     // H is sampled before the first rising clock edge; module 1 comes first.
     module_inputs[0] = 0xa5;
     module_inputs[1] = 0xfe;
-    assert(read() == 0x015a);
+    // M3 of actuator module 1 and M1 of module 2 report ULT LOW.
+    actuator_inputs[0] = 0x0b;
+    actuator_inputs[1] = 0x0e;
+    const Inputs inputs = read();
+    assert(inputs.fdd == 0x015a);
+    assert(actuator_faults(inputs.actuator) == 0x14);
     module_inputs[0] = module_inputs[1] = 255;
+    actuator_inputs[0] = actuator_inputs[1] = 0x0f;
     previous = engine.outputs();
     write(previous);
     powered = true;
@@ -119,4 +146,94 @@ int main() {
             assert(d.state.steps == 1);
     }
     assert(callbacks == before);
+
+    // Bring-up test: only CLK moves, never a LATCH, and never alongside motion.
+    engine = fdd::Engine{};
+    previous = engine.outputs();
+    write(previous);
+    one_iteration(tasks.at("fdd"));
+    assert(laboratory::actuator_faults() == 0);
+    const uint64_t fdd_frame = latched, actuator_frame = actuator_latched;
+    assert(laboratory::set_bus_test(true) && laboratory::bus_test_active());
+    char reply[64];
+    laboratory::command("LAB BEGIN 9 1", reply, sizeof(reply));
+    assert(!strcmp(reply, "ERR LAB BUSY OR INVALID"));
+    uint64_t wave = 0;
+    for (int step = 0; step < 32; ++step) {
+        clock_edges = 0;
+        one_iteration(tasks.at("fdd"));
+        assert(clock_edges == 1);
+        wave = (wave << 1) | levels[23];
+        assert(levels[17] == levels[23]);
+        fake_now += 125000;
+    }
+    assert(wave == 0xff00ff00ULL);
+    assert(latched == fdd_frame && actuator_latched == actuator_frame);
+    clock_edges = 0;
+    one_iteration(tasks.at("fdd"));
+    // The wave keeps its 125 ms cadence; a fresh iteration in the same period is idle.
+    one_iteration(tasks.at("fdd"));
+    assert(clock_edges == 1);
+    assert(laboratory::set_bus_test(false) && !laboratory::bus_test_active());
+    assert(levels[23] == 0 && levels[17] == 0);
+    laboratory::command("LAB BEGIN 9 1", reply, sizeof(reply));
+    assert(!strcmp(reply, "LAB OK"));
+    assert(!laboratory::set_bus_test(true)); // an active batch owns the bus
+    laboratory::command("LAB ABORT 9", reply, sizeof(reply));
+    engine = fdd::Engine{};
+    assert(laboratory::set_bus_test(true));
+    // ATX OFF ends the test, idles the bus and makes faults unknown.
+    atx_on = false;
+    one_iteration(tasks.at("fdd"));
+    assert(!laboratory::bus_test_active() && laboratory::actuator_faults() == -1);
+    assert(levels[21] == 1 && levels[23] == 0);
+    assert(!laboratory::set_bus_test(true));
+
+    // FDD SELECT stores in NVS before it takes effect.
+    assert(laboratory::set_select(4, fdd::Line::ds2) == laboratory::SelectResult::ok);
+    assert(stored_select[3] == 2 && engine.select[3] == fdd::Line::ds2);
+    fdd::Line lines[fdd::count];
+    laboratory::select_lines(lines);
+    assert(lines[3] == fdd::Line::ds2);
+    assert(laboratory::set_select(9, fdd::Line::ds0) == laboratory::SelectResult::invalid);
+    assert(laboratory::set_select(1, fdd::Line::motor) == laboratory::SelectResult::invalid);
+    storage_fails = true;
+    assert(laboratory::set_select(4, fdd::Line::ds0) == laboratory::SelectResult::storage);
+    assert(engine.select[3] == fdd::Line::ds2); // unchanged when NVS fails
+    storage_fails = false;
+
+    // ATX ON without PWR_OK keeps the idle bus and refuses LAB BEGIN.
+    atx_on = true;
+    rails_up = false;
+    actuator_latched = actuator_shifted = ~0ULL;
+    one_iteration(tasks.at("fdd"));
+    assert(levels[21] == 1 && actuator_latched == ~0ULL && laboratory::actuator_faults() == -1);
+    laboratory::command("LAB BEGIN 10 1", reply, sizeof(reply));
+    assert(!strcmp(reply, "ERR LAB BUSY OR INVALID"));
+    // PWR_OK HIGH: safe frame latched before /OE goes LOW.
+    rails_up = true;
+    gpio_events.clear();
+    one_iteration(tasks.at("fdd"));
+    assert(levels[21] == 0 && actuator_latched == 0);
+    int64_t actuator_latch_at = -1, enable_at = -1;
+    for (const auto &event : gpio_events) {
+        if (event.pin == 16 && event.level && actuator_latch_at < 0) actuator_latch_at = event.at;
+        if (event.pin == 21 && !event.level) enable_at = event.at;
+    }
+    assert(actuator_latch_at >= 0 && enable_at >= actuator_latch_at);
+    laboratory::command("LAB BEGIN 10 1", reply, sizeof(reply));
+    assert(!strcmp(reply, "LAB OK"));
+    assert(laboratory::set_select(1, fdd::Line::ds0) == laboratory::SelectResult::busy);
+    // PWR_OK lost while ATX stays ON: idle bus, pending batch failed.
+    rails_up = false;
+    one_iteration(tasks.at("fdd"));
+    assert(levels[21] == 1 && levels[23] == 0 && levels[17] == 0);
+    assert(!engine.busy() && !engine.pending);
+    assert(engine.drives[0].state.phase == fdd::Phase::error &&
+           engine.drives[0].state.error == fdd::Error::power_lost);
+    // PWR_OK returns: the actuator branch is cleared again before /OE LOW.
+    actuator_latched = actuator_shifted = ~0ULL;
+    rails_up = true;
+    one_iteration(tasks.at("fdd"));
+    assert(levels[21] == 0 && actuator_latched == 0);
 }

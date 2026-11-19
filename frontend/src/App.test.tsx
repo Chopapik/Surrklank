@@ -41,6 +41,7 @@ const connected: ConnectionSnapshot = {
   state: 'connected', connected: true, error: null, session: 1,
   last_ping: null, device: null, events: [], mtu: 498, discovery: 'connected',
   atx_on: null, subscribed: false, operation: null, device_firmware: null,
+  pwr_ok: null, actuator_faults: null, select_lines: null, bus_test: null,
 };
 const idleFirmware: FirmwareSnapshot = {
   stage: 'idle', progress: null, error: null, result: null, busy: false, events: [],
@@ -275,5 +276,31 @@ describe('Surrklank interface', () => {
 
     await establishConnection(newSocket);
     expect(newSocket.send).not.toHaveBeenCalled();
+  });
+  it('shows lost main power only while ATX is requested ON', async () => {
+    const { socket } = renderApp();
+    await establishConnection(socket);
+    act(() => socket.receive({ ...connected, atx_on: false, pwr_ok: false }));
+    expect(screen.queryByText(/Brak zasilania głównego/)).toBeNull();
+    act(() => socket.receive({ ...connected, atx_on: true, pwr_ok: false }));
+    expect(screen.getByRole('alert').textContent).toMatch(/Brak zasilania głównego/);
+    act(() => socket.receive({ ...connected, atx_on: true, pwr_ok: true, actuator_faults: 0xf0 }));
+    expect(screen.queryByText(/Brak zasilania głównego/)).toBeNull();
+    expect(screen.getByText('Moduł aktuatorów 1: odpowiada, bez błędów')).toBeTruthy();
+    expect(screen.getByText('Moduł aktuatorów 2: brak odpowiedzi')).toBeTruthy();
+  });
+
+  it('sends one select change and locks select lines while a drive plays', async () => {
+    const { socket } = renderApp();
+    await establishConnection(socket);
+    act(() => socket.receive({ ...connected, select_lines: ['DS1', 'DS1', 'DS1', 'DS1', 'DS1', 'DS1', 'DS1', 'DS1'] }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'SELECT FDD 2' }), { target: { value: 'DS0' } });
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/drives/select', expect.objectContaining({
+      method: 'PUT', body: JSON.stringify({ device: 2, line: 'DS0' }),
+    })));
+    // Only ESP32 snapshots change the shown line.
+    expect((screen.getByRole('combobox', { name: 'SELECT FDD 2' }) as HTMLSelectElement).value).toBe('DS1');
+    act(() => socket.laboratory(laboratorySnapshot('playing')));
+    await waitFor(() => expect((screen.getByRole('combobox', { name: 'SELECT FDD 1' }) as HTMLSelectElement).disabled).toBe(true));
   });
 });

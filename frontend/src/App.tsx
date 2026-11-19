@@ -1,6 +1,9 @@
 import { useLaboratory } from './features/laboratory/useLaboratory';
 import { stateLabels } from './features/laboratory/laboratory.types';
 import { useDeviceControls } from './features/application/useDeviceControls';
+import { useDrives } from './features/drives/useDrives';
+import { selectLines, type SelectLine } from './features/drives/drives.api';
+import { describeActuators } from './features/atx/power';
 
 const controlStyle =
   '[font:inherit] p-[8px] [margin:6px_8px_6px_0] text-black bg-white ' +
@@ -10,6 +13,7 @@ const preStyle = 'whitespace-pre-wrap [overflow-wrap:anywhere]';
 
 export function App() {
   const laboratory = useLaboratory();
+  const drives = useDrives();
   const { sendAction, atx, connectionState, firmwareState, busy, busyReason, pingText } = useDeviceControls();
   const { connection, ready, connected, statusLabel, socketLabel } = connectionState;
   const { firmware, ports, selectedPort, setSelectedPort, requestUpload, error, uploadPending } = firmwareState;
@@ -47,6 +51,11 @@ export function App() {
         {busyReason && <p id="device-busy-reason" role="status">{busyReason}</p>}
         <small>Stan wyjścia ESP32 sterującego tranzystorem, bez pomiaru napięcia.</small>
         {atx.error && <p role="alert">{atx.error}</p>}
+        {atx.on === true && connection?.pwr_ok === false && (
+          <p role="alert">Brak zasilania głównego (PWR_OK LOW). Moduły są odłączone, a granie przerwane; uruchom je ponownie po powrocie zasilania.</p>
+        )}
+        <p>PWR_OK: {connection?.pwr_ok == null ? '?' : connection.pwr_ok ? 'tak' : 'nie'}</p>
+        {connected && describeActuators(connection?.actuator_faults ?? null).map((line) => <p key={line}>{line}</p>)}
       </section>
 
       <section className={sectionStyle}>
@@ -73,6 +82,21 @@ export function App() {
         {laboratory.error && <p role="alert">{laboratory.error}</p>}
         <p>Licznik STEP i pozycja szacowana nie potwierdzają rzeczywistej liczby kroków głowicy.</p>
         <details><summary>Dane Laboratorium</summary><pre className={preStyle}>{JSON.stringify(laboratory.snapshot, null, 2)}</pre></details>
+      </section>
+
+      <section className={sectionStyle}>
+        <h2 className="text-[20px]">Linie SELECT napędów</h2>
+        <p>DS1 dla typowych napędów PC, DS0 dla napędów Amigi. Zmiana jest zapisywana w ESP32 i niedostępna, gdy cokolwiek gra.</p>
+        {drives.lines === null ? <p>Połącz firmware obsługujący linie SELECT.</p> : drives.lines.map((line, index) => (
+          <label key={index} className="inline-block mr-[12px]">FDD {index + 1}{' '}
+            <select className={controlStyle} aria-label={`SELECT FDD ${index + 1}`} value={line}
+              disabled={busy || drives.pending}
+              onChange={(event) => drives.setLine({ device: index + 1, line: event.target.value as SelectLine })}>
+              {selectLines.map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </label>
+        ))}
+        {drives.error && <p role="alert">{drives.error}</p>}
       </section>
 
       <section className={sectionStyle}>

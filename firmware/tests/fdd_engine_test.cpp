@@ -239,9 +239,9 @@ int main() {
         Simulation s;
         uint64_t select_mask = 0, idle_mask = 0;
         for (int i = 0; i < 8; ++i) {
-            select_mask |= fdd::output_mask(i, fdd::select_lines[i]);
+            select_mask |= fdd::output_mask(i, s.engine.select[i]);
             for (auto line : {fdd::Line::ds0, fdd::Line::ds1, fdd::Line::ds2, fdd::Line::motor})
-                if (line != fdd::select_lines[i])
+                if (line != s.engine.select[i])
                     idle_mask |= fdd::output_mask(i, line);
         }
         assert(select_mask == 0x082082082082ULL); // DS1 of every drive
@@ -383,6 +383,50 @@ int main() {
         assert(s.ready(1) && s.position[0] == 0);
         assert(s.engine.commit(2, s.now));
     }
+    // Select line is a runtime setting: refused while a drive is active or a
+    // batch is staged, and a change invalidates that drive's position.
+    {
+        Simulation s;
+        s.prepare(1, 1);
+        assert(!s.engine.set_select(2, fdd::Line::ds0)); // drive 1 is ready, the bus is owned
+        assert(s.engine.commit(1, s.now));
+        s.engine.stop_all(s.now);
+        s.run(1500000);
+        assert(!s.engine.busy() && s.engine.drives[1].state.phase == fdd::Phase::unknown);
+        assert(!s.engine.set_select(0, fdd::Line::ds0) && !s.engine.set_select(9, fdd::Line::ds0));
+        assert(!s.engine.set_select(1, fdd::Line::step));
+        const auto sequence = s.engine.drives[0].state.sequence;
+        assert(s.engine.set_select(1, fdd::Line::ds0));
+        assert(s.engine.select[0] == fdd::Line::ds0 && s.engine.select[1] == fdd::Line::ds1);
+        assert(s.engine.drives[0].state.position == -1 && s.engine.drives[0].state.sequence > sequence);
+        // The new line is the one asserted at the next start; DS1 stays HIGH.
+        s.prepare(2, 1);
+        assert(s.ready(1));
+        assert(!(s.engine.outputs() & fdd::output_mask(0, fdd::Line::ds0)));
+        assert(s.engine.outputs() & fdd::output_mask(0, fdd::Line::ds1));
+        // A begin() that resets the drive keeps the configured select line.
+        assert(s.engine.select[0] == fdd::Line::ds0);
+    }
+    // Losing bus power fails active drives, drops a pending batch and makes
+    // every position unknown; idle drives become unknown, not error.
+    {
+        Simulation s;
+        s.prepare(1, 1);
+        assert(s.engine.commit(1, s.now));
+        s.run(200000);
+        assert(s.engine.begin(2, 2, s.now));
+        s.engine.power_lost(s.now);
+        const auto &playing = s.engine.drives[0].state;
+        assert(playing.phase == fdd::Phase::error && playing.error == fdd::Error::power_lost);
+        assert(playing.position == -1 && !playing.track_valid);
+        assert(s.engine.drives[1].state.phase == fdd::Phase::error);
+        assert(s.engine.drives[2].state.phase == fdd::Phase::unknown && s.engine.drives[2].state.position == -1);
+        assert(!s.engine.busy() && !s.engine.pending);
+        assert((s.engine.outputs() & fdd::output_mask(0, fdd::Line::ds1)) && !s.engine.drives[0].step_low);
+        // The next start homes again before playing.
+        s.prepare(3, 1);
+        assert(s.ready(1));
+    }
     puts("FDD engine: sensor faults, atomic preparation, 63/75-step returns, concurrent batches, stop, duration and "
-         "bounded faults passed");
+         "bounded faults, select setting and power loss passed");
 }

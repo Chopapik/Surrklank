@@ -54,7 +54,11 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         {
             return new ConnectionDto(_state, _error, _session, _lastPing, _device, _events.ToArray(), _mtu, _discoveryState,
                 _state == "connected" ? _deviceState.AtxOn : null,
-                _state == "connected" ? _deviceState.Firmware : null, _subscribed, _activeOperation?.Reason);
+                _state == "connected" ? _deviceState.Firmware : null, _subscribed, _activeOperation?.Reason,
+                _state == "connected" ? _deviceState.PwrOk : null,
+                _state == "connected" ? _deviceState.ActuatorFaults : null,
+                _state == "connected" ? _deviceState.SelectLines : null,
+                _state == "connected" ? _deviceState.BusTest : null);
         }
     }
 

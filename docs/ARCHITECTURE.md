@@ -6,7 +6,7 @@ hosted services. Vite is a separate development server only; it proxies `/api`
 and `/ws` to ASP.NET. The ESP32 is the BLE GATT server; ASP.NET is its client.
 
 Backend code is grouped under `backend/Features/`: `Connection`, `Atx`,
-`Firmware`, `Laboratory` and `Application`. Each feature owns its controller, service and
+`Drives`, `Diagnostics`, `Firmware`, `Laboratory` and `Application`. Each feature owns its controller, service and
 DTOs. `Shared/Http/LocalOrigin.cs` holds the origin check reused by HTTP and
 WebSocket boundaries. The composition root remains `backend/Program.cs`.
 
@@ -18,6 +18,8 @@ WebSocket boundaries. The composition root remains `backend/Program.cs`.
 | `WebSocketController` | Accept `/ws`, send `state` snapshots and receive `connect`, `disconnect`, `ping` |
 | `BleConnectionService` | Discover, own one BLE session, serialize native operations, decode device state |
 | `AtxService` | Send explicit ATX commands and prepare maintenance |
+| `DrivesService` | Send `FDD SELECT` for `PUT /api/drives/select` (`{"device":2,"line":"DS0"}`) |
+| `DiagnosticsService` | Send `BUS TEST ON/OFF` for `POST /api/bus-test` (`{"enabled":true}`); no UI control |
 | `LaboratoryService` | Validate stop requests and exchange Laboratory commands |
 | `PlayLaboratoryBatchUseCase` | Validate, prepare, await readiness and commit an FDD batch |
 | `LaboratoryState` | Merge FFF2 device telemetry and FFF1 snapshots; invalidate lost state |
@@ -53,7 +55,13 @@ HTTP/WebSocket boundaries validate incoming data and supply TypeScript types;
 invalid socket messages do not update caches or stores. Optional fields from
 older connection snapshots are normalized before entering application state.
 
-The firmware reports ATX output and flash state through FFF2 notifications.
+The firmware reports ATX output, PWR_OK and flash state through FFF2
+notifications. `connection` carries `pwr_ok`, `actuator_faults`,
+`select_lines` and `bus_test` from `DeviceState`; the last three come from
+INFO, which the backend reads after its own commands and after each PWR_OK
+event (actuator diagnostics change when the bus follows PWR_OK, and INFO has
+no periodic poll). Select lines are stored on the ESP32; the UI shows only device
+snapshots and disables the select fields while anything plays.
 On connection the backend reads an initial device snapshot, subscribes and
 requests a follow-up FFF1 `INFO` snapshot. `DeviceState` merges snapshots and
 events by per-stream sequence. ESP32 state becomes unknown on BLE link loss.
@@ -137,7 +145,10 @@ The app has no manual firmware-cancel command. FFF2 delivery is not acknowledged
 application, so an isolated final ATX/firmware event can remain unseen until reconnect.
 The backend reconciles detected sequence gaps and explicit ATX commands with a
 one-shot INFO request; it does not poll ATX periodically. Physical ATX output
-voltage and PWR_OK are not measured.
+voltage is not measured; PWR_OK is the supply's own rail-good signal. New
+Drives/Diagnostics failure paths (busy reservation, refused or failed
+`FDD SELECT`, refused bus test, missing INFO fields on older firmware) have no
+automated C# tests.
 
 ## Timing correspondence
 

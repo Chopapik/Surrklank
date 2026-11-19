@@ -113,8 +113,15 @@ changes. The implemented mapping is the PCB module wiring in
 [WIRING.md](WIRING.md): two chained FDD modules form a 48-bit 595 frame (six
 outputs per drive, bit 0 = module 1 U2 QA, shifted last) and a 16-bit 165 read
 (module 1 first, TRACK0 on even inputs, WRITE PROTECT on odd inputs, unused).
-`fdd_engine.h` holds this bit map and the per-drive select line
-(`select_lines`, DS1 by default); MOTOR and unused select lines stay HIGH. The
+`fdd_engine.h` holds this bit map. The select line of each drive
+(`Engine::select`, DS0/DS1/DS2, DS1 by default) is a runtime setting that
+`drive_settings.cpp` loads from NVS (namespace `surrklank`, key `select`) at
+startup; MOTOR and unused select lines stay HIGH. FFF1 `FDD SELECT` stores a
+new line in NVS before it takes effect and is refused while any drive is
+active or a batch is pending, because a change would deselect a moving or
+prepared drive. A change invalidates that drive's position, since it usually
+means another drive or jumper setting, so the next start homes it first. An idle drive has every select line HIGH, so a
+change has no electrical effect until that start. The
 hand-wired assembly on `main` is no longer supported by this firmware. DIR HIGH
 means toward TRACK0 in this software profile; the selected DSx LOW selects the
 drive. SELECT is
@@ -197,15 +204,54 @@ FFF2 telemetry and one-shot commands are
 described in [BLE-PROTOCOL.md](BLE-PROTOCOL.md).
 
 At startup the adapter drives the idle bus: /OE and /PL HIGH; DATA, CLK, LATCH
-and CLK165 of both branches LOW. When ATX output is requested ON it clocks 128
-zeros into the actuator branch (more than four modules plus a 16-LED board),
-latches them, shifts an inactive FDD image and then enables the shared /OE.
+and CLK165 of both branches LOW. The bus is live only while ATX output is
+requested ON and PWR_OK is HIGH: module logic is powered from the main rails,
+which follow the request after a supply-dependent delay. `atx_power.cpp`
+samples PWR_OK on GPIO36 every 10 ms and accepts a level after five equal
+samples (about 50 ms). On entering the live state the adapter clocks 128 zeros
+into the actuator branch (more than four modules plus a 16-LED board), latches
+them, shifts an inactive FDD image and then enables the shared /OE. 595 output
+registers power up in an undefined state, so this safe frame is written again
+on every return of PWR_OK before /OE goes LOW.
 LSM/HDD playback is not implemented, so every DRV8833 stays asleep (EEP LOW)
 and coasting. FDD frames share CLK with the actuator branch but never pulse its
-latch. On ATX OFF it returns to the idle bus and invalidates positions. While a
-drive is active, firmware rejects ATX OFF/maintenance and ignores the GPIO13
-button. ATX output is not a supply measurement; external power loss cannot
-be detected directly by this design.
+latch. When the bus stops being live (ATX OFF or PWR_OK lost) it returns to the
+idle bus; active drives and a pending batch end in `error` with
+`power_lost`, every position becomes unknown and no parking is attempted. The
+ATX request stays ON after a PWR_OK loss, so a short dip does not switch the
+assembly off; playback is started again after the rails return and homes
+first. There is no pause: after a power loss the head position is unknown, so
+a seamless resume is impossible at drive level. While the bus is not live,
+`LAB BEGIN` is refused: the engine is not ticked then, so a pending batch could
+never reach its lease timeout. While a drive is active, firmware rejects ATX
+OFF/maintenance and ignores the GPIO13 button. ATX output is not a supply
+measurement; PWR_OK is, and FFF2 event type 5 reports each accepted change.
+Without the PWR_OK wire the bus never becomes live.
+
+The same /PL and CLK165 pass reads both 165 branches: GPIO34 for the FDD
+modules and GPIO35 for two actuator modules. ULT (D0–D3 of each actuator
+module) becomes the `actuator_faults` mask in INFO; D4–D7, tied to GND, are
+ignored. A missing actuator module or ribbon reads LOW through the mainboard
+pull-down, so it looks like four faults; the UI shows this as an
+actuator-chain diagnostic ("no response"). ULT reports over-current and
+over-temperature, not an open or missing coil. Faults are only reported, not
+acted on: LSM/HDD playback is not implemented and every DRV8833 stays asleep.
+Whether ULT can report a fault while EEP holds the driver asleep is not
+verified.
+
+### Bring-up chain test
+
+`BUS TEST ON` (FFF1, or `POST /api/bus-test` through the backend; there is no
+UI control for this rarely used bring-up tool) needs a live bus and no active drive; `LAB BEGIN` is rejected
+while it runs. The motion task then clocks a wave of eight ones and eight zeros
+into both 595 branches, one CLK every 125 ms, and never pulses either LATCH.
+Only the shift registers and their QH′ outputs change; drive lines and
+DRV8833 inputs keep the latched idle frame. The bring-up LEDs D1–D3 on every
+module (QH′ of U2–U4) blink at 0.5 Hz, each in the opposite phase of the
+previous register. The first LED that does not blink, or blinks in the wrong
+phase, marks where data stops. `BUS TEST OFF`, ATX OFF and maintenance end the
+test. It checks the serial data path only, not 595 outputs, pull-ups or the
+165 chains, and is an offline-tested design: no PCB module exists yet.
 
 The host tests exercise the real scheduling engine with simulated sensors,
 missed head movement, unequal return counts, parallel batches and stop/fault

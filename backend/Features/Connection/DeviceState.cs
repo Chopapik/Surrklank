@@ -8,9 +8,17 @@ namespace Surrklank.Features.Connection;
 public sealed class DeviceState
 {
     public bool? AtxOn { get; private set; }
+    // Measured main rails (PWR_OK), unlike the AtxOn request.
+    public bool? PwrOk { get; private set; }
+    // INFO-only diagnostics: DRV8833 ULT mask (null while the bus is not live),
+    // per-FDD select line and the bring-up chain test.
+    public int? ActuatorFaults { get; private set; }
+    public IReadOnlyList<string>? SelectLines { get; private set; }
+    public bool? BusTest { get; private set; }
     public DeviceFirmwareDto? Firmware { get; private set; }
     public bool NeedsRefresh { get; private set; }
     private uint? _atxSequence;
+    private uint? _pwrOkSequence;
     private uint? _firmwareSequence;
 
     private static bool Accept(uint sequence, uint? previous) =>
@@ -28,6 +36,20 @@ public sealed class DeviceState
                 _atxSequence = sequence;
             }
         }
+        if (information.TryGetProperty("pwr_ok", out var pwrOk))
+        {
+            uint? sequence = information.TryGetProperty("pwr_ok_sequence", out var seq) ? seq.GetUInt32() : null;
+            if (!_pwrOkSequence.HasValue || sequence.HasValue && Accept(sequence.Value, _pwrOkSequence))
+            {
+                PwrOk = pwrOk.GetBoolean();
+                _pwrOkSequence = sequence;
+            }
+        }
+        ActuatorFaults = information.TryGetProperty("actuator_faults", out var faults) && faults.ValueKind == JsonValueKind.Number
+            ? faults.GetInt32() : null;
+        BusTest = information.TryGetProperty("bus_test", out var busTest) ? busTest.GetBoolean() : null;
+        SelectLines = information.TryGetProperty("select_lines", out var lines) && lines.GetString() is { } digits
+            ? digits.Select(digit => $"DS{digit}").ToArray() : null;
         uint? next = information.TryGetProperty("firmware_sequence", out var fwSeq) ? fwSeq.GetUInt32() : null;
         if (!_firmwareSequence.HasValue || next.HasValue && Accept(next.Value, _firmwareSequence))
         {
@@ -49,6 +71,12 @@ public sealed class DeviceState
                     NeedsRefresh = true;
                 AtxOn = bytes[6] == 1;
                 _atxSequence = sequence;
+                return true;
+            case 5 when bytes.Length == 7 && bytes[6] <= 1 && Accept(sequence, _pwrOkSequence):
+                PwrOk = bytes[6] == 1;
+                _pwrOkSequence = sequence;
+                // Actuator diagnostics follow the bus, which follows PWR_OK; INFO carries them.
+                NeedsRefresh = true;
                 return true;
             case 2 when bytes.Length == 15 && bytes[6] <= 3 && Accept(sequence, _firmwareSequence):
                 if (_firmwareSequence.HasValue && unchecked(sequence - _firmwareSequence.Value) > 1)

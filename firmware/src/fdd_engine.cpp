@@ -134,17 +134,32 @@ void fdd::Engine::stop_all(int64_t now) {
     for (int i = 1; i <= count; ++i)
         stop(i, now);
 }
-void fdd::Engine::power_lost() {
+void fdd::Engine::power_lost(int64_t now) {
     pending = 0;
     mask = 0;
     for (auto &d : drives) {
+        if (active(d.state.phase))
+            fail(d, Error::power_lost, now);
+        else {
+            d.state.phase = Phase::unknown;
+            d.state.position = -1;
+            d.state.error = Error::power_lost;
+            ++d.state.sequence;
+        }
         d.step_low = false;
-        d.state.phase = Phase::unknown;
-        d.state.position = -1;
+        d.parking_requested = false;
         d.state.track_valid = false;
-        d.state.error = Error::power_lost;
-        ++d.state.sequence;
     }
+}
+bool fdd::Engine::set_select(int device, Line line) {
+    if (device < 1 || device > count || !is_select(line) || busy())
+        return false;
+    select[device - 1] = line;
+    auto &s = drives[device - 1].state;
+    s.position = -1;
+    s.track_valid = false;
+    ++s.sequence;
+    return true;
 }
 void fdd::Engine::tick(int64_t now, uint8_t track0) {
     if (pending && now > lease) {
@@ -296,7 +311,7 @@ uint64_t fdd::Engine::outputs() const {
         image |= output_mask(i, Line::ds0) | output_mask(i, Line::ds1) | output_mask(i, Line::ds2) |
                  output_mask(i, Line::motor);
         if (active(d.state.phase))
-            image &= ~output_mask(i, select_lines[i]);
+            image &= ~output_mask(i, select[i]);
         if (!d.step_low)
             image |= output_mask(i, Line::step);
         if (d.state.toward_zero)

@@ -30,6 +30,10 @@ void notify_atx(atx::State state) {
     uint8_t bytes[7]={1,1};put32(bytes+2,state.sequence);bytes[6]=state.on?1:0;
     notify(bytes,sizeof(bytes));
 }
+void notify_rails(atx::Rails rails) {
+    uint8_t bytes[7]={1,5};put32(bytes+2,rails.sequence);bytes[6]=rails.ok?1:0;
+    notify(bytes,sizeof(bytes));
+}
 void notify_laboratory(int device,fdd::State s) {
     uint8_t bytes[20]={1,3};put32(bytes+2,s.sequence);bytes[6]=device;bytes[7]=(uint8_t)s.phase;
     put32(bytes+8,s.batch);bytes[12]=(uint8_t)s.error;
@@ -61,6 +65,17 @@ esp_err_t command(const uint8_t* input,uint16_t size,uint8_t** data,uint16_t* le
         snprintf(lastReply,sizeof(lastReply),"%s",accepted?(atx::is_on()?"ATX ON":"ATX OFF"):"ERR MAINTENANCE");
     }else if(!strncmp(line,"LAB ",4)){
         laboratory::command(line,lastReply,sizeof(lastReply));
+    }else if(!strcmp(line,"BUS TEST ON") || !strcmp(line,"BUS TEST OFF")){
+        bool enabled=!strcmp(line,"BUS TEST ON");
+        strcpy(lastReply,laboratory::set_bus_test(enabled)?line:"ERR BUS BUSY");
+    }else if(!strncmp(line,"FDD SELECT ",11)){
+        unsigned device=0,select=0;char end=0;
+        auto result=laboratory::SelectResult::invalid;
+        if(sscanf(line,"FDD SELECT %u DS%u %c",&device,&select,&end)==2 && select<=2)
+            result=laboratory::set_select((int)device,(fdd::Line)select);
+        strcpy(lastReply,result==laboratory::SelectResult::ok?line:
+               result==laboratory::SelectResult::busy?"ERR FDD BUSY":
+               result==laboratory::SelectResult::storage?"ERR FDD STORAGE":"ERR FDD INVALID");
     }else if(!strcmp(line,"ATX PREPARE")){
         strcpy(lastReply,atx::prepare()?"ATX OFF":"ERR LAB BUSY");
     }else if(!strcmp(line,"INFO")){
@@ -82,6 +97,20 @@ void describe(char* text, size_t capacity){
     size_t end=strlen(text)-1;
     auto state=atx::state();
     snprintf(text+end,capacity-end,",\"atx_on\":%s,\"atx_sequence\":%lu,\"events_version\":1,\"laboratory_version\":1}",state.on?"true":"false",(unsigned long)state.sequence);
+    end=strlen(text)-1;
+    int faults=laboratory::actuator_faults();
+    char fault_text[12]="null";
+    if(faults>=0)snprintf(fault_text,sizeof(fault_text),"%d",faults);
+    // select_lines: one digit per FDD 1-8, the DSx index (0, 1 or 2). INFO
+    // must stay within the 512-byte FFF1 reply.
+    fdd::Line lines[fdd::count];laboratory::select_lines(lines);
+    char select_text[fdd::count+1];
+    for(int i=0;i<fdd::count;++i)select_text[i]=(char)('0'+(int)lines[i]);
+    select_text[fdd::count]=0;
+    auto rails=atx::rails();
+    snprintf(text+end,capacity-end,",\"pwr_ok\":%s,\"pwr_ok_sequence\":%lu,\"bus_test\":%s,\"actuator_faults\":%s,\"select_lines\":\"%s\"}",
+             rails.ok?"true":"false",(unsigned long)rails.sequence,
+             laboratory::bus_test_active()?"true":"false",fault_text,select_text);
 }
 esp_err_t info(const uint8_t*,uint16_t,uint8_t** data,uint16_t* length,void*,uint8_t* status){
     char text[512];describe(text,sizeof(text));
@@ -113,6 +142,7 @@ esp_err_t ble::init(){
     service.nu_lookup_count=2;service.nu_lookup=chars;
     error=esp_ble_conn_add_svc(&service);if(error!=ESP_OK)return error;
     atx::set_listener(notify_atx);
+    atx::set_rails_listener(notify_rails);
     ota::set_listener(notify_firmware);
     laboratory::set_listener(notify_laboratory);
     return esp_event_handler_register(BLE_CONN_MGR_EVENTS,ESP_EVENT_ANY_ID,event,nullptr);

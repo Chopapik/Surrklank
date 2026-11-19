@@ -26,9 +26,12 @@ constexpr int track0_bit(int drive) {
     return (drive / drives_per_module) * 8 + (drive % drives_per_module) * 2;
 }
 // The select input depends on each drive's jumper. DS1 (FDD pin 12) suits
-// typical PC drives and matches the hand-wired assembly; DS0 suits Amiga drives.
-constexpr Line select_lines[count] = {Line::ds1, Line::ds1, Line::ds1, Line::ds1,
-                                      Line::ds1, Line::ds1, Line::ds1, Line::ds1};
+// typical PC drives and is the default; DS0 suits Amiga drives. The line of
+// each drive is a runtime setting (Engine::select, stored in NVS).
+constexpr Line default_select = Line::ds1;
+constexpr bool is_select(Line line) {
+    return line == Line::ds0 || line == Line::ds1 || line == Line::ds2;
+}
 uint8_t track0_inputs(uint16_t sensors);
 enum class Phase : uint8_t {
     unknown,
@@ -70,6 +73,9 @@ struct Drive {
 class Engine {
   public:
     Drive drives[count];
+    // Select line per drive; kept outside Drive, which begin() resets.
+    Line select[count] = {default_select, default_select, default_select, default_select,
+                          default_select, default_select, default_select, default_select};
     uint32_t pending = 0;
     uint8_t mask = 0;
     int64_t lease = 0;
@@ -81,7 +87,11 @@ class Engine {
     void abort(uint32_t batch, int64_t now);
     void stop(int device, int64_t now);
     void stop_all(int64_t now);
-    void power_lost();
+    // Bus power ended (ATX OFF or PWR_OK lost): active drives fail with
+    // power_lost, every position becomes unknown, a pending batch is dropped.
+    void power_lost(int64_t now);
+    // Accepted only while no drive is active; invalidates that drive's position.
+    bool set_select(int device, Line line);
     void tick(int64_t now, uint8_t track0);
     void steps_latched(uint64_t before, uint64_t after, int64_t scheduled_at, int64_t latched_at);
     void finish_pulses();

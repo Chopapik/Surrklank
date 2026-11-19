@@ -11,6 +11,10 @@
 - After material behavior, architecture, protocol, firmware or integration
   changes, update the relevant shared docs in the same task. Describe current
   behavior; keep history in commits, not audit follow-ups or validation dumps.
+- Give every non-obvious behavior or constraint a one-line reason in its doc
+  ("…, because …"), so nobody "fixes" it back. Rejected alternatives and the
+  decision history belong in the commit body. Before changing behavior that
+  looks odd, read `git log` of the affected files for the decision behind it.
 
 # Read before changing
 
