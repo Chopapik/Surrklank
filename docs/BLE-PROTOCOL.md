@@ -13,7 +13,7 @@ The backend serializes native exchanges through a device reservation; see
 
 | Command | Reply / purpose |
 | --- | --- |
-| `ATX ON`, `ATX OFF` | Explicit output request; refused during conflicting ownership |
+| `ATX ON`, `ATX OFF` | Explicit output request; refused during conflicting ownership; `ATX ON` replies `ERR PANEL` when the remote panel was not detected at startup |
 | `ATX PREPARE` | Force OFF and reject ON until restart; refused while Laboratory is active |
 | `INFO` | JSON snapshot with image identity, OTA state, ATX state and sequences |
 | `BUS TEST ON`, `BUS TEST OFF` | Start/stop the bring-up chain wave; `ERR BUS BUSY` while the bus is not live (ATX OFF or PWR_OK LOW) or a drive is active |
@@ -38,7 +38,8 @@ measured main rails, not the GPIO19 request; the sequence matches FFF2 type 5),
 `bus_test`, `actuator_faults`: a DRV8833 ULT bit mask (bit k = actuator module
 k / 4 + 1, slot M(k % 4 + 1)) or `null` while the bus is not live, and
 `select_lines`: one digit per FDD 1–8, the DSx index (for example
-`"11111111"`, all DS1), compact so INFO stays within the 512-byte reply. With
+`"11111111"`, all DS1), compact so INFO stays within the 512-byte reply, and
+`panel` (remote panel detected and still answering). With
 no actuator module connected every slot reads as a fault. `bus_test`,
 `actuator_faults` and `select_lines` have no FFF2 events; the backend reads
 INFO after its own commands and after each PWR_OK event. While the bus test
@@ -67,10 +68,11 @@ minimum 20-byte ATT value payload; multi-byte values are little-endian.
 | Offset | Size | Field |
 | --- | --- | --- |
 | 0 | 1 | Protocol version `1` |
-| 1 | 1 | Type: `1` ATX, `2` firmware, `3` Laboratory state, `4` Laboratory parameters, `5` PWR_OK |
+| 1 | 1 | Type: `1` ATX, `2` firmware, `3` Laboratory state, `4` Laboratory parameters, `5` PWR_OK, `6` panel button |
 | 2 | 4 | Unsigned sequence, per stream and boot |
 | 6 | 1 | ATX: `0` OFF / `1` ON; total frame length 7 |
 | 6 | 1 | PWR_OK: `0` LOW / `1` HIGH; total frame length 7 |
+| 6 | 1 | Panel button: `1` PREV, `2` PLAY, `3` STOP, `4` NEXT, `5`–`7` spare; total frame length 7 |
 | 6 | 1 | Firmware: `0` idle / `1` writing / `2` ready / `3` failed |
 | 7 | 4 | Firmware bytes committed to flash |
 | 11 | 4 | Signed ESP-IDF error; firmware frame length 15 |
@@ -78,7 +80,9 @@ minimum 20-byte ATT value payload; multi-byte values are little-endian.
 ATX events follow GPIO19 output changes from FFF1 commands or the GPIO13
 button. PWR_OK events follow the debounced GPIO36 level (about 50 ms) and have
 their own sequence; a PWR_OK loss also ends active drives (see
-[firmware](FIRMWARE.md#fdd-laboratory)). The button is sampled and debounced locally every 10 ms. Firmware
+[firmware](FIRMWARE.md#fdd-laboratory)). Panel button events have their own
+sequence; the backend drops them for now (see
+[remote panel](FIRMWARE.md#remote-panel)). The button is sampled and debounced locally every 10 ms. Firmware
 events follow flash state and committed-byte changes; accepted transfer bytes
 are a separate count. Firmware INFO and FFF2 use the same stage mapping.
 

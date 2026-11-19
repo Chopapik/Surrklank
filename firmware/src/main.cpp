@@ -2,6 +2,7 @@
 #include "atx_power.h"
 #include "ota_update.h"
 #include "fdd_control.h"
+#include "panel.h"
 #include "nvs_flash.h"
 #include "esp_event.h"
 extern "C" void app_main(){
@@ -11,6 +12,7 @@ extern "C" void app_main(){
     ESP_ERROR_CHECK(error);
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     ESP_ERROR_CHECK(laboratory::init());
+    ESP_ERROR_CHECK(panel::init());
     ESP_ERROR_CHECK(ble::init());
     ESP_ERROR_CHECK(ota::init());
     ESP_ERROR_CHECK(ble::start());

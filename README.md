@@ -47,6 +47,9 @@ The ATX switch requests an explicit ON or OFF state. GPIO19 drives the transisto
 and the physical GPIO13 button can also change the request. The displayed state
 comes from the ESP32's driven output, not from browser storage or a measured
 power rail. An unknown state disables the switch. See [wiring](docs/WIRING.md).
+ATX ON needs the remote panel connected when the ESP32 starts; otherwise the
+app shows that the panel is not connected or not responding. The panel's STOP
+button stops every drive even without the app.
 The ATX section also shows PWR_OK, the supply's own rail-good signal, and
 alerts while ATX is ON without it; the modules stay disconnected until PWR_OK
 returns. It lists each actuator module as responding, not responding or

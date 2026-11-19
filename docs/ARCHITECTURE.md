@@ -139,6 +139,9 @@ the head before starting. Manual STOP retains explicit parking.
 ## Current limits
 
 Only FDD Laboratory playback is implemented; LSM/HDD and MIDI playback are not.
+Remote panel PREV/PLAY/NEXT presses arrive as FFF2 type 6 and are dropped
+until a MIDI player consumes them; `AtxService` turns `ERR PANEL` into a
+"panel not connected" message.
 Two physical FDDs pass playback/parking and stop checks; electrical levels,
 pulse accuracy and other drive models remain unverified.
 The app has no manual firmware-cancel command. FFF2 delivery is not acknowledged by the

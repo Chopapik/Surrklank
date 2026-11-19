@@ -67,6 +67,13 @@ int main() {
     atx::set_rails_listener(receiveRails);
     assert(atx::init()==ESP_OK);
     assert(!atx::is_on() && outputLevel==0);
+    // Without the panel detected at startup ON is refused, also by the button.
+    assert(!atx::panel_ready());
+    assert(!atx::set(true) && !atx::is_on() && outputLevel==0);
+    press_samples({1,1,0,0,0,0,1,1});
+    assert(!atx::is_on() && reports==0);
+    assert(atx::set(false));
+    atx::set_panel(true);
     // PWR_OK is a separate measured input: the request alone does not set it.
     assert(!atx::rails_ok());
     assert(atx::set(true) && atx::is_on() && outputLevel==1);

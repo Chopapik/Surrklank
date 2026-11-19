@@ -36,7 +36,7 @@
 - After frontend changes run `npm --prefix frontend run build` and the ASP.NET
   build. Run `npm --prefix frontend test` for affected UI behavior.
 - After firmware changes run `pio run -d firmware -e esp32` and applicable
-  offline checks (`firmware/tests/test_atx_power.py`, `firmware/tests/test_fdd.py`).
+  offline checks (`firmware/tests/test_*.py`).
   Builds and mocks are not physical-device validation.
 - After runtime changes restart the application and check `GET /` and
   `GET /api/connection`. Use `BLE_AUTO_SCAN=false` for an offline smoke check.

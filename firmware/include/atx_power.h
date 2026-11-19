@@ -14,6 +14,9 @@ Rails rails();
 bool rails_ok();
 void set_listener(void (*callback)(State));
 void set_rails_listener(void (*callback)(Rails));
+// ON is refused unless the remote panel was detected at startup.
+void set_panel(bool present);
+bool panel_ready();
 bool set(bool on);
 bool prepare();
 bool claim_instruments();

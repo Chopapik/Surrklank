@@ -13,6 +13,7 @@ pio run -d firmware -e esp32
 python3 firmware/tests/test_atx_power.py
 python3 firmware/tests/test_fdd.py
 python3 firmware/tests/test_fdd_control.py
+python3 firmware/tests/test_panel.py
 ```
 
 These commands build/check locally and do not connect to a physical ESP32.
@@ -265,6 +266,38 @@ faults have not been exercised physically. Keep ATX OFF during uploads.
 
 References: [Espressif BLE OTA example](https://github.com/espressif/esp-iot-solution/tree/5fbb2597b88f21ec41e952f81292ccd6ae569761/examples/bluetooth/ble_profiles/ble_ota),
 [ESP-IDF OTA](https://docs.espressif.com/projects/esp-idf/en/v5.5/esp32/api-reference/system/ota.html).
+
+## Remote panel
+
+`panel.cpp` drives the MCP23017 on the remote panel over I2C (GPIO25/26,
+100 kHz, mainboard pull-ups only). The panel is a required part of the
+assembly: firmware configures it once at startup and refuses ATX ON (FFF1
+`ERR PANEL`, and the POWER button) when it did not answer, so nothing plays
+without the physical STOP button. It is never probed again, because the panel
+is only connected before the whole assembly is powered. INFO reports `panel`.
+
+- Buttons are read only after the expander pulls INT (GPIO27) LOW; reading
+  GPIOA clears it. A level counts when two reads 20 ms apart agree, and a
+  change inside that window is read again, because its interrupt was already
+  cleared and no further edge would arrive. A button held at startup is not a
+  press.
+- STOP runs a local STOP ALL whatever started the drives, so the physical
+  STOP works without the app. Every press, STOP included, is reported as FFF2
+  type 6: 1 PREV, 2 PLAY, 3 STOP, 4 NEXT, 5-7 spare GPA4-GPA6. PREV, PLAY and
+  NEXT have no firmware action; the backend does not use them yet.
+- GPB0 (ATX ON LED) follows the GPIO19 request; the hardware RAILS LED shows
+  PWR_OK next to it. GPB1 (ESP LED) blinks at 1 Hz without a BLE connection
+  and is steady while the app is connected, so it does not show a hung
+  firmware while connected.
+- The LED byte is rewritten every 0.5 s; that heartbeat write is the only
+  check that the panel still answers. A failed transfer ends panel I/O and
+  sets `panel` false until restart; playing and ATX continue, so the panel
+  requirement applies only at startup.
+- The task runs on CPU0 at low priority, away from the motion task on CPU1,
+  and never touches the 595/165 bus.
+
+The OLED is not supported. Offline tests use I2C/GPIO stubs; the real
+expander, LEDs and the 2 m cable are not verified.
 
 ## Timestamped FDD history
 

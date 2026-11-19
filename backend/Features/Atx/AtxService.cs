@@ -18,6 +18,8 @@ public sealed class AtxService(IDeviceConnection connection, LaboratoryState lab
         var reply = await operation.SendCommandAsync(command, cancellation);
         // A one-shot read reconciles a missed command-result event without periodic polling.
         connection.SetDevice(await operation.ReadInfoAsync(cancellation));
+        if (reply == "ERR PANEL")
+            throw new InvalidOperationException("Remote panel not connected or not responding at ESP32 startup; ATX ON refused");
         if (reply != command)
             throw new InvalidOperationException(reply);
     }

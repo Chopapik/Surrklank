@@ -11,6 +11,8 @@ portMUX_TYPE lock = portMUX_INITIALIZER_UNLOCKED;
 bool on = false;
 bool maintenance = false;
 bool instruments = false;
+// Without the panel's physical STOP nothing may be powered (docs/FIRMWARE.md).
+bool panel_detected = false;
 uint32_t sequence = 0;
 void (*listener)(atx::State) = nullptr;
 // PWR_OK must hold one level for this many 10 ms samples (about 50 ms).
@@ -62,7 +64,7 @@ void poll_button(void*) {
         if (stable == 1) armed = true;
         else if (armed) {
             armed = false;
-            if (!maintenance && !instruments) {
+            if (!maintenance && !instruments && (on || panel_detected)) {
                 on = !on;
                 ++sequence;
                 changed = true;
@@ -128,7 +130,7 @@ void atx::set_listener(void (*callback)(State)) {
 
 bool atx::set(bool requested) {
     portENTER_CRITICAL(&lock);
-    bool accepted = (!requested || !maintenance) && (!instruments || requested);
+    bool accepted = (!requested || (!maintenance && panel_detected)) && (!instruments || requested);
     bool changed = accepted && on != requested;
     if (changed) ++sequence;
     if (accepted) {
@@ -139,6 +141,19 @@ bool atx::set(bool requested) {
     portEXIT_CRITICAL(&lock);
     if (changed) notify(value);
     return accepted;
+}
+
+void atx::set_panel(bool present) {
+    portENTER_CRITICAL(&lock);
+    panel_detected = present;
+    portEXIT_CRITICAL(&lock);
+}
+
+bool atx::panel_ready() {
+    portENTER_CRITICAL(&lock);
+    bool value = panel_detected;
+    portEXIT_CRITICAL(&lock);
+    return value;
 }
 
 bool atx::prepare() {

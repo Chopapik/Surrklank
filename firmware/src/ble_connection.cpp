@@ -2,6 +2,7 @@
 #include "atx_power.h"
 #include "ota_update.h"
 #include "fdd_control.h"
+#include "panel.h"
 #include "esp_ble_conn_mgr.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -34,6 +35,10 @@ void notify_rails(atx::Rails rails) {
     uint8_t bytes[7]={1,5};put32(bytes+2,rails.sequence);bytes[6]=rails.ok?1:0;
     notify(bytes,sizeof(bytes));
 }
+void notify_button(uint8_t button,uint32_t sequence) {
+    uint8_t bytes[7]={1,6};put32(bytes+2,sequence);bytes[6]=button;
+    notify(bytes,sizeof(bytes));
+}
 void notify_laboratory(int device,fdd::State s) {
     uint8_t bytes[20]={1,3};put32(bytes+2,s.sequence);bytes[6]=device;bytes[7]=(uint8_t)s.phase;
     put32(bytes+8,s.batch);bytes[12]=(uint8_t)s.error;
@@ -62,7 +67,8 @@ esp_err_t command(const uint8_t* input,uint16_t size,uint8_t** data,uint16_t* le
         snprintf(lastReply,sizeof(lastReply),"PONG %s",line+5);
     }else if(!strcmp(line,"ATX ON") || !strcmp(line,"ATX OFF")){
         bool accepted=atx::set(!strcmp(line,"ATX ON"));
-        snprintf(lastReply,sizeof(lastReply),"%s",accepted?(atx::is_on()?"ATX ON":"ATX OFF"):"ERR MAINTENANCE");
+        const char* refused=!strcmp(line,"ATX ON")&&!atx::panel_ready()?"ERR PANEL":"ERR MAINTENANCE";
+        snprintf(lastReply,sizeof(lastReply),"%s",accepted?(atx::is_on()?"ATX ON":"ATX OFF"):refused);
     }else if(!strncmp(line,"LAB ",4)){
         laboratory::command(line,lastReply,sizeof(lastReply));
     }else if(!strcmp(line,"BUS TEST ON") || !strcmp(line,"BUS TEST OFF")){
@@ -108,9 +114,10 @@ void describe(char* text, size_t capacity){
     for(int i=0;i<fdd::count;++i)select_text[i]=(char)('0'+(int)lines[i]);
     select_text[fdd::count]=0;
     auto rails=atx::rails();
-    snprintf(text+end,capacity-end,",\"pwr_ok\":%s,\"pwr_ok_sequence\":%lu,\"bus_test\":%s,\"actuator_faults\":%s,\"select_lines\":\"%s\"}",
+    snprintf(text+end,capacity-end,",\"pwr_ok\":%s,\"pwr_ok_sequence\":%lu,\"bus_test\":%s,\"actuator_faults\":%s,\"select_lines\":\"%s\",\"panel\":%s}",
              rails.ok?"true":"false",(unsigned long)rails.sequence,
-             laboratory::bus_test_active()?"true":"false",fault_text,select_text);
+             laboratory::bus_test_active()?"true":"false",fault_text,select_text,
+             panel::present()?"true":"false");
 }
 esp_err_t info(const uint8_t*,uint16_t,uint8_t** data,uint16_t* length,void*,uint8_t* status){
     char text[512];describe(text,sizeof(text));
@@ -143,11 +150,13 @@ esp_err_t ble::init(){
     error=esp_ble_conn_add_svc(&service);if(error!=ESP_OK)return error;
     atx::set_listener(notify_atx);
     atx::set_rails_listener(notify_rails);
+    panel::set_listener(notify_button);
     ota::set_listener(notify_firmware);
     laboratory::set_listener(notify_laboratory);
     return esp_event_handler_register(BLE_CONN_MGR_EVENTS,ESP_EVENT_ANY_ID,event,nullptr);
 }
 esp_err_t ble::start(){return esp_ble_conn_start();}
+bool ble::connected(){return connectionHandle!=0xffff;}
 
 esp_err_t ble::request_fast_link(){
     if(connectionHandle==0xffff)return ESP_ERR_INVALID_STATE;

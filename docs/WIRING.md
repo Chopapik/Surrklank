@@ -191,7 +191,9 @@ mainboard connector is J6 (2 × 5 IDC, straight-through ribbon to panel J1):
   so it works without I2C.
 - OLED socket J4 and I2C extension J3: GND, VCC, SCL, SDA. Some SSD1306
   modules swap GND and VCC; check the module before plugging it in.
-- Firmware does not support the panel yet.
+- Firmware supports the buttons and the ATX ON and ESP LEDs, not the OLED yet;
+  the panel is required at ESP32 start (see
+  [FIRMWARE.md](FIRMWARE.md#remote-panel)).
 
 ## Module ribbon (16-pin)
 
