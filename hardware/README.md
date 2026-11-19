@@ -3,7 +3,8 @@
 Status: **proposed design, not built or tested.** Signals, pins, pull
 resistors and power wiring of the planned boards are defined in
 [WIRING.md](../docs/WIRING.md); this file covers board-level design only.
-Firmware does not support the module layout yet.
+Firmware drives two FDD modules and keeps the actuator branch cleared; see
+[FIRMWARE.md](../docs/FIRMWARE.md#fdd-laboratory).
 
 KiCad 10 projects:
 

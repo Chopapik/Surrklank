@@ -13,8 +13,11 @@
   behavior; keep history in commits, not audit follow-ups or validation dumps.
 - Give every non-obvious behavior or constraint a one-line reason in its doc
   ("…, because …"), so nobody "fixes" it back. Rejected alternatives and the
-  decision history belong in the commit body. Before changing behavior that
-  looks odd, read `git log` of the affected files for the decision behind it.
+  decision history belong in the commit body that introduces the reason; do
+  not keep decision logs or archives in the repository.
+- Before changing behavior that has a stated reason, find its decision with
+  `git log -S '<phrase from the reason>' -- <doc>` and read that commit body.
+  `git log --oneline` is the project timeline.
 
 # Read before changing
 
@@ -74,4 +77,5 @@ affected behavior, validation and material limits. Keep the history useful for
 reconstructing project decisions and thesis evidence. Distinguish measurements
 from observations and hypotheses; reference measurement artifacts when available
 and never imply unperformed hardware testing. Each commit body must be understandable
-without reading its diff.
+without reading its diff. Merge branches without squashing, because commit
+bodies are the decision record.

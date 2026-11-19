@@ -47,6 +47,16 @@ The ATX switch requests an explicit ON or OFF state. GPIO19 drives the transisto
 and the physical GPIO13 button can also change the request. The displayed state
 comes from the ESP32's driven output, not from browser storage or a measured
 power rail. An unknown state disables the switch. See [wiring](docs/WIRING.md).
+The ATX section also shows PWR_OK, the supply's own rail-good signal, and
+alerts while ATX is ON without it; the modules stay disconnected until PWR_OK
+returns. It lists each actuator module as responding, not responding or
+reporting a DRV8833 fault (over-current or over-temperature, not a missing
+motor).
+
+**Linie SELECT napędów** sets the select line of each FDD: DS1 for typical PC
+drives, DS0 for Amiga drives. The ESP32 stores it and the fields are disabled
+while anything plays. The bring-up chain test has no UI control; see
+[FIRMWARE.md](docs/FIRMWARE.md#bring-up-chain-test).
 
 The FDD Laboratory selects one or several drives, frequency and playing time.
 A batch starts only after every selected drive passes its TRACK0 check.
