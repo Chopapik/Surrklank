@@ -78,7 +78,7 @@ int main(int, char** argv) {
     assert(!panel_display::init(1,"v1",0) && !panel_display::present());
     displayAnswers=true;
     // Boot splash: logo, name and version, all eight pages sent once.
-    assert(panel_display::init(1,"2a4c9e5",0) && panel_display::present());
+    assert(panel_display::init(1,"0.2.0",0) && panel_display::present());
     assert(pageWrites==8 && count(44,0,84,40)>200);
     dump("1-splash");
     // During the 2 s splash nothing new is sent; afterwards the status screen.
