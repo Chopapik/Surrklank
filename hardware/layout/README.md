@@ -68,30 +68,55 @@ millimetres and converted with `MM = 0.001`.
   with an outline to `pcb/<board>.glb` through `kicad-cli pcb export glb`
   (`pcb/` is ignored by Git). `--light` leaves out tracks, pads, zones,
   silkscreen and soldermask. Boards without Edge.Cuts are skipped.
-- `pcbs.py` — `build_pcbs()` imports those GLBs under `pcb_<board>` Empties
-  with the origin at each board's left-front-bottom corner. `PLACEMENTS`
-  maps a board to `(x, y, z, rot_z_deg)`; boards without an entry are parked
-  in a row beside the table's right edge. `layout.py` calls it; with no
-  exports the stack builds without boards.
-- `cables.py` — `build_cables()` lays the `docs/WIRING.md` cables flat and
-  straight beyond the parked boards (`CABLE_PARK_X`), each along +Y with its
-  first connector at Y = 0; routing comes later. Ribbons are cut from
-  recycled 40-wire IDE cables, so all are shown at the stock 370 mm
-  (measured, about ±40 mm), red wire 1 on the left:
-  - four 16-wire module ribbons with 2x8 IDC sockets: mainboard → FDD
-    module 1, FDD 1 → FDD 2, mainboard → actuator module 1, actuator 1 →
-    LED board (proposed);
-  - one 10-wire panel ribbon with 2x5 sockets (WIRING.md plans 1–2 m, so a
-    stock length is too short for a remote panel);
-  - four 40-wire drive ribbons, one per IDE header of the two FDD modules:
-    a 40-pin socket at the module, the last 150 mm (assumed) split into two
-    20-wire halves, each on contacts 10–29 of a 34-pin FDD socket; the
-    halves are folded flat on 45° creases into a T, one arm to each side,
-    both the same length;
-  - four 4-wire LSM leads, 440 mm (measured, about ±40 mm), with a JST-XH
-    housing at the DRV8833 slot; lead colours are assumed.
-  The panel and one actuator module are assumed; edit `CABLES` for other
-  counts.
+- `pcbs.py` — `build_pcbs(placements)` imports each GLB once with the
+  origin at the board's left-front-bottom corner and places one instance per
+  entry of `harness.PLACEMENTS` (`(board, min_corner, axes)`; `axes` sends
+  the board's local X, Y and component side Z to layout axes, so a board can
+  be turned or stood on edge). Further instances share the meshes. Exported
+  boards without a placement are parked beside the table; with no exports
+  the stack builds without boards.
+- `harness.py` — pure Python, no `bpy`: the planned board positions and the
+  cable routes, built from the row and cover geometry that `layout.py`
+  passes in. `finish()` adds lengths, slack and wire-1 orientation;
+  `report()` prints the table `layout.py` shows on every build. Rules:
+  - No cable is lengthened or shortened: 370 mm ribbons cut from 40-wire
+    IDE cables and 440 mm LSM leads (both measured, about ±40 mm). A route
+    longer than its cable raises an error; the rest is one folded pack on
+    the route's longest straight run.
+  - A turn towards the ribbon's own width is a flat 45° fold, any other
+    turn a bend. Where wire 1 would land on the wrong side, the longest
+    straight run gets a half or quarter twist.
+  - Plan for 12 drives (three rows): three FDD modules, one per row, each
+    centred on its row so the drive cables need no sideways jog. One IDE
+    header serves the inner pair (drives 2 and 3, T arms 50.8 mm), the other
+    the outer pair (drives 1 and 4, 152.4 mm); drive select stays firmware
+    configuration. Module A lies on the table under trays B and C; modules
+    B and C are stacked in the cavity under the shelf between the ATX cases.
+    Rows A and B get a horizontal T under the next tray, row C a vertical T
+    in the gap in front of the ATX cases, high enough that row B's cables
+    and the FDD chain pass under it.
+  - The mainboard stands on edge on the inner side of ATX 2, components
+    facing the module stack, outside the metal cover for BLE. FDD branch:
+    mainboard → C → B → A, each hop over the next board. Actuator branch:
+    out of the cavity, up in front of the shelf, into the VCR cover.
+  - The actuator module lies on the shelf inside the VCR cover, turned so
+    its motor connectors face the rear. Each LSM lead runs down outside the
+    side wall from the motor and through the ø4 foot hole just below it,
+    then over the board to its slot; front-left, rear-left, rear-right and
+    front-right go to M4, M3, M2 and M1. This needs the bare leads threaded
+    before soldering and holes free of screws.
+  - The panel lies on the table right of the frame; its ribbon is the
+    tightest (20 mm slack). The proposed LED board is a placeholder
+    perfboard inside the cover's front opening.
+  - Not modelled: power wiring, strain relief, bend radii and ribbon
+    stiffness; ribbon collisions were checked by sampling in the scene.
+- `cables.py` — `build_cables(plan)` draws the routes: ribbons as flat
+  strips with the red wire 1. A fold is the real flat fold: both runs end on
+  the 45° crease (drawn as a dark line), the folded-over run lies one
+  thickness higher, and a T split ends the stem in two creases. Bends are
+  4 mm arcs and twists rotate continuously along their run. Also IDC sockets at both ends (the drive end on contacts
+  10–29 of a 34-pin socket), JST-XH housings on the LSM leads, slack packs
+  and the LED placeholder. Lead colours are assumed.
 - `live_server.py` / `send.py` — optional live view (see below).
 
 ## Dimensions
@@ -139,3 +164,9 @@ arbitrary Python it receives** — run it only on a machine you trust.
 echo 'exec(open("/abs/path/hardware/layout/layout.py").read()); build_scene()' > /tmp/go.py
 python3 hardware/layout/send.py /tmp/go.py
 ```
+
+The model is real size, so `build_scene()` sets the near clip of every open
+3D view to 0.1 mm (Blender's default of 10 mm cuts away anything closer and
+blocks a view into the stack). To move inside, put the mouse over the spot
+and zoom with Ctrl+scroll or use fly mode (Shift+`, WASD, scroll for speed);
+View → Frame Selected (numpad .) centres the orbit on a selected part.

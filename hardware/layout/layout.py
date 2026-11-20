@@ -29,8 +29,11 @@ importlib.reload(vcr_cover)
 from vcr_cover import build_vcr_cover
 import pcbs
 importlib.reload(pcbs)
+import harness
+importlib.reload(harness)
 import cables
 importlib.reload(cables)
+import linear_stepper as ls
 
 TABLE = (550, 550, 50)         # IKEA table, X, Y, Z
 BOARD = (400, 73, 28)          # X, Y, Z
@@ -45,7 +48,6 @@ BLACK = (0.03, 0.03, 0.03, 1)
 SUPPORT = "cheeks"
 CHEEK_T = 12                   # plywood side plate; 12 mm leaves 3 mm walls round a 6 mm dowel
 PCB_PARK_GAP = 40              # parked boards: gap from the table's right edge
-CABLE_PARK_X = 760             # cables laid flat beyond the parked boards
 STEP_Z = 64                    # equal row-to-row height step with cheeks
 WOOD = (0.6, 0.4, 0.2, 1)
 STEEL = (0.55, 0.57, 0.6, 1)
@@ -115,13 +117,8 @@ def build_scene(clear=True):
     _box("shelf", SHELF, (0, sy, ATX[2]), BLACK)
     # VCR cover resonance box centred on the shelf (its walls are 5 mm longer
     # than the shelf is deep, so they overhang 2.5 mm front and back)
-    build_vcr_cover("vcr_cover", ((SHELF[0] - vcr_cover.LENGTH) / 2,
-                                  sy + (SHELF[1] - vcr_cover.WALL_L) / 2, ATX[2] + SHELF[2]))
-    # KiCad boards (export_pcbs.py); parked beside the table's right edge
-    # until pcbs.PLACEMENTS holds their real positions
-    pcbs.build_pcbs(default_origin=(TABLE[0] + PCB_PARK_GAP, 0, 0))
-    # WIRING.md cables laid straight beside the boards until routed
-    cables.build_cables(origin=(CABLE_PARK_X, 0, 0))
+    cover = ((SHELF[0] - vcr_cover.LENGTH) / 2, sy + (SHELF[1] - vcr_cover.WALL_L) / 2, ATX[2] + SHELF[2])
+    build_vcr_cover("vcr_cover", cover)
     row_w = FDD_COUNT * FDD_W
     cheeks = SUPPORT == "cheeks"
     x0 = CHEEK_T if cheeks else 0           # rows sit between the cheeks
@@ -141,6 +138,46 @@ def build_scene(clear=True):
         build_fdd(f"fdd_b{i + 1}", (x0 + i * FDD_W, y2, z2))
     for i in range(FDD_COUNT):
         build_fdd(f"fdd_c{i + 1}", (x0 + i * FDD_W, y3, z3))
+    # boards and cables (harness.py): exported KiCad boards at their planned
+    # places, cables routed at their stock lengths
+    rows = {r: [(x0 + i * FDD_W, y, z) for i in range(FDD_COUNT)]
+            for r, y, z in (("a", 0, 0), ("b", y2, z2), ("c", y3, z3))}
+    plan = harness.finish(harness.plan({"rows": rows, "leads": _lead_ends(cover)}))
+    print(harness.report(plan))
+    pcbs.build_pcbs(harness.PLACEMENTS, park_origin=(TABLE[0] + PCB_PARK_GAP, 0, 0))
+    cables.build_cables(plan)
+    _close_up_views()
+
+
+def _close_up_views():
+    """The model is real size (metres), so Blender's default 10 mm near clip
+    hides anything closer to the view; 0.1 mm lets the view go inside the
+    stack. Only affects open GUI windows."""
+    for scr in bpy.data.screens:
+        for area in scr.areas:
+            for sp in area.spaces:
+                if sp.type == "VIEW_3D":
+                    sp.clip_start, sp.clip_end = 0.0001, 100.0
+
+
+def _lead_ends(cover):
+    """LSM lead start (under the motor's terminal board), the wall foot hole
+    below it and a point just inside the wall; front-left, rear-left,
+    rear-right, front-right."""
+    cx, cy, cz = cover
+    v = vcr_cover
+    z_pcb = cz + v.HEIGHT + ls.AXIS_Z - 5
+    yf, yr = v._Y0 + v.STEPPER_IN_FROM_FRONT, v._Y0 + v.TOP_W - v.STEPPER_IN_FROM_REAR
+    zh = cz + v.WALL_HOLE_Z
+    out = []
+    for side, y_axis, hole_y in (("l", yf, v.WALL_HOLE_Y[0]), ("l", yr, v.WALL_HOLE_Y[1]),
+                                 ("r", yr, v.WALL_HOLE_Y[1]), ("r", yf, v.WALL_HOLE_Y[0])):
+        if side == "l":     # terminal board on the +Y side of the can, outside the wall
+            out.append(((cx - 6, cy + y_axis + 9.6, z_pcb), (cx, cy + hole_y, zh), cx + 6.5))
+        else:
+            out.append(((cx + v.LENGTH + 6, cy + y_axis - 9.6, z_pcb),
+                        (cx + v.LENGTH, cy + hole_y, zh), cx + v.LENGTH - 6.5))
+    return out
 
 
 def _cheeks(row_w, by2, by3):

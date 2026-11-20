@@ -1,26 +1,26 @@
 """Place the KiCad boards exported by export_pcbs.py in the Blender layout.
 
-    build_pcbs(placements=PLACEMENTS, default_origin=(x, y, z)) -> [Empty]
+    build_pcbs(placements, park_origin=(x, y, z)) -> {instance: Empty}
 
-Each hardware/layout/pcb/<board>.glb is imported under an Empty named
-pcb_<board>. The import is shifted so the Empty's origin is the board's
-left-front-bottom bounding-box corner (components included), in millimetres
-like the rest of the layout. PLACEMENTS maps a board name (the .kicad_pcb
-stem) to (x, y, z, rot_z_deg); boards without an entry are lined up next to
-the table at default_origin until their real positions are known.
+Each hardware/layout/pcb/<board>.glb is imported once; its objects are
+shifted so the board's left-front-bottom bounding-box corner (components
+included) is the local origin, in millimetres like the rest of the layout.
+placements maps an instance name to (board, min_corner, axes) as in
+harness.PLACEMENTS: axes sends the board's local X, Y and Z (component side)
+to layout axes, and min_corner is where the placed bounding box starts. A
+second instance of a board shares the meshes of the first. Exported boards
+without a placement are parked in a row at park_origin.
 """
-import math
 from pathlib import Path
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 MM = 0.001
 PCB_DIR = Path(__file__).resolve().parent / "pcb"
-
-# Real positions are not known yet; fill in as (x, y, z, rot_z_deg) in mm.
-PLACEMENTS = {}
-PARK_GAP = 20.0     # gap between parked boards along Y
+PARK_GAP = 20.0
+AX = {"+X": (1, 0, 0), "-X": (-1, 0, 0), "+Y": (0, 1, 0), "-Y": (0, -1, 0),
+      "+Z": (0, 0, 1), "-Z": (0, 0, -1)}
 
 
 def _import(glb, name, coll):
@@ -48,23 +48,62 @@ def _import(glb, name, coll):
     return root, (hi - lo) / MM
 
 
-def build_pcbs(placements=None, default_origin=(0.0, 0.0, 0.0), pcb_dir=None, collection=None):
-    placements = PLACEMENTS if placements is None else placements
+def _copy(src, name, coll):
+    """Linked duplicate of a board hierarchy (meshes shared)."""
+    root = bpy.data.objects.new(name, None)
+    root.empty_display_size = src.empty_display_size
+    coll.objects.link(root)
+    mapping = {src: root}
+    for o in src.children_recursive:
+        c = o.copy()
+        coll.objects.link(c)
+        mapping[o] = c
+    for o, c in mapping.items():
+        if o is not src:
+            c.parent = mapping[o.parent]
+            c.matrix_parent_inverse = o.matrix_parent_inverse.copy()
+    return root
+
+
+def _place(root, size, min_corner, axes):
+    a = [Vector(AX[s]) for s in axes]
+    corners = [a[0] * x + a[1] * y + a[2] * z
+               for x in (0, size[0]) for y in (0, size[1]) for z in (0, size[2])]
+    lo = Vector([min(c[k] for c in corners) for k in range(3)])
+    o = (Vector(min_corner) - lo) * MM
+    m = Matrix.Identity(4)
+    for i in range(3):
+        for k in range(3):
+            m[k][i] = a[i][k]
+        m[i][3] = o[i]
+    root.matrix_world = m
+
+
+def build_pcbs(placements, park_origin=(0.0, 0.0, 0.0), pcb_dir=None, collection=None):
     pcb_dir = Path(pcb_dir) if pcb_dir else PCB_DIR
-    if pcb_dir is None or not pcb_dir.is_dir():
+    if not pcb_dir.is_dir():
         print("pcbs: no exported boards; run export_pcbs.py")
-        return []
+        return {}
     coll = collection or bpy.context.scene.collection
-    roots, park_y = [], default_origin[1]
-    for glb in sorted(pcb_dir.glob("*.glb")):
-        board = glb.stem
-        root, size = _import(glb, f"pcb_{board}", coll)
-        if board in placements:
-            x, y, z, rot = placements[board]
-        else:                          # parked beside the table
-            x, y, z, rot = default_origin[0], park_y, default_origin[2], 0.0
-            park_y += size.y + PARK_GAP
-        root.location = (x * MM, y * MM, z * MM)
-        root.rotation_euler.z = math.radians(rot)
-        roots.append(root)
+    loaded, roots = {}, {}
+    for inst, (board, mn, axes) in placements.items():
+        glb = pcb_dir / f"{board}.glb"
+        if not glb.is_file():
+            print(f"pcbs: {glb.name} missing")
+            continue
+        if board in loaded:
+            root, size = _copy(loaded[board][0], f"pcb_{inst}", coll), loaded[board][1]
+        else:
+            root, size = _import(glb, f"pcb_{inst}", coll)
+            loaded[board] = (root, size)
+        _place(root, size, mn, axes)
+        roots[inst] = root
+    y = park_origin[1]
+    for glb in sorted(pcb_dir.glob("*.glb")):        # exported but not placed
+        if glb.stem in loaded:
+            continue
+        root, size = _import(glb, f"pcb_{glb.stem}", coll)
+        root.location = Vector((park_origin[0], y, park_origin[2])) * MM
+        y += size.y + PARK_GAP
+        roots[glb.stem] = root
     return roots
