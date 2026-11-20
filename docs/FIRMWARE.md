@@ -286,9 +286,9 @@ is only connected before the whole assembly is powered. INFO reports `panel`.
   type 6: 1 PREV, 2 PLAY, 3 STOP, 4 NEXT, 5-7 spare GPA4-GPA6. PREV, PLAY and
   NEXT have no firmware action; the backend does not use them yet.
 - GPB0 (ATX ON LED) follows the GPIO19 request; the hardware RAILS LED shows
-  PWR_OK next to it. GPB1 (ESP LED) blinks at 1 Hz without a BLE connection
-  and is steady while the app is connected, so it does not show a hung
-  firmware while connected.
+  PWR_OK next to it. GPB1 (ESP LED) flashes for 0.1 s every 2 s whatever the
+  BLE link, because it only shows that the firmware runs: the flashes stop
+  when it hangs. The BLE link is on the OLED.
 - The LED byte is rewritten every 0.5 s; that heartbeat write is the only
   check that the panel still answers. A failed transfer ends panel I/O and
   sets `panel` false until restart; playing and ATX continue, so the panel
@@ -296,8 +296,36 @@ is only connected before the whole assembly is powered. INFO reports `panel`.
 - The task runs on CPU0 at low priority, away from the motion task on CPU1,
   and never touches the 595/165 bus.
 
-The OLED is not supported. Offline tests use I2C/GPIO stubs; the real
-expander, LEDs and the 2 m cable are not verified.
+### Panel OLED
+
+`panel_display.cpp` draws the SSD1306 (0x3C, same bus) with ESP-IDF's
+`esp_lcd` driver and the 5x7 font in `panel_font.h`, at 1x, 2x or 3x. The
+OLED is optional: without it, or after a failed transfer, only drawing stops;
+its state stays inside the firmware (UART log at startup, not in INFO or
+FFF2), because the backend cares only about the panel module as a whole.
+
+- Startup splash for 2 s: the PCB silkscreen mark (`panel_logo.h`, generated
+  by `firmware/tools/gen_panel_logo.py` from the same glyph path as the
+  footprint), "SURRKLANK" and the firmware version.
+- Status bar in the style of a late-90s phone: the Bluetooth rune when the
+  app is connected, with 0-4 signal bars from the connection RSSI (-60, -70,
+  -80, -90 dBm); a blinking rune with "?" while advertising; a crossed rune
+  when BLE did not start. There is no USB icon, because the ESP32 sees only
+  UART lines through the CP2102 and has no VBUS input to sense a computer.
+- Player area placeholder ("-- brak --", stop symbol, `--:--/--:--`) until
+  the MIDI player fills it. PREV, PLAY or NEXT show "Brak odtwarzacza MIDI"
+  for 2 s; the panel STOP shows a large "STOP" for 2 s.
+- Only the 8-pixel pages that changed are sent, at most twice per second, and
+  always after a button read, because a full 1 KB frame takes about 0.1 s at
+  100 kHz and would delay buttons.
+- Burn-in: the whole image walks a one-pixel square (right, down, left, up)
+  every 5 minutes inside a 1-pixel margin; static icons would otherwise burn
+  in over hours. There is no dimming.
+
+`test_panel_display.py` renders the real module against `esp_lcd` stubs and
+can write PNG previews (`SURRKLANK_PREVIEW_DIR`). Offline tests use I2C/GPIO
+stubs; the real expander, OLED, contrast, LEDs and the 2 m cable are not
+verified.
 
 ## Timestamped FDD history
 

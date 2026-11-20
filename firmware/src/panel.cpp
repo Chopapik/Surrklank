@@ -2,11 +2,15 @@
 #include "atx_power.h"
 #include "ble_connection.h"
 #include "fdd_control.h"
+#include "panel_display.h"
+#include "esp_app_desc.h"
+#include "esp_timer.h"
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <atomic>
+#include <cstdio>
 
 namespace {
 constexpr gpio_num_t sda = GPIO_NUM_25, scl = GPIO_NUM_26, interrupt_pin = GPIO_NUM_27;
@@ -23,10 +27,12 @@ constexpr uint8_t button_inputs = 0x7f; // GPA0-GPA6 (GPA7 is output only)
 constexpr uint8_t led_outputs = 0x03;   // GPB0 ATX ON, GPB1 ESP
 constexpr uint8_t atx_led = 0x01, esp_led = 0x02;
 constexpr TickType_t tick = pdMS_TO_TICKS(100);
-constexpr unsigned heartbeat_ticks = 5; // ESP LED toggles every 0.5 s (1 Hz)
+constexpr unsigned heartbeat_ticks = 5; // LED byte rewritten every 0.5 s
+constexpr unsigned flash_ticks = 20;    // ESP LED: 0.1 s flash every 2 s
 constexpr TickType_t settle = pdMS_TO_TICKS(20);
 constexpr int max_settle_reads = 5;
 
+i2c_master_bus_handle_t bus{};
 i2c_master_dev_handle_t expander;
 TaskHandle_t task = nullptr;
 std::atomic<bool> available{false};
@@ -34,8 +40,7 @@ using Listener = void (*)(uint8_t, uint32_t);
 std::atomic<Listener> listener{nullptr};
 uint8_t pressed = 0; // debounced, bit set = pressed
 uint32_t sequence = 0;
-unsigned ticks = 0;
-bool blink = false;
+unsigned ticks = 0, beat = 0;
 int written = -1; // last OLATB value
 
 bool write(uint8_t reg, uint8_t value) {
@@ -53,6 +58,9 @@ void press(uint8_t button) {
     if (button == panel::stop) {
         char reply[32];
         laboratory::command("LAB STOPALL", reply, sizeof(reply));
+        panel_display::show_stop(esp_timer_get_time());
+    } else if (button == panel::prev || button == panel::play || button == panel::next) {
+        panel_display::show_notice(esp_timer_get_time()); // no MIDI player yet
     }
     ++sequence;
     if (auto callback = listener.load())
@@ -84,9 +92,11 @@ void read_buttons() {
             press(bit + 1);
 }
 
-// The heartbeat write doubles as the only check that the panel still answers.
+// The ESP LED only shows that the firmware runs: a short flash every 2 s
+// stops when it hangs. The heartbeat write doubles as the only check that the
+// panel still answers.
 void update_leds(bool heartbeat) {
-    const uint8_t value = (atx::is_on() ? atx_led : 0) | (ble::connected() || blink ? esp_led : 0);
+    const uint8_t value = (atx::is_on() ? atx_led : 0) | (beat == 0 ? esp_led : 0);
     if (value == written && !heartbeat)
         return;
     if (!write(olatb, value))
@@ -102,11 +112,16 @@ void service(bool interrupted) {
     if (!available)
         return;
     const bool heartbeat = ++ticks >= heartbeat_ticks;
-    if (heartbeat) {
+    if (heartbeat)
         ticks = 0;
-        blink = !blink;
-    }
+    beat = (beat + 1) % flash_ticks;
     update_leds(heartbeat);
+    if (!available)
+        return;
+    panel_display::Status status;
+    status.link = static_cast<panel_display::Link>(ble::link());
+    status.rssi = ble::rssi();
+    panel_display::update(status, esp_timer_get_time());
 }
 
 void run(void *) {
@@ -129,7 +144,6 @@ bool configure() {
     bus_config.glitch_ignore_cnt = 7;
     // The mainboard has 2.2 kOhm pull-ups for the 2 m cable.
     bus_config.flags.enable_internal_pullup = false;
-    i2c_master_bus_handle_t bus;
     if (i2c_new_master_bus(&bus_config, &bus) != ESP_OK)
         return false;
     i2c_device_config_t device = {};
@@ -158,6 +172,9 @@ esp_err_t panel::init() {
     }
     written = 0;
     available = true;
+    // The OLED is optional: without it only drawing is skipped.
+    if (!panel_display::init(bus, esp_app_get_description()->version, esp_timer_get_time()))
+        printf("panel: no OLED at 0x3c\n");
     if (xTaskCreatePinnedToCore(run, "panel", 3072, nullptr, 3, &task, 0) != pdPASS) {
         available = false;
         atx::set_panel(false);

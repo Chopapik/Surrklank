@@ -54,6 +54,15 @@ inline int i2c_master_transmit(int, const uint8_t* bytes, size_t size, int) {
 inline int i2c_master_transmit_receive(int, const uint8_t* reg, size_t, uint8_t* out, size_t, int) {
     ++transfers; if(!answers) return ESP_FAIL; *out = *reg==0x12 ? gpioaLevel : registers[*reg]; return ESP_OK; }
 """,
+    "esp_app_desc.h": """#pragma once
+struct esp_app_desc_t { char version[32]; };
+inline const esp_app_desc_t* esp_app_get_description() { static esp_app_desc_t d{"test-1"}; return &d; }
+""",
+    "esp_timer.h": """#pragma once
+#include <cstdint>
+inline int64_t fakeNow=0;
+inline int64_t esp_timer_get_time() { return fakeNow; }
+""",
     "freertos/FreeRTOS.h": """#pragma once
 #include <cstdint>
 using BaseType_t=int; using TickType_t=uint32_t;
@@ -77,13 +86,26 @@ inline void vTaskNotifyGiveFromISR(TaskHandle_t, BaseType_t*) {}
 MAIN = r"""#include "panel.cpp"
 #include <cstring>
 #include <vector>
-bool atxOn=false, panelReady=false, linked=false;
+bool atxOn=false, panelReady=false, displayAnswers=true;
+int stops=0, notices=0, updates=0;
+panel_display::Status lastStatus;
+// Display stand-in; the renderer has its own test (test_panel_display.py).
+namespace panel_display {
+bool init(i2c_master_bus_handle_t, const char* version, int64_t) { assert(!strcmp(version,"test-1")); return displayAnswers; }
+void show_stop(int64_t) { ++stops; }
+void show_notice(int64_t) { ++notices; }
+void update(const Status& status, int64_t) { ++updates; lastStatus=status; }
+}
 int stopAll=0;
 namespace atx {
 bool is_on() { return atxOn; }
 void set_panel(bool present) { panelReady=present; }
 }
-namespace ble { bool connected() { return linked; } }
+namespace ble {
+Link currentLink=Link::advertising;
+Link link() { return currentLink; }
+int rssi() { return -65; }
+}
 namespace laboratory {
 void command(const char* text, char* reply, size_t capacity) {
     assert(!strcmp(text,"LAB STOPALL")); ++stopAll; snprintf(reply,capacity,"LAB OK"); }
@@ -92,7 +114,8 @@ std::vector<std::pair<int,uint32_t>> events;
 void receive(uint8_t button, uint32_t sequence) { events.push_back({button,sequence}); }
 uint8_t pressing(int button) { return static_cast<uint8_t>(~(1u << (button-1))); }
 void reset() { answers=true; gpioaLevel=0xff; gpioaAfterDelay.clear(); memset(registers,0,sizeof(registers));
-    available=false; pressed=0; sequence=0; ticks=0; blink=false; written=-1; events.clear(); stopAll=0; panelReady=false; }
+    available=false; pressed=0; sequence=0; ticks=0; beat=0; written=-1; events.clear(); stopAll=0; panelReady=false;
+    stops=0; notices=0; }
 int main() {
     panel::set_listener(receive);
     // Absent at startup: no task, no interrupt, ATX ON stays refused.
@@ -108,6 +131,7 @@ int main() {
     gpioaLevel=pressing(panel::stop);
     service(true);
     assert(stopAll==1 && events.size()==1 && events[0].first==3 && events[0].second==1);
+    assert(stops==1 && notices==0);
     gpioaLevel=0xff;
     service(true);
     assert(events.size()==1);
@@ -116,6 +140,7 @@ int main() {
         gpioaLevel=pressing(button); service(true); gpioaLevel=0xff; service(true);
     }
     assert(stopAll==1 && events.size()==5 && events[4].first==5 && events[4].second==5);
+    assert(notices==3 && stops==1); // spare inputs show nothing
     // A bounce that settles released is not a press.
     gpioaAfterDelay={0xff,0xff};
     gpioaLevel=pressing(panel::play);
@@ -127,18 +152,23 @@ int main() {
     service(true);
     assert(events.size()==6 && events[5].first==4);
     gpioaLevel=0xff; gpioaAfterDelay.clear(); service(true);
-    // LEDs: ATX ON follows the request; ESP blinks without BLE, steady with it.
-    atxOn=true; ticks=0; blink=false;
-    service(false);
-    assert((registers[0x15]&1) && !(registers[0x15]&2));
+    // LEDs: ATX ON follows the request; the ESP LED flashes for one 100 ms
+    // tick every 2 s whatever the BLE link, which moved to the OLED.
+    atxOn=true; ticks=0; beat=0;
     std::vector<int> esp;
-    for (int i=0;i<20;++i) { service(false); esp.push_back(registers[0x15]&2 ? 1 : 0); }
-    int toggles=0; for (size_t i=1;i<esp.size();++i) toggles+=esp[i]!=esp[i-1];
-    assert(toggles==4); // 2 s at 100 ms ticks: 1 Hz
-    linked=true; for (int i=0;i<10;++i) { service(false); assert(registers[0x15]&2); }
-    // Without changes only the 0.5 s heartbeat writes.
+    for (int i=0;i<40;++i) { service(false); assert(registers[0x15]&1); esp.push_back(registers[0x15]&2 ? 1 : 0); }
+    int flashes=0; for (int on : esp) flashes+=on;
+    assert(flashes==2 && esp[19]==1 && esp[39]==1);
+    // The status bar gets the BLE link and RSSI on every tick.
+    assert(lastStatus.link==panel_display::Link::advertising && lastStatus.rssi==-65);
+    // Without changes only the 0.5 s heartbeat (and the flash edges) write.
+    beat=1; ticks=0; service(false); // flash ends
     const unsigned before=olatbWrites; for (int i=0;i<10;++i) service(false);
     assert(olatbWrites-before==2);
+    // Without an OLED the panel still works; drawing is the display's concern.
+    reset(); displayAnswers=false;
+    assert(panel::init()==ESP_OK && panel::present());
+    displayAnswers=true;
     // Held at startup is not a press.
     reset(); gpioaLevel=pressing(panel::next);
     assert(panel::init()==ESP_OK && panel::present());
@@ -151,7 +181,7 @@ int main() {
     assert(!panel::present() && panelReady);
     const unsigned after=transfers; service(true); service(false);
     assert(transfers==after);
-    puts("panel: detection, STOP ALL, button reports, debounce, LEDs and loss passed");
+    puts("panel: detection, STOP ALL, button reports, debounce, LEDs, display calls and loss passed");
 }
 """
 

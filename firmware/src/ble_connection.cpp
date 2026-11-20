@@ -16,6 +16,7 @@ namespace {
 char lastReply[512]="IDLE";
 void describe(char* text, size_t capacity);
 std::atomic<uint16_t> connectionHandle{0xffff};
+std::atomic<bool> started{false};
 // FFF2 event v1: version, type, sequence LE32, typed payload (<=20 bytes).
 void put32(uint8_t* bytes, uint32_t value) {
     for (int i=0;i<4;++i) bytes[i]=(value>>(8*i))&0xff;
@@ -155,8 +156,14 @@ esp_err_t ble::init(){
     laboratory::set_listener(notify_laboratory);
     return esp_event_handler_register(BLE_CONN_MGR_EVENTS,ESP_EVENT_ANY_ID,event,nullptr);
 }
-esp_err_t ble::start(){return esp_ble_conn_start();}
+esp_err_t ble::start(){esp_err_t error=esp_ble_conn_start();started=error==ESP_OK;return error;}
 bool ble::connected(){return connectionHandle!=0xffff;}
+// The connection manager advertises again after a disconnect.
+ble::Link ble::link(){return connected()?Link::connected:started?Link::advertising:Link::off;}
+int ble::rssi(){
+    int8_t value=0;uint16_t handle=connectionHandle;
+    return handle!=0xffff && ble_gap_conn_rssi(handle,&value)==0 ? value : 0;
+}
 
 esp_err_t ble::request_fast_link(){
     if(connectionHandle==0xffff)return ESP_ERR_INVALID_STATE;
