@@ -6,9 +6,12 @@ import type { LaboratoryDeviceRequest } from './laboratory.types';
 
 export function useLaboratory() {
   const snapshot = useLaboratoryStore((state) => state.snapshot);
-  const [devices, setDevices] = useState(Array.from({ length: 8 }, (_, index) => ({
+  // Settings are kept for all 12 drives; the rows follow the connected firmware.
+  const count = snapshot.devices.length || 8;
+  const [entries, setDevices] = useState(Array.from({ length: 12 }, (_, index) => ({
     device_type: 'fdd' as const, device: index + 1, frequency_hz: 220, duration_ms: 3000, selected: index === 0,
   })));
+  const devices = entries.slice(0, count);
   const play = useMutation({ mutationFn: playLaboratory, retry: false });
   const stop = useMutation({ mutationFn: stopLaboratory, retry: false });
   function update(device: number, change: Partial<LaboratoryDeviceRequest> & { selected?: boolean }) {

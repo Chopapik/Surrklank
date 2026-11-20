@@ -254,7 +254,9 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
                 throw new InvalidOperationException("BLE connection was not established");
             var information = await ReadInfoAsync(cancellation);
             bool laboratorySupported = information.TryGetProperty("laboratory_version", out var labVersion) && labVersion.GetInt32() == 1;
-            laboratory.Reset(laboratorySupported);
+            // Firmware for three FDD modules reports 12; older images have no field and drive 8.
+            int fddCount = information.TryGetProperty("fdd_count", out var count) ? count.GetInt32() : LaboratoryState.LegacyDeviceCount;
+            laboratory.Reset(laboratorySupported, fddCount);
             // Old images remain readable for the first OTA migration. New images must subscribe.
             if (information.TryGetProperty("events_version", out var version) && version.GetInt32() == 1)
             {
@@ -266,7 +268,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
             }
             if (laboratorySupported)
             {
-                for (int id = 1; id <= 8; id++)
+                for (int id = 1; id <= laboratory.DeviceCount; id++)
                 {
                     using var json = JsonDocument.Parse(await SendCommandAsync($"LAB INFO {id}", cancellation));
                     laboratory.Read(json.RootElement);
@@ -415,7 +417,7 @@ public sealed class BleConnectionService(StateService updates, ILogger<BleConnec
         lock (_sync)
         { session = _session; client = Current; }
         var snapshots = new List<JsonElement>();
-        for (int id = 1; id <= 8; id++)
+        for (int id = 1; id <= laboratory.DeviceCount; id++)
         {
             using var json = JsonDocument.Parse(await SendCommandAsync($"LAB INFO {id}", token));
             snapshots.Add(json.RootElement.Clone());

@@ -25,8 +25,8 @@ esp_err_t store(const fdd::Line (&lines)[fdd::count]) {
     return ESP_OK;
 }
 }
-uint64_t step_mask() {
-    uint64_t mask = 0;
+fdd::Frame step_mask() {
+    fdd::Frame mask;
     for (int i = 0; i < fdd::count; ++i)
         mask |= fdd::output_mask(i, fdd::Line::step);
     return mask;
@@ -59,13 +59,14 @@ int main() {
     // H is sampled before the first rising clock edge; module 1 comes first.
     module_inputs[0] = 0xa5;
     module_inputs[1] = 0xfe;
+    module_inputs[2] = 0x7f; // module 3 D7: FDD 12 WRITE PROTECT
     // M3 of actuator module 1 and M1 of module 2 report ULT LOW.
     actuator_inputs[0] = 0x0b;
     actuator_inputs[1] = 0x0e;
     const Inputs inputs = read();
-    assert(inputs.fdd == 0x015a);
+    assert(inputs.fdd == 0x80015a);
     assert(actuator_faults(inputs.actuator) == 0x14);
-    module_inputs[0] = module_inputs[1] = 255;
+    module_inputs[0] = module_inputs[1] = module_inputs[2] = 255;
     actuator_inputs[0] = actuator_inputs[1] = 0x0f;
     previous = engine.outputs();
     write(previous);
@@ -88,7 +89,7 @@ int main() {
     // Two complete 595 frames: one falling and one rising STEP edge.
     unsigned clocks = 0, latches = 0;
     int64_t falling = 0, rising = 0, clock_high = -1, data_at = -1, load_low = -1;
-    uint64_t image = 0;
+    fdd::Frame image;
     for (const auto &event : gpio_events) {
         if(event.pin == 23) data_at = event.at;
         if(event.pin == 18 && event.level) {
@@ -102,7 +103,7 @@ int main() {
         if(event.pin == 33 && event.level && load_low >= 0)
             assert(event.at - load_low >= 1);
         // Reconstruct FDD data at the latch from the logged bit stream below.
-        if(event.pin == 23) image = (image << 1) | event.level;
+        if(event.pin == 23) shift_in(image, event.level);
         if(event.pin == 22 && event.level) {
             ++latches;
             if(!(image & fdd::output_mask(0, fdd::Line::step))) falling = event.at;
@@ -153,7 +154,8 @@ int main() {
     write(previous);
     one_iteration(tasks.at("fdd"));
     assert(laboratory::actuator_faults() == 0);
-    const uint64_t fdd_frame = latched, actuator_frame = actuator_latched;
+    const fdd::Frame fdd_frame = latched;
+    const uint64_t actuator_frame = actuator_latched;
     assert(laboratory::set_bus_test(true) && laboratory::bus_test_active());
     char reply[64];
     laboratory::command("LAB BEGIN 9 1", reply, sizeof(reply));
@@ -195,7 +197,7 @@ int main() {
     fdd::Line lines[fdd::count];
     laboratory::select_lines(lines);
     assert(lines[3] == fdd::Line::ds2);
-    assert(laboratory::set_select(9, fdd::Line::ds0) == laboratory::SelectResult::invalid);
+    assert(laboratory::set_select(13, fdd::Line::ds0) == laboratory::SelectResult::invalid);
     assert(laboratory::set_select(1, fdd::Line::motor) == laboratory::SelectResult::invalid);
     storage_fails = true;
     assert(laboratory::set_select(4, fdd::Line::ds0) == laboratory::SelectResult::storage);
@@ -236,4 +238,16 @@ int main() {
     rails_up = true;
     one_iteration(tasks.at("fdd"));
     assert(levels[21] == 0 && actuator_latched == 0);
+
+    // Twelve drives: 12-bit batch masks, devices 1-12 in LAB commands.
+    char wide[512];
+    laboratory::command("LAB BEGIN 12 4096", wide, sizeof(wide));
+    assert(!strcmp(wide, "ERR LAB BUSY OR INVALID"));
+    laboratory::command("LAB BEGIN 12 2048", wide, sizeof(wide)); // FDD 12 only
+    assert(!strcmp(wide, "LAB OK") && engine.drives[11].state.phase == fdd::Phase::staged);
+    laboratory::command("LAB INFO 12", wide, sizeof(wide));
+    assert(!strncmp(wide, "{\"device\":12,", 13));
+    laboratory::command("LAB INFO 13", wide, sizeof(wide));
+    assert(!strcmp(wide, "ERR LAB BUSY OR INVALID"));
+    laboratory::command("LAB ABORT 12", wide, sizeof(wide));
 }

@@ -41,7 +41,8 @@ not an authoritative ATX state. A closed browser socket makes device actions
 unavailable until it reconnects.
 
 The same `/ws` also sends a separate `laboratory` envelope with `available`,
-`supported` and eight `devices`. One sender serializes both message types.
+`supported` and one `devices` entry per drive of the connected firmware
+(`fdd_count` from INFO: 12, or 8 for older images). One sender serializes both message types.
 React validates the envelope and writes it to the Laboratory Zustand store.
 HTTP acceptance never invents a playing or parked state. A closed browser
 socket invalidates Laboratory state, TRACK0 and estimated position immediately.
@@ -105,7 +106,7 @@ for the update sequence and uncertain outcomes.
 ]}
 ```
 
-The request allows 1–8 distinct FDDs, numbered 1–8, at 1–300 Hz for
+The request allows 1–`fdd_count` distinct FDDs, numbered 1–`fdd_count`, at 1–300 Hz for
 1–60000 ms. ATX output must be ON and event-capable Laboratory firmware must
 be connected. Only one new batch can prepare at a time. Existing independent
 batches keep playing. Each short FFF1 exchange owns the native reservation;
@@ -131,7 +132,7 @@ ATX OFF and firmware maintenance reject active/preparing Laboratory work.
 ESP32 independently locks ATX while drives are active, including parking.
 Unknown outcomes keep maintenance blocked until state synchronization resolves
 them. Native BLE loss invalidates Laboratory state; reconnect subscribes and
-reads eight FFF1 device snapshots before publishing availability. Playing is
+reads one FFF1 snapshot per drive before publishing availability. Playing is
 timed locally and can finish even if the browser/backend disconnects. Duration
 expiry enters inactive `stopped` without parking; the next play request homes
 the head before starting. Manual STOP retains explicit parking.

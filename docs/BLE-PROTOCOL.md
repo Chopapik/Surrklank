@@ -17,17 +17,17 @@ The backend serializes native exchanges through a device reservation; see
 | `ATX PREPARE` | Force OFF and reject ON until restart; refused while Laboratory is active |
 | `INFO` | JSON snapshot with image identity, OTA state, ATX state and sequences |
 | `BUS TEST ON`, `BUS TEST OFF` | Start/stop the bring-up chain wave; `ERR BUS BUSY` while the bus is not live (ATX OFF or PWR_OK LOW) or a drive is active |
-| `FDD SELECT <1-8> <DS0\|DS1\|DS2>` | Store and apply one drive's select line; echoes the command, `ERR FDD BUSY` while a drive is active or a batch is pending, `ERR FDD STORAGE` when NVS fails, `ERR FDD INVALID` |
+| `FDD SELECT <1-12> <DS0\|DS1\|DS2>` | Store and apply one drive's select line; echoes the command, `ERR FDD BUSY` while a drive is active or a batch is pending, `ERR FDD STORAGE` when NVS fails, `ERR FDD INVALID` |
 | `PING <digits>` | Matching `PONG <digits>`; initiated manually |
 | `CONFIRM` | Confirm a trial image; `VALID` on success |
 | `REBOOT` | Restart after validated flash; `REBOOTING` on success |
-| `LAB BEGIN <batch> <mask>` | Reserve one pending batch; bit 0 selects FDD 1, bit 7 FDD 8 |
+| `LAB BEGIN <batch> <mask>` | Reserve one pending batch; bit 0 selects FDD 1, bit 11 FDD 12 (mask 1–4095) |
 | `LAB SET <batch> <device> <mHz> <ms>` | Stage frequency and duration for one member |
 | `LAB PREPARE <batch>` | Home/check every staged member; no musical start |
 | `LAB COMMIT <batch>` | Start all members only if every member is ready |
 | `LAB ABORT <batch>` | Cancel this pending batch and park its active members |
 | `LAB STOP <device>`, `LAB STOPALL` | Stop and park one/all drives; also cancel affected preparation |
-| `LAB INFO <device>` | JSON telemetry for one FDD, numbered 1–8 |
+| `LAB INFO <device>` | JSON telemetry for one FDD, numbered 1–`fdd_count` |
 
 FFF1 is a request/reply command channel. BLE connection, disconnection and
 discovery are link operations, not FFF1 commands. The OTA image is transferred
@@ -37,9 +37,12 @@ through Espressif's separate service; see [firmware operation](FIRMWARE.md).
 measured main rails, not the GPIO19 request; the sequence matches FFF2 type 5),
 `bus_test`, `actuator_faults`: a DRV8833 ULT bit mask (bit k = actuator module
 k / 4 + 1, slot M(k % 4 + 1)) or `null` while the bus is not live, and
-`select_lines`: one digit per FDD 1–8, the DSx index (for example
-`"11111111"`, all DS1), compact so INFO stays within the 512-byte reply, and
-`panel` (remote panel detected and still answering). With
+`select_lines`: one digit per FDD, the DSx index (for example
+`"111111111111"`, all DS1), compact so INFO stays within the 512-byte reply,
+`panel` (remote panel detected and still answering) and `fdd_count` (12 for
+three FDD modules). A client treats a missing `fdd_count` as 8, the drive
+count of older images. The worst case is now about 508 of 512 bytes, so a
+further INFO field needs a different home. With
 no actuator module connected every slot reads as a fault. `bus_test`,
 `actuator_faults` and `select_lines` have no FFF2 events; the backend reads
 INFO after its own commands and after each PWR_OK event. While the bus test
@@ -111,7 +114,7 @@ are merged independently by type, so parameters cannot overwrite newer state.
 | --- | --- | --- |
 | 0–1 | Version `1`, type `3` | Version `1`, type `4` |
 | 2–5 | Device sequence, uint32 | Same sequence, uint32 |
-| 6 | Device 1–8 | Device 1–8 |
+| 6 | Device 1–12 | Device 1–12 |
 | 7 | Phase, uint8 | Frequency in millihertz, uint32 (7–10) |
 | 8–11 | Batch ID, uint32 | Duration in ms, uint32 (11–14) |
 | 12 | Error, uint8 | Return STEP count, uint16 (15–16) |
@@ -138,7 +141,7 @@ Firmware pushes changed state plus a refresh every 250 ms while any drive is
 active and every second when idle. A later push repairs a lost final
 Laboratory event. These are device-originated snapshots, not backend polling.
 Detected sequence gaps, an explicit command or an uncertain outcome can cause
-one FFF1 reconciliation. Reconnect reads all eight `LAB INFO` snapshots after
+one FFF1 reconciliation. Reconnect reads every `LAB INFO` snapshot (1–`fdd_count`) after
 subscription. No Laboratory code reads subscribed FFF2.
 
 ## Compatibility and browser boundary
@@ -162,7 +165,7 @@ The boot identifier distinguishes restarts probabilistically; it is not a persis
 `LAB EVENT <cursor>` returns the oldest retained event newer than the cursor,
 plus `esp_boot_id` and `latest`. `event` is null when none remains. Events contain
 `event_sequence`, `device`, `batch`, `state`, `toward_zero`, `esp_event_time_us`.
-The fixed ring retains 128 phase/direction/batch changes across all eight FDDs.
+The fixed ring retains 128 phase/direction/batch changes across all FDDs.
 A first returned sequence greater than cursor+1 means records were overwritten.
 No per-STEP events are emitted. Sequence wrap is outside timing v1's supported
 capture lifetime; restart or a cursor ahead of latest requires a new capture.

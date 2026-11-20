@@ -115,10 +115,10 @@ void describe(char* text, size_t capacity){
     for(int i=0;i<fdd::count;++i)select_text[i]=(char)('0'+(int)lines[i]);
     select_text[fdd::count]=0;
     auto rails=atx::rails();
-    snprintf(text+end,capacity-end,",\"pwr_ok\":%s,\"pwr_ok_sequence\":%lu,\"bus_test\":%s,\"actuator_faults\":%s,\"select_lines\":\"%s\",\"panel\":%s}",
+    snprintf(text+end,capacity-end,",\"pwr_ok\":%s,\"pwr_ok_sequence\":%lu,\"bus_test\":%s,\"actuator_faults\":%s,\"select_lines\":\"%s\",\"panel\":%s,\"fdd_count\":%d}",
              rails.ok?"true":"false",(unsigned long)rails.sequence,
              laboratory::bus_test_active()?"true":"false",fault_text,select_text,
-             panel::present()?"true":"false");
+             panel::present()?"true":"false",fdd::count);
 }
 esp_err_t info(const uint8_t*,uint16_t,uint8_t** data,uint16_t* length,void*,uint8_t* status){
     char text[512];describe(text,sizeof(text));

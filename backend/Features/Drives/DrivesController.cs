@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Surrklank.Features.Connection;
 using Surrklank.Features.Drives.DTOs;
+using Surrklank.Features.Laboratory;
 using Surrklank.Shared.Http;
 
 namespace Surrklank.Features.Drives;
@@ -13,8 +14,8 @@ public sealed class DrivesController(DrivesService drives) : ControllerBase
     public async Task<IActionResult> SetSelectAsync(DriveSelectRequestDto request, CancellationToken cancellation)
     {
         if (!LocalOrigin.IsAllowed(Request)) return StatusCode(403, new { message = "Local origin required" });
-        if (request.Device is < 1 or > 8 || !DrivesService.Lines.Contains(request.Line))
-            return BadRequest(new { message = "Device must be 1-8 and line DS0, DS1 or DS2" });
+        if (request.Device is < 1 or > LaboratoryState.MaxDeviceCount || !DrivesService.Lines.Contains(request.Line))
+            return BadRequest(new { message = "Device must be 1-12 and line DS0, DS1 or DS2" });
         try
         {
             await drives.SetSelectAsync(request.Device, request.Line, cancellation);

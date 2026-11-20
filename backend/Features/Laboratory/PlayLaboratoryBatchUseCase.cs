@@ -10,10 +10,11 @@ public sealed class PlayLaboratoryBatchUseCase(IDeviceConnection connection, Lab
     private readonly SemaphoreSlim _preparation = new(1, 1);
     public async Task<uint> ExecuteAsync(LaboratoryPlayRequestDto request, CancellationToken cancellationToken)
     {
-        if (request.Devices == null || request.Devices.Count is < 1 or > 8)
-            throw new ArgumentException("Provide 1 to 8 distinct FDD devices");
-        if (request.Devices.Any(d => d == null || d.DeviceType != "fdd" || d.Device is < 1 or > 8 || !double.IsFinite(d.FrequencyHz) || d.FrequencyHz is < 1 or > 300 || d.DurationMs is < 1 or > 60000))
-            throw new ArgumentException("FDD limits: device 1–8, frequency 1–300 Hz, duration 1–60000 ms");
+        int drives = state.DeviceCount;
+        if (request.Devices == null || request.Devices.Count < 1 || request.Devices.Count > drives)
+            throw new ArgumentException($"Provide 1 to {drives} distinct FDD devices");
+        if (request.Devices.Any(d => d == null || d.DeviceType != "fdd" || d.Device < 1 || d.Device > drives || !double.IsFinite(d.FrequencyHz) || d.FrequencyHz is < 1 or > 300 || d.DurationMs is < 1 or > 60000))
+            throw new ArgumentException($"FDD limits: device 1–{drives}, frequency 1–300 Hz, duration 1–60000 ms");
         if (request.Devices.Select(d => d.Device).Distinct().Count() != request.Devices.Count)
             throw new ArgumentException("A device must appear only once in a batch");
         if (!await _preparation.WaitAsync(0, cancellationToken)) throw new DeviceBusyException("laboratory_preparation");

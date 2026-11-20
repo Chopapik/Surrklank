@@ -34,7 +34,7 @@ void fdd::Engine::fail(Drive &d, Error error, int64_t now) {
     d.state.error = error;
     d.state.position = -1;
 }
-bool fdd::Engine::begin(uint32_t batch, uint8_t devices, int64_t now) {
+bool fdd::Engine::begin(uint32_t batch, DriveMask devices, int64_t now) {
     if (!batch || !devices || pending)
         return false;
     for (int i = 0; i < count; ++i)
@@ -161,7 +161,7 @@ bool fdd::Engine::set_select(int device, Line line) {
     ++s.sequence;
     return true;
 }
-void fdd::Engine::tick(int64_t now, uint8_t track0) {
+void fdd::Engine::tick(int64_t now, DriveMask track0) {
     if (pending && now > lease) {
         for (auto &d : drives)
             if (d.state.batch == pending && active(d.state.phase))
@@ -290,10 +290,10 @@ void fdd::Engine::tick(int64_t now, uint8_t track0) {
         }
     }
 }
-void fdd::Engine::steps_latched(uint64_t before, uint64_t after, int64_t scheduled_at, int64_t latched_at) {
+void fdd::Engine::steps_latched(const Frame &before, const Frame &after, int64_t scheduled_at, int64_t latched_at) {
     const int64_t delay = latched_at - scheduled_at;
     for (int i = 0; i < count; ++i) {
-        const uint64_t step = output_mask(i, Line::step);
+        const Frame step = output_mask(i, Line::step);
         if ((before & step) && !(after & step)) {
             drives[i].raised += delay;
         }
@@ -303,8 +303,8 @@ void fdd::Engine::finish_pulses() {
     for (auto &drive : drives)
         drive.step_low = false;
 }
-uint64_t fdd::Engine::outputs() const {
-    uint64_t image = 0;
+fdd::Frame fdd::Engine::outputs() const {
+    Frame image;
     for (int i = 0; i < count; ++i) {
         const auto &d = drives[i];
         // Every select line and MOTOR stay inactive (HIGH) except the configured select.
@@ -319,11 +319,11 @@ uint64_t fdd::Engine::outputs() const {
     }
     return image;
 }
-uint8_t fdd::track0_inputs(uint16_t sensors) {
-    uint8_t track0 = 0;
+fdd::DriveMask fdd::track0_inputs(uint32_t sensors) {
+    DriveMask track0 = 0;
     for (int i = 0; i < count; ++i)
-        if (sensors & (1u << track0_bit(i)))
-            track0 |= 1 << i;
+        if (sensors & (uint32_t{1} << track0_bit(i)))
+            track0 |= DriveMask(1u << i);
     return track0;
 }
 const char *fdd::name(Phase p) {

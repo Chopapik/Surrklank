@@ -18,7 +18,7 @@ describe('Laboratory WebSocket boundary', () => {
 
   it('rejects incomplete or duplicate device snapshots', () => {
     const incomplete = snapshot();
-    incomplete.devices.pop();
+    incomplete.devices.splice(2, 1); // FDD 3 missing
     expect(laboratoryMessageSchema.safeParse(incomplete).success).toBe(false);
     const duplicate = snapshot();
     duplicate.devices[1].device = 1;

@@ -13,8 +13,12 @@ public sealed class DrivesService(IDeviceConnection connection, LaboratoryState 
         using var operation = await connection.ReserveAsync("drive_select", cancellation);
         if (laboratory.HasActivity)
             throw new DeviceBusyException("laboratory");
-        if (connection.Snapshot().SelectLines is null)
+        var lines = connection.Snapshot().SelectLines;
+        if (lines is null)
             throw new InvalidOperationException("Select lines are unavailable; connect compatible firmware first");
+        // The firmware reports one select line per drive it drives.
+        if (device > lines.Count)
+            throw new InvalidOperationException($"The connected firmware drives FDD 1-{lines.Count}");
         string command = $"FDD SELECT {device} {line}";
         var reply = await operation.SendCommandAsync(command, cancellation);
         connection.SetDevice(await operation.ReadInfoAsync(cancellation));

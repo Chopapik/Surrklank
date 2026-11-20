@@ -2,7 +2,7 @@
 
 This branch (`pcb-modules`) describes the **planned PCB wiring**: a mainboard
 and chained FDD and actuator modules. Nothing here is built or tested yet.
-Firmware on this branch implements this wiring for two FDD modules (FDD1–8) and
+Firmware on this branch implements this wiring for three FDD modules (FDD1–12) and
 keeps the actuator branch cleared; it no longer matches the hand-wired assembly
 recorded in `docs/WIRING.md` on `main` (commit `30f4cbc`). See
 [FIRMWARE.md](FIRMWARE.md#fdd-laboratory). Board-level design (footprints,
@@ -34,7 +34,9 @@ mainboard ──16-pin ribbon── FDD module 1 ──ribbon── FDD module 2
   (modules can move around a roughly 50 × 50 cm area).
 - Every module has identical IN and OUT connectors; modules of one branch are
   daisy-chained. Module 1 is closest to the mainboard.
-- An FDD module serves four drives; two FDD modules serve the current eight.
+- An FDD module serves four drives; three FDD modules serve up to 12 drives
+  (FDD 1–4 on module 1, nearest the mainboard, 5–8 on module 2, 9–12 on
+  module 3). Drives are numbered in chain order; label them on the stack.
 - An actuator module carries up to four DRV8833 driver modules.
 - A proposed perfboard LED board ends the actuator branch (see
   [Running-LED board](#running-led-board-proposed)).

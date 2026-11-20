@@ -62,8 +62,8 @@ public sealed class LaboratoryService(IDeviceConnection connection, LaboratorySt
     public Task<uint> PlayAsync(LaboratoryPlayRequestDto request, CancellationToken cancellationToken) => play.ExecuteAsync(request, cancellationToken);
     public async Task StopAsync(LaboratoryStopRequestDto? request, CancellationToken cancellationToken)
     {
-        if (request != null && (request.DeviceType != "fdd" || request.Device is < 1 or > 8))
-            throw new ArgumentException("Select an FDD numbered 1 through 8");
+        if (request != null && (request.DeviceType != "fdd" || request.Device < 1 || request.Device > state.DeviceCount))
+            throw new ArgumentException($"Select an FDD numbered 1 through {state.DeviceCount}");
         using var operation = await connection.ReserveAsync("laboratory_stop", cancellationToken);
         RequireReady(connection, state);
         try

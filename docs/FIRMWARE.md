@@ -109,11 +109,18 @@ checks this firmware lock. Stop and finish parking before maintenance.
 
 `fdd_engine.cpp` owns platform-independent drive state and pulse scheduling;
 `fdd_control.cpp` owns the ESP-IDF task, GPIO and 595/165 transfer. One scheduler
-maintains a full 32-bit FDD output image, preserving the other drives when one
+maintains a full FDD output frame, preserving the other drives when one
 changes. The implemented mapping is the PCB module wiring in
-[WIRING.md](WIRING.md): two chained FDD modules form a 48-bit 595 frame (six
-outputs per drive, bit 0 = module 1 U2 QA, shifted last) and a 16-bit 165 read
-(module 1 first, TRACK0 on even inputs, WRITE PROTECT on odd inputs, unused).
+[WIRING.md](WIRING.md): three chained FDD modules (FDD 1-12) form a 72-bit 595
+frame (six outputs per drive, bit 0 = module 1 U2 QA, shifted last) and a
+24-bit 165 read (module 1 first, TRACK0 on even inputs, WRITE PROTECT on odd
+inputs, unused). `fdd::Frame` keeps one 24-bit word per module, because 72
+bits do not fit one uint64_t and the ESP32 toolchain has no 128-bit integer.
+Firmware always drives three modules; a drive that is not connected fails
+preparation with TRACK0 not confirmed. Shifting 72 bits takes about 1.5 times
+as long as the former 48-bit frame (about 150 us instead of 100 us with the
+unchanged 1 us setup and clock delays, kept as margin for 50-100 cm ribbons),
+and a STEP pulse spans two frames.
 `fdd_engine.h` holds this bit map. The select line of each drive
 (`Engine::select`, DS0/DS1/DS2, DS1 by default) is a runtime setting that
 `drive_settings.cpp` loads from NVS (namespace `surrklank`, key `select`) at
@@ -258,10 +265,12 @@ The host tests exercise the real scheduling engine with simulated sensors,
 missed head movement, unequal return counts, parallel batches and stop/fault
 paths. They do not verify electrical levels, SELECT jumper configuration,
 actual motor movement, STEP/DIR timing under BLE load or playback pitch.
-Physical checks on FDD 1 and 2 confirm sensor transitions, concurrent playing,
-independent STOP, STOP ALL and final TRACK0 parking at the tested frequencies
-(100, 110, 220 and 300 Hz). This is ESP32 telemetry evidence, not an external
-position, frequency or voltage measurement. Other drives and disconnected-sensor
+Physical checks on FDD 1 and 2 of the hand-wired assembly confirm sensor
+transitions, concurrent playing, independent STOP, STOP ALL and final TRACK0
+parking at the tested frequencies (100, 110, 220 and 300 Hz). This is ESP32
+telemetry evidence, not an external position, frequency or voltage
+measurement. Those cadence observations were made with shorter frames and do
+not carry over to the 72-bit PCB frame; repeat them on the modules. Other drives and disconnected-sensor
 faults have not been exercised physically. Keep ATX OFF during uploads.
 
 References: [Espressif BLE OTA example](https://github.com/espressif/esp-iot-solution/tree/5fbb2597b88f21ec41e952f81292ccd6ae569761/examples/bluetooth/ble_profiles/ble_ota),

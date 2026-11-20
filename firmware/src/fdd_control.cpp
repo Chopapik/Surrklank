@@ -22,8 +22,8 @@ uint32_t boot_id;
 SemaphoreHandle_t mutex;
 TaskHandle_t task;
 TaskHandle_t reporting_task;
-fdd::State pending_reports[8];
-uint8_t pending_report_mask = 0;
+fdd::State pending_reports[fdd::count];
+fdd::DriveMask pending_report_mask = 0;
 using Listener = void (*)(int, fdd::State);
 std::atomic<Listener> listener{nullptr};
 constexpr gpio_num_t data = GPIO_NUM_23, clock595 = GPIO_NUM_18, latch = GPIO_NUM_22, oe = GPIO_NUM_21,
@@ -40,7 +40,7 @@ constexpr int input_modules = fdd::modules > actuator_modules ? fdd::modules : a
 // blinks at 0.5 Hz in the opposite phase of its neighbour.
 constexpr int64_t bus_test_step_us = 125000;
 bool powered = false;
-uint64_t previous = 0;
+fdd::Frame previous;
 std::atomic<bool> bus_test{false};
 std::atomic<int> actuator_fault_mask{-1};
 unsigned bus_test_step = 0;
@@ -53,12 +53,12 @@ struct CadenceProbe {
     int minimum = 1000000000, maximum = 0, low_minimum = 1000000000, low_maximum = 0;
     bool plateau = false, toward_zero = false, reported = false;
 };
-CadenceProbe probes[8];
-void probe_edges(uint64_t before, uint64_t after, int64_t edge) {
-    for (int i = 0; i < 8; ++i) {
+CadenceProbe probes[fdd::count];
+void probe_edges(const fdd::Frame &before, const fdd::Frame &after, int64_t edge) {
+    for (int i = 0; i < fdd::count; ++i) {
         const auto &drive = engine.drives[i];
         const auto &s = drive.state;
-        const uint64_t bit = fdd::output_mask(i, fdd::Line::step);
+        const fdd::Frame bit = fdd::output_mask(i, fdd::Line::step);
         auto &p = probes[i];
         if ((before & bit) && !(after & bit) && s.phase == fdd::Phase::playing) {
             if (p.batch != s.batch) {
@@ -123,10 +123,10 @@ void clear_actuators() {
 }
 // Shares CLK with the actuator branch; its DATA stays LOW and its LATCH is not
 // pulsed, so actuator outputs keep the cleared frame.
-int64_t write(uint64_t image) {
+int64_t write(const fdd::Frame &image) {
     gpio_set_level(latch, 0);
     for (int bit = fdd::frame_bits - 1; bit >= 0; --bit) {
-        gpio_set_level(data, (image >> bit) & 1);
+        gpio_set_level(data, image.test(bit));
         esp_rom_delay_us(1);
         gpio_set_level(clock595, 1);
         esp_rom_delay_us(1);
@@ -139,7 +139,7 @@ int64_t write(uint64_t image) {
     return edge;
 }
 struct Inputs {
-    uint16_t fdd = 0, actuator = 0;
+    uint32_t fdd = 0, actuator = 0; // 8 bits per module, module 1 lowest
 };
 // Both branches share /PL and CLK165, so one pass reads both chains. Module 1
 // is read first, D7 to D0, then module 2. Active LOW inputs become set bits.
@@ -164,7 +164,7 @@ Inputs read() {
 }
 // ULT of slots M1-M4 sits on D0-D3; D4-D7 are tied to GND and ignored.
 // Result bit k is module k / 4, slot k % 4.
-int actuator_faults(uint16_t inputs) {
+int actuator_faults(uint32_t inputs) {
     int faults = 0;
     for (int module = 0; module < actuator_modules; ++module)
         faults |= ((inputs >> (module * 8)) & 0x0f) << (module * 4);
@@ -212,8 +212,8 @@ void start_motion_timer() {
 }
 void worker(void *) {
     start_motion_timer();
-    uint32_t sequences[8] = {};
-    int64_t published[8] = {};
+    uint32_t sequences[fdd::count] = {};
+    int64_t published[fdd::count] = {};
     for (;;) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         bool report_ready = false;
@@ -238,7 +238,7 @@ void worker(void *) {
         }
         if (powered) {
             const Inputs inputs = read();
-            const uint8_t track0 = fdd::track0_inputs(inputs.fdd);
+            const fdd::DriveMask track0 = fdd::track0_inputs(inputs.fdd);
             actuator_fault_mask = actuator_faults(inputs.actuator);
             if (bus_test && now >= bus_test_due) {
                 step_bus_test();
@@ -246,7 +246,7 @@ void worker(void *) {
             }
             now = esp_timer_get_time();
             engine.tick(now, track0);
-            uint64_t image = engine.outputs();
+            fdd::Frame image = engine.outputs();
             if (image != previous) {
                 const int64_t edge = write(image);
                 probe_edges(previous, image, edge);
@@ -259,18 +259,18 @@ void worker(void *) {
                 if (pulsing) {
                     esp_rom_delay_us(fdd::step_low_us);
                     engine.finish_pulses();
-                    const uint64_t low = previous;
+                    const fdd::Frame low = previous;
                     previous = engine.outputs();
                     const int64_t high = write(previous);
                     probe_edges(low, previous, high);
                 }
             }
         }
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < fdd::count; ++i)
             history.observe(i + 1, engine.drives[i].state, esp_timer_get_time());
         if (!engine.busy())
             atx::release_instruments();
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < fdd::count; ++i) {
             auto &state = engine.drives[i].state;
             if (state.sequence != sequences[i] || (now - published[i] >= (engine.busy() ? 250000 : 1000000))) {
                 if (state.sequence == sequences[i])
@@ -278,7 +278,7 @@ void worker(void *) {
                 sequences[i] = state.sequence;
                 published[i] = now;
                 pending_reports[i] = state;
-                pending_report_mask |= 1 << i;
+                pending_report_mask |= fdd::DriveMask(1u << i);
                 report_ready = true;
             }
         }
@@ -290,28 +290,28 @@ void worker(void *) {
 void report_worker(void *) {
     for (;;) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        fdd::State reports[8];
-        CadenceProbe completed[8];
-        uint8_t complete = 0;
+        fdd::State reports[fdd::count];
+        CadenceProbe completed[fdd::count];
+        fdd::DriveMask complete = 0;
         xSemaphoreTake(mutex, portMAX_DELAY);
-        const uint8_t changed = pending_report_mask;
+        const fdd::DriveMask changed = pending_report_mask;
         pending_report_mask = 0;
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < fdd::count; ++i)
             if (changed & (1 << i)) {
                 reports[i] = pending_reports[i];
                 if ((reports[i].phase == fdd::Phase::stopped || reports[i].phase == fdd::Phase::error) &&
                     probes[i].intervals && !probes[i].reported && probes[i].batch == reports[i].batch) {
                     completed[i] = probes[i];
                     probes[i].reported = true;
-                    complete |= 1 << i;
+                    complete |= fdd::DriveMask(1u << i);
                 }
             }
         xSemaphoreGive(mutex);
         auto callback = listener.load();
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < fdd::count; ++i)
             if ((changed & (1 << i)) && callback)
                 callback(i + 1, reports[i]);
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < fdd::count; ++i)
             if (complete & (1 << i)) {
                 const auto &p = completed[i];
                 printf("FDD_CADENCE device=%d batch=%lu target_mhz=%lu n=%lu sum_us=%lld sum_sq_us=%lld min_us=%d max_us=%d outside_100us=%lu widths=%lu low_min_us=%d low_max_us=%d\n",
@@ -369,7 +369,7 @@ void laboratory::command(const char *text, char *reply, size_t capacity) {
     xSemaphoreTake(mutex, portMAX_DELAY);
     int64_t now = esp_timer_get_time();
     bool ok = false;
-    if (sscanf(text, "LAB INFO %u %c", &device, &end) == 1 && device >= 1 && device <= 8) {
+    if (sscanf(text, "LAB INFO %u %c", &device, &end) == 1 && device >= 1 && device <= unsigned(fdd::count)) {
         auto s = engine.drives[device - 1].state;
         snprintf(reply, capacity,
                  "{\"device\":%u,\"sequence\":%lu,\"batch\":%lu,\"state\":\"%s\",\"frequency_hz\":%.3f,\"duration_ms\":"
@@ -382,9 +382,9 @@ void laboratory::command(const char *text, char *reply, size_t capacity) {
         xSemaphoreGive(mutex);
         return;
     }
-    if (sscanf(text, "LAB BEGIN %u %u %c", &batch, &mask, &end) == 2 && mask > 0 && mask <= 255) {
+    if (sscanf(text, "LAB BEGIN %u %u %c", &batch, &mask, &end) == 2 && mask > 0 && mask < (1u << fdd::count)) {
         if (!bus_test && powered && atx::claim_instruments())
-            ok = engine.begin(batch, (uint8_t)mask, now);
+            ok = engine.begin(batch, fdd::DriveMask(mask), now);
     } else if (sscanf(text, "LAB SET %u %u %u %u %c", &batch, &device, &rate, &duration, &end) == 4)
         ok = engine.configure(batch, device, rate, duration);
     else if (sscanf(text, "LAB PREPARE %u %c", &batch, &end) == 1)
@@ -394,14 +394,14 @@ void laboratory::command(const char *text, char *reply, size_t capacity) {
     else if (sscanf(text, "LAB ABORT %u %c", &batch, &end) == 1) {
         engine.abort(batch, now);
         ok = true;
-    } else if (sscanf(text, "LAB STOP %u %c", &device, &end) == 1 && device >= 1 && device <= 8) {
+    } else if (sscanf(text, "LAB STOP %u %c", &device, &end) == 1 && device >= 1 && device <= unsigned(fdd::count)) {
         engine.stop(device, now);
         ok = true;
     } else if (!strcmp(text, "LAB STOPALL")) {
         engine.stop_all(now);
         ok = true;
     }
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < fdd::count; ++i)
         history.observe(i + 1, engine.drives[i].state, esp_timer_get_time());
     if (!engine.busy())
         atx::release_instruments();

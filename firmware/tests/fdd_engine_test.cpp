@@ -6,23 +6,23 @@
 
 struct Simulation {
     fdd::Engine engine;
-    int position[8] = {};
-    bool absent[8] = {}, stuck[8] = {};
+    int position[fdd::count] = {};
+    bool absent[fdd::count] = {}, stuck[fdd::count] = {};
     int skip_forward = 0, skip_return = 0;
     int64_t now = 0;
-    unsigned played[8] = {};
+    unsigned played[fdd::count] = {};
     void tick() {
-        uint8_t sensors = 0;
-        for (int i = 0; i < 8; ++i)
+        fdd::DriveMask sensors = 0;
+        for (int i = 0; i < fdd::count; ++i)
             if (!absent[i] && (stuck[i] || position[i] <= 0))
-                sensors |= 1 << i;
+                sensors |= fdd::DriveMask(1u << i);
         auto before = engine.outputs();
         engine.tick(now, sensors);
         auto after = engine.outputs();
-        for (int i = 0; i < 8; ++i) {
-            const uint64_t step = fdd::output_mask(i, fdd::Line::step);
+        for (int i = 0; i < fdd::count; ++i) {
+            const fdd::Frame step = fdd::output_mask(i, fdd::Line::step);
             if (!(before & step) && (after & step)) {
-                bool back = after & fdd::output_mask(i, fdd::Line::dir);
+                bool back = static_cast<bool>(after & fdd::output_mask(i, fdd::Line::dir));
                 auto &state = engine.drives[i].state;
                 if (state.phase == fdd::Phase::playing) {
                     ++played[i];
@@ -47,15 +47,15 @@ struct Simulation {
         while (now < end)
             tick();
     }
-    bool ready(uint8_t mask) {
-        for (int i = 0; i < 8; ++i)
+    bool ready(fdd::DriveMask mask) {
+        for (int i = 0; i < fdd::count; ++i)
             if ((mask & (1 << i)) && engine.drives[i].state.phase != fdd::Phase::ready)
                 return false;
         return true;
     }
-    void prepare(uint32_t batch, uint8_t mask) {
+    void prepare(uint32_t batch, fdd::DriveMask mask) {
         assert(engine.begin(batch, mask, now));
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < fdd::count; ++i)
             if (mask & (1 << i))
                 assert(engine.configure(batch, i + 1, 100000, 3000));
         assert(engine.prepare(batch, now));
@@ -220,7 +220,7 @@ int main() {
 
     // Bit positions follow the FDD module tables in docs/WIRING.md.
     {
-        assert(fdd::frame_bits == 48 && fdd::sensor_bits == 16);
+        assert(fdd::frame_bits == 72 && fdd::sensor_bits == 24);
         assert(fdd::output_bit(0, fdd::Line::ds0) == 0);   // module 1 U2 QA: D1 DS0
         assert(fdd::output_bit(1, fdd::Line::ds0) == 6);   // module 1 U2 QG: D2 DS0
         assert(fdd::output_bit(2, fdd::Line::motor) == 15); // module 1 U3 QH: D3 MOTOR
@@ -229,27 +229,35 @@ int main() {
         assert(fdd::output_bit(7, fdd::Line::step) == 47); // module 2 U4 QH: D4 STEP
         assert(fdd::track0_bit(0) == 0 && fdd::track0_bit(3) == 6); // module 1 U5 D0, D6
         assert(fdd::track0_bit(4) == 8 && fdd::track0_bit(7) == 14); // module 2 U5 D0, D6
+        assert(fdd::output_bit(8, fdd::Line::ds0) == 48);  // module 3 U2 QA: D1 DS0
+        assert(fdd::output_bit(11, fdd::Line::step) == 71); // module 3 U4 QH: D4 STEP
+        assert(fdd::track0_bit(8) == 16 && fdd::track0_bit(11) == 22); // module 3 U5 D0, D6
+        // A bit of module 3 lives in the third word of the frame.
+        const fdd::Frame last = fdd::output_mask(11, fdd::Line::step);
+        assert(last.module[2] == (1u << 23) && !last.module[0] && !last.module[1] && last.test(71));
+        assert((~fdd::Frame{}).module[2] == 0xffffff && !(~fdd::Frame{} & fdd::Frame{}));
         // WRITE PROTECT (odd inputs) never reads as TRACK0.
         assert(fdd::track0_inputs(0xaaaa) == 0);
         assert(fdd::track0_inputs(0x0041) == 0x09);
         assert(fdd::track0_inputs(0x4100) == 0x90);
+        assert(fdd::track0_inputs(0x410000) == 0x900); // module 3: FDD 9 and 12
     }
     // Only the configured SELECT is active LOW; MOTOR and other selects stay HIGH.
     {
         Simulation s;
-        uint64_t select_mask = 0, idle_mask = 0;
-        for (int i = 0; i < 8; ++i) {
+        fdd::Frame select_mask, idle_mask;
+        for (int i = 0; i < fdd::count; ++i) {
             select_mask |= fdd::output_mask(i, s.engine.select[i]);
             for (auto line : {fdd::Line::ds0, fdd::Line::ds1, fdd::Line::ds2, fdd::Line::motor})
                 if (line != s.engine.select[i])
                     idle_mask |= fdd::output_mask(i, line);
         }
-        assert(select_mask == 0x082082082082ULL); // DS1 of every drive
+        for (int m = 0; m < fdd::modules; ++m)
+            assert(select_mask.module[m] == 0x082082); // DS1 of every drive
         assert((s.engine.outputs() & select_mask) == select_mask);
-        assert((s.engine.outputs() >> fdd::frame_bits) == 0);
-        s.prepare(1, 255);
-        assert(s.ready(255));
-        assert((s.engine.outputs() & select_mask) == 0);
+        s.prepare(1, 0xfff); // all 12 drives
+        assert(s.ready(0xfff));
+        assert(!(s.engine.outputs() & select_mask));
         assert((s.engine.outputs() & idle_mask) == idle_mask);
         assert(s.engine.commit(1, s.now));
         s.engine.stop_all(s.now);
@@ -393,7 +401,7 @@ int main() {
         s.engine.stop_all(s.now);
         s.run(1500000);
         assert(!s.engine.busy() && s.engine.drives[1].state.phase == fdd::Phase::unknown);
-        assert(!s.engine.set_select(0, fdd::Line::ds0) && !s.engine.set_select(9, fdd::Line::ds0));
+        assert(!s.engine.set_select(0, fdd::Line::ds0) && !s.engine.set_select(13, fdd::Line::ds0));
         assert(!s.engine.set_select(1, fdd::Line::step));
         const auto sequence = s.engine.drives[0].state.sequence;
         assert(s.engine.set_select(1, fdd::Line::ds0));

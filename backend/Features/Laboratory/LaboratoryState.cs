@@ -7,10 +7,15 @@ namespace Surrklank.Features.Laboratory;
 
 public sealed class LaboratoryState(StateService updates)
 {
+    public const int LegacyDeviceCount = 8, MaxDeviceCount = 12;
     private readonly object _sync = new();
-    private LaboratoryDeviceDto[] _devices = Enumerable.Range(1, 8).Select(id => new LaboratoryDeviceDto("fdd", id)).ToArray();
-    private readonly uint?[] _status = new uint?[8];
-    private readonly uint?[] _parameters = new uint?[8];
+    private int _count = LegacyDeviceCount;
+    private LaboratoryDeviceDto[] _devices = Devices(LegacyDeviceCount);
+    private readonly uint?[] _status = new uint?[MaxDeviceCount];
+    private readonly uint?[] _parameters = new uint?[MaxDeviceCount];
+    private static LaboratoryDeviceDto[] Devices(int count) => Enumerable.Range(1, count).Select(id => new LaboratoryDeviceDto("fdd", id)).ToArray();
+    // FDD drives of the connected firmware (fdd_count in INFO).
+    public int DeviceCount { get { lock (_sync) return _count; } }
     private bool _available, _supported, _preparing, _uncertain, _needsRefresh;
     public static bool IsActive(string value) => value is not ("unknown" or "parked" or "error" or "stopped");
     public bool HasActivity { get { lock (_sync) return _preparing || _uncertain || _devices.Any(d => IsActive(d.State)); } }
@@ -21,14 +26,15 @@ public sealed class LaboratoryState(StateService updates)
     {
         lock (_sync) return new(_available ? _devices.ToArray() : _devices.Select(d => d with { State = "unknown", Track0 = null, PositionEstimate = null }).ToArray(), _available, _supported);
     }
-    public void Reset(bool supported = false)
+    public void Reset(bool supported = false, int deviceCount = LegacyDeviceCount)
     {
         lock (_sync)
         {
             _uncertain |= _preparing || _devices.Any(d => IsActive(d.State));
             _available = false; _supported = supported; NeedsRefresh = false;
             Array.Clear(_status); Array.Clear(_parameters);
-            _devices = Enumerable.Range(1, 8).Select(id => new LaboratoryDeviceDto("fdd", id)).ToArray();
+            _count = Math.Clamp(deviceCount, 1, MaxDeviceCount);
+            _devices = Devices(_count);
         }
         updates.Publish();
     }
@@ -37,7 +43,7 @@ public sealed class LaboratoryState(StateService updates)
     public void Read(JsonElement json)
     {
         int index = json.GetProperty("device").GetInt32() - 1;
-        if (index is < 0 or > 7) throw new InvalidOperationException("Invalid laboratory device snapshot");
+        if (index < 0 || index >= DeviceCount) throw new InvalidOperationException("Invalid laboratory device snapshot");
         uint sequence = json.GetProperty("sequence").GetUInt32();
         lock (_sync)
         {
@@ -62,7 +68,7 @@ public sealed class LaboratoryState(StateService updates)
     public void Refreshed() { lock (_sync) { NeedsRefresh = false; _uncertain = false; } }
     public bool Receive(byte[] bytes)
     {
-        if (bytes.Length != 20 || bytes[0] != 1 || bytes[1] is not (3 or 4) || bytes[6] is < 1 or > 8) return false;
+        if (bytes.Length != 20 || bytes[0] != 1 || bytes[1] is not (3 or 4) || bytes[6] < 1 || bytes[6] > DeviceCount) return false;
         int index = bytes[6] - 1;
         uint sequence = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(2));
         lock (_sync)

@@ -46,8 +46,8 @@ const connected: ConnectionSnapshot = {
 const idleFirmware: FirmwareSnapshot = {
   stage: 'idle', progress: null, error: null, result: null, busy: false, events: [],
 };
-function laboratorySnapshot(state: 'parked' | 'playing' = 'parked'): LaboratoryMessage {
-  return { type: 'laboratory', available: true, supported: true, devices: Array.from({ length: 8 }, (_, index) => ({
+function laboratorySnapshot(state: 'parked' | 'playing' = 'parked', count = 8): LaboratoryMessage {
+  return { type: 'laboratory', available: true, supported: true, devices: Array.from({ length: count }, (_, index) => ({
     device_type: 'fdd', device: index + 1, sequence: 1, batch: 1, state,
     frequency_hz: 220, duration_ms: 3000, elapsed_ms: 0, track0: state === 'parked',
     left_track0: false, toward_zero: true, steps_issued: 0, return_steps: 0,
@@ -302,5 +302,18 @@ describe('Surrklank interface', () => {
     expect((screen.getByRole('combobox', { name: 'SELECT FDD 2' }) as HTMLSelectElement).value).toBe('DS1');
     act(() => socket.laboratory(laboratorySnapshot('playing')));
     await waitFor(() => expect((screen.getByRole('combobox', { name: 'SELECT FDD 1' }) as HTMLSelectElement).disabled).toBe(true));
+  });
+  it('shows as many FDD rows as the connected firmware drives', async () => {
+    const { socket } = renderApp();
+    await establishConnection(socket);
+    act(() => socket.laboratory(laboratorySnapshot('parked', 8)));
+    expect(screen.queryByLabelText('Hz FDD 9')).toBeNull();
+    act(() => socket.laboratory(laboratorySnapshot('parked', 12)));
+    expect(screen.getByLabelText('Hz FDD 12')).toBeTruthy();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'FDD 12' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Uruchom zaznaczone FDD' }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/laboratory/play', expect.objectContaining({
+      body: expect.stringContaining('"device":12'),
+    })));
   });
 });

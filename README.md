@@ -2,7 +2,7 @@
 
 Surrklank is a local application for an ESP32 device. ASP.NET Core serves the
 React interface and communicates with the ESP32 over BLE. The firmware currently
-supports connection, ATX control, an eight-drive FDD Laboratory and USB/BLE
+supports connection, ATX control, an FDD Laboratory for up to 12 drives (three FDD modules) and USB/BLE
 firmware maintenance. Laboratory motion has been exercised on two physical
 FDDs; see the [firmware limits](docs/FIRMWARE.md#fdd-laboratory).
 

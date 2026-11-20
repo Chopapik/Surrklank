@@ -28,7 +28,7 @@ public:
         return &events[(wanted - 1) % capacity];
     }
 private:
-    fdd::State previous[8];
+    fdd::State previous[fdd::count];
     TimedEvent events[capacity];
 };
 }
